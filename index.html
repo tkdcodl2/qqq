@@ -79,7 +79,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rg
 .ind .v{font-family:'Bebas Neue';font-size:30px;letter-spacing:1px;margin-top:2px}
 .up{color:var(--accent)} .down{color:var(--red)} .neutral{color:var(--gold)}
 
-.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
 .donut-container{position:relative;height:200px}
 .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
 
@@ -93,6 +93,8 @@ tbody tr:hover{background:var(--surface2)}
 .type-badge.buy{color:var(--accent);background:rgba(82,186,136,.12)}
 .type-badge.sell{color:var(--red);background:rgba(224,92,110,.12)}
 .type-badge.div{color:var(--gold);background:rgba(201,168,76,.12)}
+.type-badge.dep{color:var(--accent2);background:rgba(61,137,201,.14)}
+.type-badge.wd{color:var(--muted);background:rgba(107,116,148,.16)}
 .tkr{font-weight:700}
 .icon-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:3px 6px;border-radius:5px}
 .icon-btn:hover{color:var(--text);background:var(--surface2)}
@@ -250,7 +252,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         <tbody id="holdBody"></tbody>
       </table>
     </div>
-    <p class="note" style="margin-top:10px">실현손익은 매도 입력 시 직접 기재한 값의 합계입니다. 현재가는 시장데이터 최신 종가 기준.</p>
+    <p class="note" style="margin-top:10px">현금 잔고 = 입금 − 출금 − 매수금액 + 매도금액 + 배당. 총 자산 = 현재 평가액 + 현금 잔고. 실현손익은 매도 입력 시 기재한 값의 합계이며, 현재가는 시장데이터 최신 종가 기준입니다.</p>
   </section>
 </div>
 
@@ -300,17 +302,18 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     <div class="row2" style="margin-top:14px">
       <div class="field"><label>날짜</label><input id="f_date" type="date"></div>
       <div class="field"><label>구분</label><select id="f_type" onchange="onTypeChange()">
-        <option value="buy">매수</option><option value="sell">매도</option><option value="div">배당</option></select></div>
+        <option value="buy">매수</option><option value="sell">매도</option><option value="div">배당</option>
+        <option value="deposit">입금</option><option value="withdrawal">출금</option></select></div>
     </div>
-    <div class="row2">
+    <div class="row2" id="secRow1">
       <div class="field"><label>종목</label><select id="f_ticker"><option>QQQ</option><option>QLD</option><option>TQQQ</option></select></div>
       <div class="field"><label>수량</label><input id="f_qty" type="number" step="any" oninput="calcAmount()"></div>
     </div>
-    <div class="row2">
+    <div class="row2" id="secRow2">
       <div class="field"><label>단가 ($)</label><input id="f_price" type="number" step="any" oninput="calcAmount()"></div>
       <div class="field"><label>환율 (원/$)</label><input id="f_fx" type="number" step="any" value="1380" oninput="calcAmount()"></div>
     </div>
-    <div class="field"><label>거래금액 (원, 자동계산)</label><input id="f_amount" type="number" readonly></div>
+    <div class="field"><label id="amtLabel">거래금액 (원, 자동계산)</label><input id="f_amount" type="number" readonly></div>
     <div class="field" id="realizedWrap" style="display:none"><label>실현손익 (원, 매도시)</label><input id="f_realized" type="number" value="0"></div>
     <div style="display:flex;gap:10px;margin-top:6px">
       <button class="btn primary" style="flex:1" onclick="submitTrade()">저장</button>
@@ -529,7 +532,16 @@ async function saveSettingsUI(){
 }
 
 /* ===================== 매매이력 ===================== */
-function onTypeChange(){document.getElementById('realizedWrap').style.display=document.getElementById('f_type').value==='sell'?'block':'none';}
+function onTypeChange(){
+  const ty=document.getElementById('f_type').value;
+  const cash=(ty==='deposit'||ty==='withdrawal');
+  document.getElementById('secRow1').style.display=cash?'none':'';
+  document.getElementById('secRow2').style.display=cash?'none':'';
+  document.getElementById('realizedWrap').style.display=ty==='sell'?'block':'none';
+  const amt=document.getElementById('f_amount'); amt.readOnly=!cash;
+  document.getElementById('amtLabel').textContent=cash?'금액 (원)':'거래금액 (원, 자동계산)';
+  if(!cash)calcAmount();
+}
 function calcAmount(){
   const q=parseFloat(document.getElementById('f_qty').value)||0;
   const p=parseFloat(document.getElementById('f_price').value)||0;
@@ -550,14 +562,20 @@ function openTrade(id){
 }
 async function submitTrade(){
   const id=document.getElementById('tradeId').value;
-  const t={date:document.getElementById('f_date').value,ticker:document.getElementById('f_ticker').value,
-    type:document.getElementById('f_type').value,qty:parseFloat(document.getElementById('f_qty').value)||0,
-    price:parseFloat(document.getElementById('f_price').value)||0,fx:parseFloat(document.getElementById('f_fx').value)||0,
-    amount_krw:parseFloat(document.getElementById('f_amount').value)||0,
-    realized:document.getElementById('f_type').value==='sell'?(parseFloat(document.getElementById('f_realized').value)||0):0,
-    account:'기본'};
+  const ty=document.getElementById('f_type').value;
+  const cash=(ty==='deposit'||ty==='withdrawal');
+  const amount=parseFloat(document.getElementById('f_amount').value)||0;
+  const t = cash
+    ? {date:document.getElementById('f_date').value,ticker:'CASH',type:ty,qty:0,price:0,fx:1,amount_krw:amount,realized:0,account:'기본'}
+    : {date:document.getElementById('f_date').value,ticker:document.getElementById('f_ticker').value,type:ty,
+       qty:parseFloat(document.getElementById('f_qty').value)||0,
+       price:parseFloat(document.getElementById('f_price').value)||0,fx:parseFloat(document.getElementById('f_fx').value)||0,
+       amount_krw:amount,
+       realized:ty==='sell'?(parseFloat(document.getElementById('f_realized').value)||0):0,account:'기본'};
   if(id)t.id=isNaN(+id)?id:+id;
-  if(!t.date||!t.qty){flash('날짜와 수량을 입력하세요');return;}
+  if(!t.date){flash('날짜를 입력하세요');return;}
+  if(cash){if(!amount){flash('금액을 입력하세요');return;}}
+  else if(!t.qty){flash('날짜와 수량을 입력하세요');return;}
   await saveTrade(t);
   closeModal('tradeModal');
   await renderTrades();await renderProfit();
@@ -572,14 +590,15 @@ async function editTrade(id){
   document.getElementById('f_amount').value=t.amount_krw;document.getElementById('f_realized').value=t.realized||0;
   onTypeChange();
 }
-const TYPE_LABEL={buy:['매수','buy'],sell:['매도','sell'],div:['배당','div']};
+const TYPE_LABEL={buy:['매수','buy'],sell:['매도','sell'],div:['배당','div'],deposit:['입금','dep'],withdrawal:['출금','wd']};
 async function renderTrades(){
   const ts=await getTrades();const b=document.getElementById('tradeBody');
   if(!ts.length){b.innerHTML='<tr><td colspan="8" class="muted" style="text-align:center;padding:30px">매매 내역이 없습니다. “+ 매매 입력”으로 추가하세요.</td></tr>';return;}
   b.innerHTML=ts.map(t=>{const[lab,cls]=TYPE_LABEL[t.type]||['?',''];
-    return `<tr><td class="mono">${t.date}</td><td class="tkr">${t.ticker}</td>
+    const cash=(t.type==='deposit'||t.type==='withdrawal');
+    return `<tr><td class="mono">${t.date}</td><td class="tkr">${cash?'—':t.ticker}</td>
     <td style="text-align:right"><span class="type-badge ${cls}">${lab}</span></td>
-    <td class="mono">${(+t.qty).toLocaleString()}</td><td class="mono">$${(+t.price).toFixed(2)}</td>
+    <td class="mono">${cash?'—':(+t.qty).toLocaleString()}</td><td class="mono">${cash?'—':'$'+(+t.price).toFixed(2)}</td>
     <td class="mono">${won(t.amount_krw)}</td>
     <td class="mono ${(t.realized||0)>0?'up':(t.realized||0)<0?'down':''}">${t.realized?won(t.realized):'—'}</td>
     <td><button class="icon-btn" onclick="editTrade('${t.id}')">수정</button><button class="icon-btn" onclick="delTrade('${t.id}')">삭제</button></td></tr>`;}).join('');
@@ -591,13 +610,15 @@ async function renderProfit(){
   const last={QQQ:CUR.qqq,QLD:CUR.qld,TQQQ:CUR.tqqq};
   const fxNow=1380;
   const H={}; ['QQQ','QLD','TQQQ'].forEach(k=>H[k]={qty:0,cost:0}); // cost in KRW of remaining (avg)
-  let totalRealized=0, totalDividend=0;
+  let totalRealized=0, totalDividend=0, cash=0;
   // process chronologically
   [...ts].sort((a,b)=>a.date.localeCompare(b.date)).forEach(t=>{
     const k=t.ticker; if(!H[k])H[k]={qty:0,cost:0};
-    if(t.type==='buy'){H[k].qty+=+t.qty;H[k].cost+=+t.amount_krw;}
-    else if(t.type==='sell'){const avg=H[k].qty>0?H[k].cost/H[k].qty:0;H[k].cost-=avg*(+t.qty);H[k].qty-=+t.qty;totalRealized+=(+t.realized||0);}
-    else if(t.type==='div'){totalDividend+=+t.amount_krw;}
+    if(t.type==='buy'){H[k].qty+=+t.qty;H[k].cost+=+t.amount_krw;cash-=+t.amount_krw;}
+    else if(t.type==='sell'){const avg=H[k].qty>0?H[k].cost/H[k].qty:0;H[k].cost-=avg*(+t.qty);H[k].qty-=+t.qty;totalRealized+=(+t.realized||0);cash+=+t.amount_krw;}
+    else if(t.type==='div'){totalDividend+=+t.amount_krw;cash+=+t.amount_krw;}
+    else if(t.type==='deposit'){cash+=+t.amount_krw;}
+    else if(t.type==='withdrawal'){cash-=+t.amount_krw;}
   });
   let invested=0,curVal=0;
   const rows=['QQQ','QLD','TQQQ'].map(k=>{
@@ -615,7 +636,9 @@ async function renderProfit(){
     <td class="mono ${r.pl>=0?'up':'down'}">${pct(r.ret)}</td></tr>`).join('')
     :'<tr><td colspan="8" class="muted" style="text-align:center;padding:24px">보유 종목이 없습니다.</td></tr>';
   const totalPL=curVal-invested;
-  const cards=[['매수 원금',won(invested),''],['현재 평가액',won(curVal),''],
+  const totalAssets=curVal+cash;
+  const cards=[['총 자산',won(totalAssets),''],['매수 원금',won(invested),''],['현재 평가액',won(curVal),''],
+    ['현금 잔고',won(cash),cash<0?'down':''],
     ['평가 손익',won(totalPL),totalPL>=0?'up':'down'],['실현손익+배당',won(totalRealized+totalDividend),(totalRealized+totalDividend)>=0?'up':'down']];
   document.getElementById('profitSummary').innerHTML=cards.map(([l,v,c])=>`<div class="card card-hov ${c==='up'?'green':c==='down'?'red':'blue'}"><div class="label">${l}</div><div class="big-num ${c}">${v}</div>${l==='평가 손익'&&invested>0?`<div class="${c}" style="font-size:13px;margin-top:4px">${pct(totalPL/invested)}</div>`:''}</div>`).join('');
 }
