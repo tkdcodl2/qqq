@@ -1,0 +1,24 @@
+# --- 비밀/로컬 설정 (절대 커밋 금지) ---
+config.js
+.env
+.env.*
+*.local
+
+# --- 의존성 ---
+node_modules/
+
+# --- Supabase 로컬 ---
+.branches
+.temp
+supabase/.temp/
+supabase/.branches/
+
+# --- Vercel ---
+.vercel
+
+# --- OS / 에디터 ---
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/

@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>REGIME · 적응형 레버리지 적립 대시보드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- 선택: 배포 시 config.js 에서 window.APP_CONFIG = {SUPABASE_URL, SUPABASE_ANON_KEY} 설정 -->
+<script src="config.js" onerror="void 0"></script>
+<style>
+:root{
+  --bg:#0e1018; --surface:#141720; --surface2:#1a1e28; --border:#222739;
+  --accent:#52ba88; --accent2:#3d89c9; --red:#e05c6e; --text:#e8ecf4;
+  --muted:#6b7494; --gold:#c9a84c;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:'Inter','Noto Sans KR',sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;position:relative;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(82,186,136,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(82,186,136,.025) 1px,transparent 1px);
+  background-size:40px 40px}
+a{color:inherit;text-decoration:none}
+.wrap{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:0 20px 120px}
+
+/* header */
+header{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(14,16,24,.82);border-bottom:1px solid var(--border)}
+.hbar{max-width:1240px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:18px}
+.logo{font-family:'Bebas Neue';font-size:28px;letter-spacing:3px;color:var(--accent);text-shadow:0 0 18px rgba(82,186,136,.45)}
+.logo span{color:var(--text)}
+.logo small{display:block;font-family:'Inter';font-size:9px;letter-spacing:2px;color:var(--muted);margin-top:-4px}
+.hspace{flex:1}
+.mode-pill{font-size:11px;padding:5px 10px;border-radius:20px;border:1px solid var(--border);color:var(--muted);background:var(--surface2)}
+.mode-pill.live{color:var(--accent);border-color:rgba(82,186,136,.4)}
+.btn-strategy{font-family:'Bebas Neue';letter-spacing:2px;font-size:16px;padding:8px 18px;border-radius:8px;border:1px solid rgba(82,186,136,.45);
+  background:linear-gradient(180deg,rgba(82,186,136,.18),rgba(82,186,136,.06));color:var(--accent);cursor:pointer;transition:.18s}
+.btn-strategy:hover{background:rgba(82,186,136,.28);box-shadow:0 0 18px rgba(82,186,136,.3)}
+
+/* tabs */
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0 18px}
+.tab-btn{font-size:13px;font-weight:600;padding:9px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;transition:.15s}
+.tab-btn:hover{color:var(--text);border-color:#2e3550}
+.tab-btn.active{background:var(--accent);color:#0c0e14;border-color:var(--accent)}
+
+/* cards */
+.card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;overflow:hidden;transition:.18s}
+.card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);opacity:.0}
+.card.green::before{background:linear-gradient(90deg,var(--accent),transparent);opacity:1}
+.card.blue::before{background:linear-gradient(90deg,var(--accent2),transparent);opacity:1}
+.card.red::before{background:linear-gradient(90deg,var(--red),transparent);opacity:1}
+.card.gold::before{background:linear-gradient(90deg,var(--gold),transparent);opacity:1}
+.card-hov:hover{transform:translateY(-2px);border-color:#2e3550}
+.grid{display:grid;gap:16px}
+.section-title{font-family:'Bebas Neue';letter-spacing:2px;font-size:20px;color:var(--text);margin:6px 0 12px;display:flex;align-items:center;gap:10px}
+.section-title .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+.muted{color:var(--muted)}
+.label{font-size:11px;letter-spacing:.5px;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+.big-num{font-family:'Bebas Neue';font-size:42px;line-height:1;letter-spacing:1px}
+.mono{font-variant-numeric:tabular-nums}
+
+/* state hero */
+.hero{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
+.state-box{display:flex;flex-direction:column;justify-content:center;gap:10px;min-height:200px}
+.state-name{font-family:'Bebas Neue';font-size:54px;letter-spacing:2px;line-height:.95}
+.state-sub{font-size:14px;color:var(--muted);max-width:90%}
+.gauge-row{display:flex;gap:6px;margin-top:6px}
+.gpip{flex:1;height:7px;border-radius:4px;background:var(--surface2);border:1px solid var(--border)}
+.reco-box{display:flex;flex-direction:column;gap:14px;justify-content:center}
+.reco-ticker{font-family:'Bebas Neue';font-size:64px;letter-spacing:2px;line-height:.9}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--border)}
+.pill.buy{color:var(--accent);border-color:rgba(82,186,136,.4);background:rgba(82,186,136,.1)}
+
+/* indicator grid */
+.ind-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.ind{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px}
+.ind .v{font-family:'Bebas Neue';font-size:30px;letter-spacing:1px;margin-top:2px}
+.up{color:var(--accent)} .down{color:var(--red)} .neutral{color:var(--gold)}
+
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.donut-container{position:relative;height:200px}
+.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+
+/* table */
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{position:sticky;top:0;background:var(--surface2);color:var(--muted);font-weight:600;font-size:11px;letter-spacing:.5px;text-transform:uppercase;text-align:right;padding:10px 12px;border-bottom:1px solid var(--border)}
+thead th:first-child,tbody td:first-child{text-align:left}
+tbody td{text-align:right;padding:11px 12px;border-bottom:1px solid var(--border);font-variant-numeric:tabular-nums}
+tbody tr:hover{background:var(--surface2)}
+.type-badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:6px}
+.type-badge.buy{color:var(--accent);background:rgba(82,186,136,.12)}
+.type-badge.sell{color:var(--red);background:rgba(224,92,110,.12)}
+.type-badge.div{color:var(--gold);background:rgba(201,168,76,.12)}
+.tkr{font-weight:700}
+.icon-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:3px 6px;border-radius:5px}
+.icon-btn:hover{color:var(--text);background:var(--surface2)}
+
+/* forms */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+input,select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 12px;font-size:14px;font-family:inherit}
+input:focus,select:focus{outline:none;border-color:var(--accent)}
+.btn{font-weight:600;font-size:14px;padding:11px 20px;border-radius:8px;border:none;cursor:pointer;transition:.15s}
+.btn.primary{background:var(--accent);color:#0c0e14}
+.btn.primary:hover{box-shadow:0 0 18px rgba(82,186,136,.4)}
+.btn.ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+/* modal */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;max-width:780px;width:100%;padding:28px}
+.modal h2{font-family:'Bebas Neue';font-size:30px;letter-spacing:2px;margin-bottom:4px}
+.modal .close{float:right;font-size:22px;color:var(--muted);cursor:pointer;line-height:1}
+.regime-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px}
+.regime-card .h{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.chip{font-family:'Bebas Neue';font-size:15px;letter-spacing:1px;padding:3px 10px;border-radius:6px;background:rgba(82,186,136,.12);color:var(--accent)}
+.wbar{display:flex;height:22px;border-radius:6px;overflow:hidden;border:1px solid var(--border);margin-top:8px;font-size:11px}
+.wbar div{display:flex;align-items:center;justify-content:center;color:#0c0e14;font-weight:700}
+.note{font-size:12px;color:var(--muted);line-height:1.6}
+.disclaim{font-size:11px;color:var(--muted);line-height:1.6;border-top:1px solid var(--border);margin-top:18px;padding-top:14px}
+.hidden{display:none!important}
+
+/* mobile */
+.mobile-tabbar{display:none}
+@media(max-width:860px){
+  .hero{grid-template-columns:1fr}
+  .ind-grid{grid-template-columns:repeat(2,1fr)}
+  .summary-grid{grid-template-columns:repeat(2,1fr)}
+  .row3{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .tabs{display:none}
+  .mobile-tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:60;background:rgba(20,23,32,.96);backdrop-filter:blur(12px);border-top:1px solid var(--border);padding:6px}
+  .mobile-tabbar button{flex:1;background:none;border:none;color:var(--muted);font-size:10px;padding:8px 2px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+  .mobile-tabbar button.active{color:var(--accent)}
+  .mobile-tabbar .ic{font-size:17px}
+  .big-num{font-size:34px}.state-name{font-size:42px}.reco-ticker{font-size:52px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="hbar">
+    <div class="logo">RE<span>GIME</span><small>ADAPTIVE DCA</small></div>
+    <div class="hspace"></div>
+    <span id="modePill" class="mode-pill">데모 모드</span>
+    <button class="btn-strategy" onclick="openStrategy()">전략</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="dash" onclick="switchTab('dash')">대시보드</button>
+    <button class="tab-btn" data-tab="setup" onclick="switchTab('setup')">적립설정</button>
+    <button class="tab-btn" data-tab="trades" onclick="switchTab('trades')">매매이력</button>
+    <button class="tab-btn" data-tab="profit" onclick="switchTab('profit')">수익분석</button>
+  </div>
+
+  <!-- ===== DASHBOARD ===== -->
+  <section id="tab-dash">
+    <div class="hero">
+      <div class="card green card-hov state-box" id="stateCard">
+        <div class="label">현재 시장 레짐 · <span id="stateDate" class="mono"></span></div>
+        <div class="state-name" id="stateName">—</div>
+        <div class="state-sub" id="stateSub"></div>
+        <div class="gauge-row" id="gaugeRow"></div>
+      </div>
+      <div class="card blue card-hov reco-box" id="recoCard">
+        <div class="label">오늘 매수 추천 종목</div>
+        <div class="reco-ticker" id="recoTicker">—</div>
+        <div><span class="pill buy" id="recoCadence"></span></div>
+        <div class="state-sub" id="recoReason"></div>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:24px"><span class="dot"></span>핵심 지표</div>
+    <div class="ind-grid" id="indGrid"></div>
+
+    <div class="grid" style="grid-template-columns:1.4fr 1fr;margin-top:20px;gap:16px" id="chartRow">
+      <div class="card">
+        <div class="section-title"><span class="dot"></span>QQQ 가격 · 200일선 · 레짐</div>
+        <div style="height:300px"><canvas id="priceChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="section-title"><span class="dot"></span>목표 비중</div>
+        <div class="donut-container"><canvas id="allocChart"></canvas>
+          <div class="donut-center"><div class="label">레짐 목표</div><div class="big-num" id="allocLabel"></div></div>
+        </div>
+        <div id="allocLegend" style="margin-top:10px;font-size:12px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SETUP ===== -->
+  <section id="tab-setup" class="hidden">
+    <div class="section-title"><span class="dot"></span>적립 설정</div>
+    <div class="grid" style="grid-template-columns:1fr 1fr;gap:16px">
+      <div class="card">
+        <div class="field">
+          <label>적립 주기</label>
+          <select id="cadenceSel" onchange="onCadenceChange()">
+            <option value="매일">매일 (Daily)</option>
+            <option value="매주">매주 (Weekly)</option>
+            <option value="매월" selected>매월 (Monthly)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>1회 적립금액 (원)</label>
+          <input id="contribInput" type="number" value="500000" onchange="saveSettingsUI()">
+        </div>
+        <button class="btn primary" onclick="saveSettingsUI()">설정 저장</button>
+        <p class="note" style="margin-top:12px">설정은 Supabase <code>settings</code> 테이블에 저장됩니다(데모 모드에서는 메모리).</p>
+      </div>
+      <div class="card gold">
+        <div class="section-title"><span class="dot"></span><span id="cadTitle">매월</span> 주기 권장 전략</div>
+        <div id="cadNote" class="note"></div>
+        <div style="margin-top:14px" class="label">이 주기 백테스트 (1999–2026)</div>
+        <table style="margin-top:6px"><thead><tr><th>전략</th><th>배수</th><th>MDD</th><th>IRR</th></tr></thead>
+        <tbody id="cadTable"></tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TRADES ===== -->
+  <section id="tab-trades" class="hidden">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="section-title" style="margin:0"><span class="dot"></span>매매 이력</div>
+      <div class="hspace" style="flex:1"></div>
+      <button class="btn primary" onclick="openTrade()">+ 매매 입력</button>
+    </div>
+    <div class="card" style="margin-top:14px;padding:0;overflow-x:auto">
+      <table>
+        <thead><tr><th>날짜</th><th>종목</th><th>구분</th><th>수량</th><th>단가</th><th>금액(원)</th><th>실현손익</th><th></th></tr></thead>
+        <tbody id="tradeBody"><tr><td colspan="8" class="muted" style="text-align:center;padding:30px">매매 내역이 없습니다.</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== PROFIT ===== -->
+  <section id="tab-profit" class="hidden">
+    <div class="section-title"><span class="dot"></span>수익 분석</div>
+    <div class="summary-grid" id="profitSummary"></div>
+    <div class="card" style="margin-top:18px;padding:0;overflow-x:auto">
+      <table>
+        <thead><tr><th>종목</th><th>보유수량</th><th>평균단가</th><th>현재가</th><th>평가금액(원)</th><th>매수원금</th><th>평가손익</th><th>수익률</th></tr></thead>
+        <tbody id="holdBody"></tbody>
+      </table>
+    </div>
+    <p class="note" style="margin-top:10px">실현손익은 매도 입력 시 직접 기재한 값의 합계입니다. 현재가는 시장데이터 최신 종가 기준.</p>
+  </section>
+</div>
+
+<div class="mobile-tabbar" id="mtab">
+  <button class="active" data-tab="dash" onclick="switchTab('dash')"><span class="ic">◎</span>대시보드</button>
+  <button data-tab="setup" onclick="switchTab('setup')"><span class="ic">⚙</span>적립설정</button>
+  <button data-tab="trades" onclick="switchTab('trades')"><span class="ic">≣</span>매매이력</button>
+  <button data-tab="profit" onclick="switchTab('profit')"><span class="ic">▲</span>수익분석</button>
+</div>
+
+<!-- ===== STRATEGY MODAL ===== -->
+<div class="modal-overlay" id="strategyModal">
+  <div class="modal">
+    <span class="close" onclick="closeModal('strategyModal')">&times;</span>
+    <h2>적응형 레짐 배분 전략</h2>
+    <p class="note" style="margin-bottom:16px">QQQ·QLD·TQQQ를 시장 국면(레짐)에 따라 갈아타며 적립합니다. 핵심 신호는 <b>QQQ 200일 이동평균선</b>입니다. 레버리지 ETF의 치명적 하락(-90% 이상)은 거의 전부 200일선 아래에서 발생하므로, 200일선을 레버리지 ON/OFF 스위치로 사용합니다.</p>
+
+    <div class="section-title" style="font-size:16px"><span class="dot"></span>5가지 레짐과 대응</div>
+    <div id="modalRegimes"></div>
+
+    <div class="section-title" style="font-size:16px;margin-top:18px"><span class="dot"></span>비중 조절(매도 포함) 방식</div>
+    <p class="note">레짐이 <b>바뀌는 날</b>, 기존 보유분을 해당 레짐의 목표 비중으로 리밸런싱합니다. 예: 과열↗ 판단 시 TQQQ를 일부 <b>매도</b>해 QLD·QQQ로 이동, 하락추세 진입 시 레버리지를 전량 정리하고 QQQ로 회피. 매 주기 신규 적립금은 그 레짐의 1순위 종목을 매수합니다. (거래비용 0.05% 반영)</p>
+
+    <div class="section-title" style="font-size:16px;margin-top:18px"><span class="dot"></span>백테스트 결과 (매월 적립, 1999.12–2026.06, 원금 $31,900)</div>
+    <table>
+      <thead><tr><th>전략</th><th>최종평가</th><th>배수</th><th>MDD</th><th>IRR(연)</th></tr></thead>
+      <tbody>
+        <tr><td class="tkr up">★ 적응형</td><td class="mono">$7,745,339</td><td class="mono">242.8x</td><td class="mono neutral">-66.6%</td><td class="mono up">32.7%</td></tr>
+        <tr><td>QQQ 단독</td><td class="mono">$403,733</td><td class="mono">12.66x</td><td class="mono">-48.0%</td><td class="mono">16.0%</td></tr>
+        <tr><td>QLD 단독</td><td class="mono">$2,166,285</td><td class="mono">67.9x</td><td class="mono down">-79.4%</td><td class="mono">25.4%</td></tr>
+        <tr><td>TQQQ 단독</td><td class="mono">$6,559,924</td><td class="mono">205.6x</td><td class="mono down">-92.8%</td><td class="mono">31.8%</td></tr>
+        <tr><td>균등 3분할</td><td class="mono">$3,043,314</td><td class="mono">95.4x</td><td class="mono down">-76.6%</td><td class="mono">27.4%</td></tr>
+      </tbody>
+    </table>
+    <p class="note" style="margin-top:10px">검증 구간은 닷컴버블(-83%)·금융위기(-54%)·실제 TQQQ(2010–19)에 더해 <b>2020 코로나 폭락·2022 약세장(QQQ -33%·TQQQ -80%대)·2025 4월 급락</b>까지 한 사이클 전체를 포함합니다. 전체 기간 기준 적응형은 <b>TQQQ 단독과 비슷하거나 더 높은 연수익(32.7% vs 31.8%)을 −66.6% 낙폭으로</b> 달성합니다(TQQQ는 −92.8%). 즉 자산이 커진 뒤의 폭락을 회피하는 효과가 장기 사이클에서 누적됩니다(03–07 적립 후 08위기: 적응형 0.73x vs TQQQ 0.27x / 21고점~22약세장: 적응형 −32.7% vs TQQQ −61.5%).</p>
+
+    <div class="disclaim">⚠️ 본 자료는 과거 데이터 기반 시뮬레이션이며 투자 조언이 아닙니다. 백테스트 구간은 1999–2026 전체로 2020·2022·2025 하락을 포함합니다(1999–2019는 실제 QQQ, 2019–2026은 NASDAQ-100 Total Return 수익률로 연결). 과거 성과가 미래를 보장하지 않으며, 레버리지 ETF는 변동성 끌림(decay)과 -90% 이상의 실제 손실 위험이 있습니다. 모든 투자 책임은 본인에게 있습니다.</div>
+  </div>
+</div>
+
+<!-- ===== TRADE MODAL ===== -->
+<div class="modal-overlay" id="tradeModal">
+  <div class="modal" style="max-width:520px">
+    <span class="close" onclick="closeModal('tradeModal')">&times;</span>
+    <h2 id="tradeModalTitle">매매 입력</h2>
+    <input type="hidden" id="tradeId">
+    <div class="row2" style="margin-top:14px">
+      <div class="field"><label>날짜</label><input id="f_date" type="date"></div>
+      <div class="field"><label>구분</label><select id="f_type" onchange="onTypeChange()">
+        <option value="buy">매수</option><option value="sell">매도</option><option value="div">배당</option></select></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>종목</label><select id="f_ticker"><option>QQQ</option><option>QLD</option><option>TQQQ</option></select></div>
+      <div class="field"><label>수량</label><input id="f_qty" type="number" step="any" oninput="calcAmount()"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>단가 ($)</label><input id="f_price" type="number" step="any" oninput="calcAmount()"></div>
+      <div class="field"><label>환율 (원/$)</label><input id="f_fx" type="number" step="any" value="1380" oninput="calcAmount()"></div>
+    </div>
+    <div class="field"><label>거래금액 (원, 자동계산)</label><input id="f_amount" type="number" readonly></div>
+    <div class="field" id="realizedWrap" style="display:none"><label>실현손익 (원, 매도시)</label><input id="f_realized" type="number" value="0"></div>
+    <div style="display:flex;gap:10px;margin-top:6px">
+      <button class="btn primary" style="flex:1" onclick="submitTrade()">저장</button>
+      <button class="btn ghost" onclick="closeModal('tradeModal')">취소</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===================== 설정 / 데이터 소스 ===================== */
+const CFG = window.APP_CONFIG || {};
+const DEMO_MARKET = [{"d":"2024-10-01","q":566.66,"l":85.18,"t":41.09},{"d":"2024-10-02","q":567.48,"l":85.42,"t":41.26},{"d":"2024-10-03","q":568.74,"l":85.8,"t":41.53},{"d":"2024-10-04","q":569.19,"l":85.93,"t":41.63},{"d":"2024-10-07","q":570.25,"l":86.24,"t":41.86},{"d":"2024-10-08","q":569.72,"l":86.07,"t":41.73},{"d":"2024-10-09","q":572.37,"l":86.87,"t":42.31},{"d":"2024-10-10","q":571.82,"l":86.69,"t":42.18},{"d":"2024-10-11","q":574.31,"l":87.44,"t":42.73},{"d":"2024-10-14","q":573.83,"l":87.29,"t":42.62},{"d":"2024-10-15","q":575.81,"l":87.88,"t":43.06},{"d":"2024-10-16","q":576.46,"l":88.08,"t":43.2},{"d":"2024-10-17","q":580.17,"l":89.2,"t":44.03},{"d":"2024-10-18","q":580.38,"l":89.26,"t":44.07},{"d":"2024-10-21","q":581.7,"l":89.66,"t":44.36},{"d":"2024-10-22","q":582.81,"l":90.0,"t":44.61},{"d":"2024-10-23","q":582.22,"l":89.81,"t":44.47},{"d":"2024-10-24","q":583.88,"l":90.31,"t":44.85},{"d":"2024-10-25","q":585.5,"l":90.81,"t":45.22},{"d":"2024-10-28","q":584.19,"l":90.39,"t":44.91},{"d":"2024-10-29","q":583.78,"l":90.26,"t":44.81},{"d":"2024-10-30","q":585.69,"l":90.84,"t":45.24},{"d":"2024-10-31","q":585.38,"l":90.74,"t":45.17},{"d":"2024-11-01","q":585.57,"l":90.79,"t":45.2},{"d":"2024-11-04","q":587.19,"l":91.29,"t":45.57},{"d":"2024-11-05","q":587.4,"l":91.34,"t":45.62},{"d":"2024-11-06","q":587.39,"l":91.33,"t":45.61},{"d":"2024-11-07","q":590.79,"l":92.38,"t":46.4},{"d":"2024-11-08","q":591.58,"l":92.62,"t":46.58},{"d":"2024-11-11","q":592.88,"l":93.02,"t":46.88},{"d":"2024-11-12","q":594.72,"l":93.6,"t":47.31},{"d":"2024-11-13","q":597.81,"l":94.56,"t":48.04},{"d":"2024-11-14","q":599.97,"l":95.24,"t":48.56},{"d":"2024-11-15","q":602.38,"l":95.99,"t":49.14},{"d":"2024-11-18","q":602.12,"l":95.9,"t":49.07},{"d":"2024-11-19","q":603.49,"l":96.33,"t":49.4},{"d":"2024-11-20","q":607.54,"l":97.62,"t":50.39},{"d":"2024-11-21","q":607.37,"l":97.56,"t":50.34},{"d":"2024-11-22","q":608.87,"l":98.03,"t":50.71},{"d":"2024-11-25","q":609.76,"l":98.31,"t":50.92},{"d":"2024-11-26","q":610.29,"l":98.47,"t":51.05},{"d":"2024-11-27","q":609.93,"l":98.35,"t":50.96},{"d":"2024-11-28","q":610.54,"l":98.54,"t":51.1},{"d":"2024-11-29","q":610.24,"l":98.43,"t":51.02},{"d":"2024-12-02","q":610.99,"l":98.67,"t":51.2},{"d":"2024-12-03","q":613.13,"l":99.35,"t":51.74},{"d":"2024-12-04","q":613.79,"l":99.56,"t":51.9},{"d":"2024-12-05","q":613.29,"l":99.39,"t":51.76},{"d":"2024-12-06","q":611.21,"l":98.71,"t":51.23},{"d":"2024-12-09","q":612.19,"l":99.02,"t":51.47},{"d":"2024-12-10","q":613.28,"l":99.36,"t":51.74},{"d":"2024-12-11","q":614.54,"l":99.76,"t":52.05},{"d":"2024-12-12","q":614.67,"l":99.8,"t":52.08},{"d":"2024-12-13","q":616.52,"l":100.39,"t":52.55},{"d":"2024-12-16","q":617.38,"l":100.66,"t":52.76},{"d":"2024-12-17","q":617.91,"l":100.83,"t":52.89},{"d":"2024-12-18","q":620.09,"l":101.53,"t":53.44},{"d":"2024-12-19","q":619.89,"l":101.46,"t":53.39},{"d":"2024-12-20","q":621.39,"l":101.94,"t":53.77},{"d":"2024-12-23","q":622.75,"l":102.38,"t":54.11},{"d":"2024-12-24","q":624.17,"l":102.84,"t":54.48},{"d":"2024-12-25","q":625.42,"l":103.24,"t":54.8},{"d":"2024-12-26","q":625.86,"l":103.38,"t":54.91},{"d":"2024-12-27","q":626.5,"l":103.58,"t":55.07},{"d":"2024-12-30","q":626.29,"l":103.5,"t":55.01},{"d":"2024-12-31","q":627.11,"l":103.77,"t":55.22},{"d":"2025-01-01","q":626.79,"l":103.65,"t":55.13},{"d":"2025-01-02","q":624.72,"l":102.96,"t":54.58},{"d":"2025-01-03","q":625.46,"l":103.2,"t":54.76},{"d":"2025-01-06","q":624.55,"l":102.89,"t":54.52},{"d":"2025-01-07","q":624.41,"l":102.83,"t":54.48},{"d":"2025-01-08","q":622.97,"l":102.35,"t":54.09},{"d":"2025-01-09","q":623.13,"l":102.4,"t":54.13},{"d":"2025-01-10","q":622.97,"l":102.34,"t":54.08},{"d":"2025-01-13","q":622.78,"l":102.27,"t":54.03},{"d":"2025-01-14","q":623.31,"l":102.43,"t":54.16},{"d":"2025-01-15","q":622.57,"l":102.18,"t":53.96},{"d":"2025-01-16","q":622.84,"l":102.26,"t":54.02},{"d":"2025-01-17","q":625.05,"l":102.98,"t":54.59},{"d":"2025-01-20","q":624.25,"l":102.71,"t":54.38},{"d":"2025-01-21","q":622.2,"l":102.03,"t":53.83},{"d":"2025-01-22","q":622.44,"l":102.1,"t":53.89},{"d":"2025-01-23","q":621.4,"l":101.75,"t":53.61},{"d":"2025-01-24","q":622.81,"l":102.2,"t":53.97},{"d":"2025-01-27","q":624.6,"l":102.78,"t":54.43},{"d":"2025-01-28","q":625.53,"l":103.08,"t":54.67},{"d":"2025-01-29","q":626.78,"l":103.48,"t":54.99},{"d":"2025-01-30","q":625.79,"l":103.15,"t":54.72},{"d":"2025-01-31","q":625.03,"l":102.89,"t":54.52},{"d":"2025-02-03","q":625.15,"l":102.92,"t":54.54},{"d":"2025-02-04","q":625.56,"l":103.05,"t":54.65},{"d":"2025-02-05","q":623.86,"l":102.48,"t":54.19},{"d":"2025-02-06","q":624.79,"l":102.78,"t":54.43},{"d":"2025-02-07","q":623.5,"l":102.35,"t":54.09},{"d":"2025-02-10","q":623.82,"l":102.44,"t":54.16},{"d":"2025-02-11","q":625.02,"l":102.83,"t":54.47},{"d":"2025-02-12","q":624.89,"l":102.78,"t":54.43},{"d":"2025-02-13","q":624.28,"l":102.57,"t":54.26},{"d":"2025-02-14","q":622.78,"l":102.07,"t":53.87},{"d":"2025-02-17","q":620.94,"l":101.46,"t":53.38},{"d":"2025-02-18","q":620.99,"l":101.47,"t":53.39},{"d":"2025-02-19","q":619.46,"l":100.96,"t":52.99},{"d":"2025-02-20","q":618.86,"l":100.76,"t":52.83},{"d":"2025-02-21","q":618.58,"l":100.66,"t":52.75},{"d":"2025-02-24","q":615.83,"l":99.75,"t":52.04},{"d":"2025-02-25","q":614.75,"l":99.4,"t":51.76},{"d":"2025-02-26","q":615.26,"l":99.55,"t":51.89},{"d":"2025-02-27","q":615.88,"l":99.75,"t":52.04},{"d":"2025-02-28","q":617.94,"l":100.41,"t":52.55},{"d":"2025-03-03","q":617.23,"l":100.17,"t":52.37},{"d":"2025-03-04","q":617.34,"l":100.2,"t":52.39},{"d":"2025-03-05","q":616.64,"l":99.96,"t":52.2},{"d":"2025-03-06","q":617.52,"l":100.24,"t":52.42},{"d":"2025-03-07","q":618.14,"l":100.43,"t":52.57},{"d":"2025-03-10","q":616.67,"l":99.95,"t":52.19},{"d":"2025-03-11","q":619.27,"l":100.78,"t":52.85},{"d":"2025-03-12","q":618.93,"l":100.66,"t":52.75},{"d":"2025-03-13","q":619.65,"l":100.89,"t":52.93},{"d":"2025-03-14","q":620.74,"l":101.24,"t":53.21},{"d":"2025-03-17","q":618.68,"l":100.56,"t":52.67},{"d":"2025-03-18","q":618.78,"l":100.58,"t":52.69},{"d":"2025-03-19","q":620.28,"l":101.06,"t":53.07},{"d":"2025-03-20","q":621.04,"l":101.3,"t":53.26},{"d":"2025-03-21","q":619.94,"l":100.94,"t":52.97},{"d":"2025-03-24","q":622.16,"l":101.65,"t":53.53},{"d":"2025-03-25","q":622.66,"l":101.81,"t":53.65},{"d":"2025-03-26","q":620.4,"l":101.06,"t":53.06},{"d":"2025-03-27","q":622.04,"l":101.59,"t":53.48},{"d":"2025-03-28","q":626.26,"l":102.96,"t":54.56},{"d":"2025-03-31","q":625.63,"l":102.74,"t":54.39},{"d":"2025-04-01","q":626.58,"l":103.05,"t":54.63},{"d":"2025-04-02","q":627.06,"l":103.2,"t":54.75},{"d":"2025-04-03","q":627.47,"l":103.32,"t":54.85},{"d":"2025-04-04","q":628.19,"l":103.55,"t":55.03},{"d":"2025-04-07","q":627.73,"l":103.39,"t":54.91},{"d":"2025-04-08","q":630.54,"l":104.31,"t":55.64},{"d":"2025-04-09","q":629.04,"l":103.81,"t":55.23},{"d":"2025-04-10","q":629.68,"l":104.01,"t":55.4},{"d":"2025-04-11","q":632.33,"l":104.88,"t":56.09},{"d":"2025-04-14","q":632.07,"l":104.78,"t":56.01},{"d":"2025-04-15","q":632.18,"l":104.81,"t":56.04},{"d":"2025-04-16","q":630.08,"l":104.11,"t":55.47},{"d":"2025-04-17","q":631.0,"l":104.4,"t":55.71},{"d":"2025-04-18","q":631.27,"l":104.48,"t":55.78},{"d":"2025-04-21","q":632.01,"l":104.72,"t":55.96},{"d":"2025-04-22","q":629.47,"l":103.87,"t":55.28},{"d":"2025-04-23","q":628.83,"l":103.65,"t":55.11},{"d":"2025-04-24","q":629.13,"l":103.74,"t":55.18},{"d":"2025-04-25","q":631.91,"l":104.65,"t":55.91},{"d":"2025-04-28","q":632.97,"l":104.99,"t":56.18},{"d":"2025-04-29","q":632.79,"l":104.93,"t":56.13},{"d":"2025-04-30","q":633.95,"l":105.3,"t":56.43},{"d":"2025-05-01","q":634.68,"l":105.54,"t":56.62},{"d":"2025-05-02","q":634.06,"l":105.32,"t":56.45},{"d":"2025-05-05","q":636.22,"l":106.03,"t":57.02},{"d":"2025-05-06","q":638.16,"l":106.67,"t":57.53},{"d":"2025-05-07","q":638.66,"l":106.83,"t":57.66},{"d":"2025-05-08","q":641.11,"l":107.64,"t":58.32},{"d":"2025-05-09","q":644.1,"l":108.64,"t":59.13},{"d":"2025-05-12","q":645.62,"l":109.14,"t":59.54},{"d":"2025-05-13","q":647.0,"l":109.6,"t":59.91},{"d":"2025-05-14","q":646.67,"l":109.48,"t":59.82},{"d":"2025-05-15","q":647.14,"l":109.63,"t":59.94},{"d":"2025-05-16","q":649.37,"l":110.38,"t":60.55},{"d":"2025-05-19","q":651.4,"l":111.06,"t":61.11},{"d":"2025-05-20","q":650.17,"l":110.63,"t":60.76},{"d":"2025-05-21","q":652.1,"l":111.28,"t":61.29},{"d":"2025-05-22","q":653.48,"l":111.74,"t":61.68},{"d":"2025-05-23","q":650.89,"l":110.85,"t":60.94},{"d":"2025-05-26","q":649.93,"l":110.51,"t":60.66},{"d":"2025-05-27","q":652.35,"l":111.33,"t":61.33},{"d":"2025-05-28","q":650.51,"l":110.69,"t":60.81},{"d":"2025-05-29","q":649.07,"l":110.19,"t":60.39},{"d":"2025-05-30","q":646.24,"l":109.22,"t":59.6},{"d":"2025-06-02","q":647.7,"l":109.71,"t":59.99},{"d":"2025-06-03","q":647.02,"l":109.47,"t":59.8},{"d":"2025-06-04","q":645.64,"l":108.99,"t":59.41},{"d":"2025-06-05","q":644.7,"l":108.67,"t":59.14},{"d":"2025-06-06","q":643.43,"l":108.23,"t":58.79},{"d":"2025-06-09","q":643.42,"l":108.22,"t":58.78},{"d":"2025-06-10","q":644.58,"l":108.6,"t":59.09},{"d":"2025-06-11","q":643.24,"l":108.14,"t":58.71},{"d":"2025-06-12","q":640.69,"l":107.27,"t":58.01},{"d":"2025-06-13","q":641.37,"l":107.49,"t":58.19},{"d":"2025-06-16","q":641.29,"l":107.46,"t":58.16},{"d":"2025-06-17","q":639.21,"l":106.75,"t":57.59},{"d":"2025-06-18","q":641.95,"l":107.66,"t":58.32},{"d":"2025-06-19","q":641.55,"l":107.52,"t":58.21},{"d":"2025-06-20","q":640.22,"l":107.06,"t":57.84},{"d":"2025-06-23","q":638.67,"l":106.54,"t":57.41},{"d":"2025-06-24","q":639.23,"l":106.72,"t":57.55},{"d":"2025-06-25","q":640.22,"l":107.04,"t":57.82},{"d":"2025-06-26","q":639.81,"l":106.89,"t":57.7},{"d":"2025-06-27","q":638.45,"l":106.43,"t":57.32},{"d":"2025-06-30","q":638.75,"l":106.52,"t":57.4},{"d":"2025-07-01","q":637.99,"l":106.26,"t":57.19},{"d":"2025-07-02","q":637.29,"l":106.02,"t":56.99},{"d":"2025-07-03","q":638.19,"l":106.31,"t":57.23},{"d":"2025-07-04","q":638.08,"l":106.27,"t":57.19},{"d":"2025-07-07","q":638.39,"l":106.36,"t":57.27},{"d":"2025-07-08","q":637.92,"l":106.2,"t":57.13},{"d":"2025-07-09","q":637.47,"l":106.04,"t":57.01},{"d":"2025-07-10","q":634.69,"l":105.1,"t":56.25},{"d":"2025-07-11","q":634.83,"l":105.14,"t":56.29},{"d":"2025-07-14","q":635.4,"l":105.32,"t":56.43},{"d":"2025-07-15","q":633.12,"l":104.56,"t":55.82},{"d":"2025-07-16","q":631.68,"l":104.08,"t":55.43},{"d":"2025-07-17","q":631.2,"l":103.91,"t":55.3},{"d":"2025-07-18","q":629.12,"l":103.22,"t":54.74},{"d":"2025-07-21","q":628.73,"l":103.08,"t":54.64},{"d":"2025-07-22","q":627.59,"l":102.7,"t":54.33},{"d":"2025-07-23","q":622.5,"l":101.03,"t":53.01},{"d":"2025-07-24","q":621.07,"l":100.55,"t":52.63},{"d":"2025-07-25","q":619.36,"l":99.99,"t":52.19},{"d":"2025-07-28","q":616.23,"l":98.97,"t":51.4},{"d":"2025-07-29","q":613.39,"l":98.05,"t":50.68},{"d":"2025-07-30","q":612.62,"l":97.8,"t":50.48},{"d":"2025-07-31","q":610.3,"l":97.05,"t":49.9},{"d":"2025-08-01","q":607.94,"l":96.29,"t":49.32},{"d":"2025-08-04","q":605.83,"l":95.62,"t":48.8},{"d":"2025-08-05","q":604.2,"l":95.1,"t":48.4},{"d":"2025-08-06","q":603.42,"l":94.84,"t":48.21},{"d":"2025-08-07","q":599.17,"l":93.5,"t":47.18},{"d":"2025-08-08","q":595.69,"l":92.41,"t":46.36},{"d":"2025-08-11","q":593.34,"l":91.67,"t":45.8},{"d":"2025-08-12","q":590.06,"l":90.65,"t":45.04},{"d":"2025-08-13","q":590.07,"l":90.65,"t":45.04},{"d":"2025-08-14","q":588.91,"l":90.28,"t":44.76},{"d":"2025-08-15","q":587.87,"l":89.96,"t":44.52},{"d":"2025-08-18","q":585.41,"l":89.2,"t":43.96},{"d":"2025-08-19","q":582.79,"l":88.39,"t":43.36},{"d":"2025-08-20","q":579.74,"l":87.46,"t":42.68},{"d":"2025-08-21","q":577.37,"l":86.74,"t":42.15},{"d":"2025-08-22","q":575.88,"l":86.28,"t":41.82},{"d":"2025-08-25","q":574.61,"l":85.9,"t":41.54},{"d":"2025-08-26","q":572.82,"l":85.35,"t":41.14},{"d":"2025-08-27","q":570.52,"l":84.66,"t":40.64},{"d":"2025-08-28","q":571.7,"l":85.01,"t":40.89},{"d":"2025-08-29","q":570.26,"l":84.57,"t":40.58},{"d":"2025-09-01","q":566.68,"l":83.5,"t":39.81},{"d":"2025-09-02","q":565.73,"l":83.22,"t":39.6},{"d":"2025-09-03","q":565.18,"l":83.05,"t":39.48},{"d":"2025-09-04","q":561.6,"l":81.99,"t":38.73},{"d":"2025-09-05","q":559.95,"l":81.5,"t":38.38},{"d":"2025-09-08","q":558.08,"l":80.95,"t":37.99},{"d":"2025-09-09","q":557.75,"l":80.85,"t":37.92},{"d":"2025-09-10","q":555.13,"l":80.08,"t":37.38},{"d":"2025-09-11","q":551.82,"l":79.12,"t":36.71},{"d":"2025-09-12","q":547.42,"l":77.85,"t":35.83},{"d":"2025-09-15","q":546.68,"l":77.64,"t":35.68},{"d":"2025-09-16","q":542.57,"l":76.46,"t":34.87},{"d":"2025-09-17","q":540.98,"l":76.01,"t":34.56},{"d":"2025-09-18","q":538.58,"l":75.33,"t":34.1},{"d":"2025-09-19","q":536.77,"l":74.82,"t":33.75},{"d":"2025-09-22","q":535.17,"l":74.37,"t":33.44},{"d":"2025-09-23","q":534.4,"l":74.15,"t":33.3},{"d":"2025-09-24","q":532.73,"l":73.68,"t":32.98},{"d":"2025-09-25","q":531.13,"l":73.23,"t":32.68},{"d":"2025-09-26","q":528.56,"l":72.51,"t":32.2},{"d":"2025-09-29","q":526.26,"l":71.88,"t":31.78},{"d":"2025-09-30","q":523.08,"l":71.0,"t":31.2},{"d":"2025-10-01","q":525.84,"l":71.75,"t":31.69},{"d":"2025-10-02","q":526.79,"l":72.0,"t":31.86},{"d":"2025-10-03","q":528.02,"l":72.33,"t":32.07},{"d":"2025-10-06","q":530.58,"l":73.03,"t":32.54},{"d":"2025-10-07","q":533.21,"l":73.75,"t":33.02},{"d":"2025-10-08","q":534.38,"l":74.06,"t":33.23},{"d":"2025-10-09","q":534.96,"l":74.22,"t":33.34},{"d":"2025-10-10","q":535.48,"l":74.36,"t":33.43},{"d":"2025-10-13","q":538.05,"l":75.07,"t":33.91},{"d":"2025-10-14","q":539.03,"l":75.33,"t":34.09},{"d":"2025-10-15","q":540.22,"l":75.66,"t":34.31},{"d":"2025-10-16","q":541.29,"l":75.95,"t":34.51},{"d":"2025-10-17","q":542.47,"l":76.28,"t":34.73},{"d":"2025-10-20","q":542.34,"l":76.24,"t":34.7},{"d":"2025-10-21","q":541.88,"l":76.1,"t":34.61},{"d":"2025-10-22","q":542.29,"l":76.21,"t":34.69},{"d":"2025-10-23","q":542.02,"l":76.13,"t":34.63},{"d":"2025-10-24","q":541.24,"l":75.9,"t":34.48},{"d":"2025-10-27","q":541.12,"l":75.87,"t":34.45},{"d":"2025-10-28","q":541.63,"l":76.0,"t":34.54},{"d":"2025-10-29","q":543.13,"l":76.42,"t":34.83},{"d":"2025-10-30","q":545.17,"l":76.99,"t":35.22},{"d":"2025-10-31","q":545.2,"l":76.99,"t":35.22},{"d":"2025-11-03","q":547.32,"l":77.58,"t":35.62},{"d":"2025-11-04","q":547.07,"l":77.5,"t":35.57},{"d":"2025-11-05","q":548.05,"l":77.78,"t":35.76},{"d":"2025-11-06","q":548.04,"l":77.77,"t":35.75},{"d":"2025-11-07","q":550.93,"l":78.58,"t":36.31},{"d":"2025-11-10","q":551.28,"l":78.68,"t":36.38},{"d":"2025-11-11","q":554.0,"l":79.45,"t":36.91},{"d":"2025-11-12","q":556.0,"l":80.01,"t":37.31},{"d":"2025-11-13","q":557.8,"l":80.52,"t":37.67},{"d":"2025-11-14","q":559.78,"l":81.09,"t":38.06},{"d":"2025-11-17","q":560.7,"l":81.35,"t":38.25},{"d":"2025-11-18","q":562.7,"l":81.92,"t":38.65},{"d":"2025-11-19","q":565.27,"l":82.67,"t":39.18},{"d":"2025-11-20","q":566.12,"l":82.91,"t":39.35},{"d":"2025-11-21","q":565.68,"l":82.77,"t":39.25},{"d":"2025-11-24","q":566.2,"l":82.92,"t":39.36},{"d":"2025-11-25","q":566.62,"l":83.04,"t":39.44},{"d":"2025-11-26","q":569.64,"l":83.91,"t":40.07},{"d":"2025-11-27","q":574.74,"l":85.41,"t":41.14},{"d":"2025-11-28","q":576.3,"l":85.87,"t":41.47},{"d":"2025-12-01","q":579.19,"l":86.72,"t":42.09},{"d":"2025-12-02","q":581.08,"l":87.28,"t":42.5},{"d":"2025-12-03","q":583.3,"l":87.94,"t":42.98},{"d":"2025-12-04","q":585.29,"l":88.54,"t":43.41},{"d":"2025-12-05","q":587.56,"l":89.22,"t":43.91},{"d":"2025-12-08","q":589.63,"l":89.84,"t":44.37},{"d":"2025-12-09","q":592.24,"l":90.63,"t":44.96},{"d":"2025-12-10","q":595.16,"l":91.51,"t":45.62},{"d":"2025-12-11","q":597.42,"l":92.2,"t":46.13},{"d":"2025-12-12","q":600.09,"l":93.02,"t":46.74},{"d":"2025-12-15","q":601.89,"l":93.57,"t":47.16},{"d":"2025-12-16","q":603.82,"l":94.16,"t":47.61},{"d":"2025-12-17","q":605.79,"l":94.77,"t":48.07},{"d":"2025-12-18","q":605.0,"l":94.51,"t":47.87},{"d":"2025-12-19","q":607.5,"l":95.29,"t":48.46},{"d":"2025-12-22","q":610.23,"l":96.14,"t":49.11},{"d":"2025-12-23","q":613.22,"l":97.07,"t":49.83},{"d":"2025-12-24","q":615.08,"l":97.65,"t":50.27},{"d":"2025-12-25","q":618.93,"l":98.87,"t":51.21},{"d":"2025-12-26","q":619.96,"l":99.19,"t":51.46},{"d":"2025-12-29","q":623.31,"l":100.25,"t":52.29},{"d":"2025-12-30","q":624.63,"l":100.67,"t":52.62},{"d":"2025-12-31","q":626.64,"l":101.31,"t":53.12},{"d":"2026-01-01","q":629.11,"l":102.1,"t":53.74},{"d":"2026-01-02","q":630.46,"l":102.53,"t":54.08},{"d":"2026-01-05","q":631.93,"l":103.0,"t":54.45},{"d":"2026-01-06","q":634.74,"l":103.91,"t":55.17},{"d":"2026-01-07","q":637.98,"l":104.96,"t":56.01},{"d":"2026-01-08","q":641.34,"l":106.06,"t":56.89},{"d":"2026-01-09","q":641.16,"l":105.99,"t":56.84},{"d":"2026-01-12","q":644.76,"l":107.17,"t":57.79},{"d":"2026-01-13","q":646.6,"l":107.78,"t":58.28},{"d":"2026-01-14","q":648.51,"l":108.41,"t":58.79},{"d":"2026-01-15","q":647.53,"l":108.07,"t":58.51},{"d":"2026-01-16","q":649.41,"l":108.69,"t":59.02},{"d":"2026-01-19","q":652.26,"l":109.64,"t":59.79},{"d":"2026-01-20","q":651.97,"l":109.53,"t":59.7},{"d":"2026-01-21","q":653.35,"l":109.98,"t":60.07},{"d":"2026-01-22","q":655.72,"l":110.77,"t":60.72},{"d":"2026-01-23","q":657.43,"l":111.34,"t":61.19},{"d":"2026-01-26","q":660.47,"l":112.36,"t":62.03},{"d":"2026-01-27","q":661.42,"l":112.68,"t":62.29},{"d":"2026-01-28","q":662.7,"l":113.11,"t":62.65},{"d":"2026-01-29","q":665.15,"l":113.93,"t":63.33},{"d":"2026-01-30","q":667.38,"l":114.69,"t":63.96},{"d":"2026-02-02","q":668.96,"l":115.22,"t":64.41},{"d":"2026-02-03","q":672.03,"l":116.27,"t":65.29},{"d":"2026-02-04","q":675.09,"l":117.32,"t":66.17},{"d":"2026-02-05","q":678.48,"l":118.49,"t":67.16},{"d":"2026-02-06","q":682.48,"l":119.88,"t":68.34},{"d":"2026-02-09","q":687.1,"l":121.49,"t":69.72},{"d":"2026-02-10","q":690.53,"l":122.7,"t":70.76},{"d":"2026-02-11","q":695.09,"l":124.31,"t":72.15},{"d":"2026-02-12","q":698.83,"l":125.64,"t":73.31},{"d":"2026-02-13","q":700.62,"l":126.27,"t":73.87},{"d":"2026-02-16","q":701.33,"l":126.52,"t":74.08},{"d":"2026-02-17","q":703.91,"l":127.44,"t":74.89},{"d":"2026-02-18","q":706.11,"l":128.22,"t":75.58},{"d":"2026-02-19","q":707.81,"l":128.83,"t":76.12},{"d":"2026-02-20","q":708.73,"l":129.16,"t":76.41},{"d":"2026-02-23","q":709.69,"l":129.5,"t":76.71},{"d":"2026-02-24","q":711.67,"l":130.21,"t":77.35},{"d":"2026-02-25","q":710.44,"l":129.75,"t":76.94},{"d":"2026-02-26","q":710.78,"l":129.86,"t":77.04},{"d":"2026-02-27","q":711.59,"l":130.15,"t":77.29},{"d":"2026-03-02","q":714.95,"l":131.37,"t":78.38},{"d":"2026-03-03","q":716.26,"l":131.84,"t":78.8},{"d":"2026-03-04","q":715.25,"l":131.46,"t":78.46},{"d":"2026-03-05","q":714.46,"l":131.16,"t":78.19},{"d":"2026-03-06","q":716.41,"l":131.86,"t":78.82},{"d":"2026-03-09","q":717.39,"l":132.21,"t":79.14},{"d":"2026-03-10","q":721.91,"l":133.87,"t":80.62},{"d":"2026-03-11","q":723.01,"l":134.27,"t":80.98},{"d":"2026-03-12","q":724.76,"l":134.91,"t":81.56},{"d":"2026-03-13","q":724.34,"l":134.74,"t":81.41},{"d":"2026-03-16","q":724.1,"l":134.64,"t":81.32},{"d":"2026-03-17","q":725.14,"l":135.02,"t":81.66},{"d":"2026-03-18","q":727.98,"l":136.06,"t":82.61},{"d":"2026-03-19","q":729.45,"l":136.6,"t":83.1},{"d":"2026-03-20","q":730.67,"l":137.05,"t":83.51},{"d":"2026-03-23","q":732.3,"l":137.65,"t":84.06},{"d":"2026-03-24","q":731.68,"l":137.41,"t":83.84},{"d":"2026-03-25","q":735.2,"l":138.72,"t":85.04},{"d":"2026-03-26","q":735.91,"l":138.98,"t":85.27},{"d":"2026-03-27","q":737.2,"l":139.45,"t":85.71},{"d":"2026-03-30","q":737.82,"l":139.68,"t":85.92},{"d":"2026-03-31","q":737.59,"l":139.58,"t":85.83},{"d":"2026-04-01","q":734.77,"l":138.5,"t":84.84},{"d":"2026-04-02","q":733.01,"l":137.83,"t":84.22},{"d":"2026-04-03","q":733.1,"l":137.85,"t":84.24},{"d":"2026-04-06","q":734.81,"l":138.48,"t":84.82},{"d":"2026-04-07","q":735.23,"l":138.63,"t":84.95},{"d":"2026-04-08","q":735.2,"l":138.61,"t":84.93},{"d":"2026-04-09","q":735.15,"l":138.58,"t":84.91},{"d":"2026-04-10","q":735.87,"l":138.84,"t":85.15},{"d":"2026-04-13","q":738.93,"l":139.98,"t":86.2},{"d":"2026-04-14","q":741.27,"l":140.86,"t":87.01},{"d":"2026-04-15","q":738.49,"l":139.79,"t":86.02},{"d":"2026-04-16","q":738.83,"l":139.91,"t":86.13},{"d":"2026-04-17","q":738.78,"l":139.88,"t":86.1},{"d":"2026-04-20","q":736.75,"l":139.1,"t":85.38},{"d":"2026-04-21","q":736.44,"l":138.97,"t":85.26},{"d":"2026-04-22","q":740.01,"l":140.31,"t":86.49},{"d":"2026-04-23","q":739.65,"l":140.16,"t":86.36},{"d":"2026-04-24","q":740.06,"l":140.31,"t":86.49},{"d":"2026-04-27","q":743.74,"l":141.69,"t":87.77},{"d":"2026-04-28","q":744.25,"l":141.87,"t":87.94},{"d":"2026-04-29","q":743.82,"l":141.7,"t":87.78},{"d":"2026-04-30","q":744.01,"l":141.76,"t":87.84},{"d":"2026-05-01","q":743.35,"l":141.5,"t":87.6},{"d":"2026-05-04","q":739.66,"l":140.08,"t":86.28},{"d":"2026-05-05","q":737.8,"l":139.37,"t":85.62},{"d":"2026-05-06","q":734.84,"l":138.24,"t":84.58},{"d":"2026-05-07","q":731.04,"l":136.8,"t":83.26},{"d":"2026-05-08","q":727.4,"l":135.42,"t":82.01},{"d":"2026-05-11","q":723.07,"l":133.8,"t":80.53},{"d":"2026-05-12","q":720.43,"l":132.81,"t":79.64},{"d":"2026-05-13","q":718.85,"l":132.22,"t":79.11},{"d":"2026-05-14","q":717.43,"l":131.69,"t":78.63},{"d":"2026-05-15","q":717.21,"l":131.6,"t":78.55},{"d":"2026-05-18","q":713.16,"l":130.1,"t":77.21},{"d":"2026-05-19","q":714.57,"l":130.61,"t":77.66},{"d":"2026-05-20","q":713.15,"l":130.08,"t":77.19},{"d":"2026-05-21","q":712.38,"l":129.79,"t":76.93},{"d":"2026-05-22","q":708.15,"l":128.24,"t":75.55},{"d":"2026-05-25","q":711.13,"l":129.3,"t":76.49},{"d":"2026-05-26","q":710.98,"l":129.24,"t":76.44},{"d":"2026-05-27","q":710.89,"l":129.2,"t":76.4},{"d":"2026-05-28","q":710.07,"l":128.89,"t":76.13},{"d":"2026-05-29","q":711.92,"l":129.55,"t":76.71},{"d":"2026-06-01","q":712.45,"l":129.73,"t":76.88},{"d":"2026-06-02","q":716.04,"l":131.03,"t":78.03},{"d":"2026-06-03","q":717.59,"l":131.59,"t":78.53},{"d":"2026-06-04","q":715.69,"l":130.88,"t":77.89},{"d":"2026-06-05","q":716.99,"l":131.35,"t":78.31},{"d":"2026-06-08","q":716.07,"l":131.0,"t":78.0}];
+let sb = null, DEMO = true;
+if (CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && window.supabase) {
+  sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
+  DEMO = false;
+}
+// 데모 모드 인메모리 저장소
+let memTrades = [];
+let memSettings = { id:1, cadence:'매월', contribution_amount:500000, base_currency:'KRW' };
+
+/* ===================== 데이터 레이어 ===================== */
+async function getMarketData(){
+  if (DEMO) return DEMO_MARKET.map(r=>({date:r.d,qqq:r.q,qld:r.l,tqqq:r.t}));
+  const {data,error}=await sb.from('market_data').select('*').order('date');
+  if(error||!data||!data.length){console.warn('market_data 비어있음→데모 사용');return DEMO_MARKET.map(r=>({date:r.d,qqq:r.q,qld:r.l,tqqq:r.t}));}
+  return data;
+}
+async function getTrades(){
+  if(DEMO) return [...memTrades].sort((a,b)=>b.date.localeCompare(a.date));
+  const {data}=await sb.from('trades').select('*').order('date',{ascending:false});
+  return data||[];
+}
+async function saveTrade(t){
+  if(DEMO){ if(t.id){memTrades=memTrades.map(x=>x.id===t.id?{...x,...t}:x);} else {t.id=Date.now();memTrades.push(t);} return; }
+  if(t.id){await sb.from('trades').update(t).eq('id',t.id);} else {delete t.id; await sb.from('trades').insert(t);}
+}
+async function removeTrade(id){
+  if(DEMO){memTrades=memTrades.filter(x=>x.id!==id);return;}
+  await sb.from('trades').delete().eq('id',id);
+}
+async function getSettings(){
+  if(DEMO) return memSettings;
+  const {data}=await sb.from('settings').select('*').eq('id',1).maybeSingle();
+  return data||memSettings;
+}
+async function saveSettings(s){
+  if(DEMO){memSettings={...memSettings,...s};return;}
+  await sb.from('settings').upsert({id:1,...s});
+}
+
+/* ===================== 전략 엔진 (backtest4.py 동일 로직) ===================== */
+const REG_NAME={0:'저점(바닥반등)',1:'상승추세(정상)',2:'상승추세(과열)',3:'조정(눌림목)',4:'하락추세'};
+const REG_BUY ={0:'TQQQ',1:'TQQQ',2:'QLD',3:'QLD',4:'QQQ'};
+const TARGET  ={0:[0.90,0.10,0.00],1:[0.80,0.20,0.00],2:[0.40,0.45,0.15],3:[0.00,0.50,0.50],4:[0.00,0.00,1.00]}; // [TQQQ,QLD,QQQ]
+const REG_SUB={
+  0:'바닥 반등 신호. 레버리지 비중을 가장 공격적으로 가져가는 구간입니다.',
+  1:'200일선 위 정상 상승. 레버리지 중심으로 적립합니다.',
+  2:'과열 구간. TQQQ 비중을 줄이고 QLD로 이동해 위험을 낮춥니다.',
+  3:'200일선은 우상향이나 가격이 눌린 조정. 레버리지를 절반으로 줄입니다.',
+  4:'200일선 아래 하락추세. 레버리지를 전량 정리하고 QQQ로 회피합니다.'
+};
+const REG_COLOR={0:'green',1:'green',2:'gold',3:'blue',4:'red'};
+
+function sma(arr,n,i){ if(i<n-1)return NaN; let s=0; for(let k=i-n+1;k<=i;k++)s+=arr[k]; return s/n; }
+function computeSeries(md){
+  const q=md.map(r=>r.qqq);
+  const out=md.map((r,i)=>({...r,i}));
+  // sma50, sma200
+  for(let i=0;i<out.length;i++){ out[i].sma50=sma(q,50,i); out[i].sma200=sma(q,200,i); }
+  // ath, dd, ext200
+  let ath=-1e9;
+  for(let i=0;i<out.length;i++){ ath=Math.max(ath,q[i]); out[i].ath=ath; out[i].dd=q[i]/ath-1; out[i].ext200=isNaN(out[i].sma200)?NaN:q[i]/out[i].sma200-1; }
+  // sma200 slope (20일 차)
+  for(let i=0;i<out.length;i++){ out[i].slope=(i>=20 && !isNaN(out[i].sma200)&&!isNaN(out[i-20].sma200))?out[i].sma200-out[i-20].sma200:NaN; }
+  // RSI(14) — Wilder 단순 rolling mean 버전 (백테스트와 동일)
+  for(let i=0;i<out.length;i++){
+    if(i<14){out[i].rsi=50;continue;}
+    let g=0,l=0;
+    for(let k=i-13;k<=i;k++){const d=q[k]-q[k-1]; if(d>0)g+=d; else l+=-d;}
+    g/=14; l/=14;
+    out[i].rsi = l===0 ? 100 : 100-100/(1+g/l);
+  }
+  // trend state (밴드)
+  let cur=1;
+  for(let i=0;i<out.length;i++){
+    const o=out[i];
+    if(isNaN(o.sma200)){o.up=1;continue;}
+    if(cur===1 && o.qqq<o.sma200) cur=0;
+    else if(cur===0 && o.qqq>o.sma200*1.01 && o.sma50>=o.sma200*0.99) cur=1;
+    o.up=cur;
+  }
+  // regime
+  for(const o of out){
+    if(isNaN(o.sma200)){o.regime=1;continue;}
+    if(o.up===1){ o.regime=(o.ext200>0.20||o.rsi>80)?2:1; }
+    else { if(o.dd<-0.22&&o.rsi<45&&o.qqq>o.sma50)o.regime=0; else if(o.slope>0)o.regime=3; else o.regime=4; }
+  }
+  return out;
+}
+
+/* ===================== 전역 상태 ===================== */
+let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null;
+const won = n => '₩'+Math.round(n).toLocaleString('ko-KR');
+const pct = n => (n>=0?'+':'')+ (n*100).toFixed(1)+'%';
+
+/* ===================== 초기화 ===================== */
+async function init(){
+  document.getElementById('modePill').textContent = DEMO ? '데모 모드 (Supabase 미연결)' : 'LIVE · Supabase';
+  if(!DEMO) document.getElementById('modePill').classList.add('live');
+  const md = await getMarketData();
+  SERIES = computeSeries(md);
+  CUR = SERIES[SERIES.length-1];
+  SETTINGS = await getSettings();
+  document.getElementById('cadenceSel').value = SETTINGS.cadence;
+  document.getElementById('contribInput').value = SETTINGS.contribution_amount;
+  renderDashboard();
+  renderModalRegimes();
+  onCadenceChange();
+  await renderTrades();
+  await renderProfit();
+}
+
+/* ===================== 대시보드 렌더 ===================== */
+function renderDashboard(){
+  const r=CUR, reg=r.regime;
+  const sc=document.getElementById('stateCard');
+  sc.className='card card-hov state-box '+REG_COLOR[reg];
+  document.getElementById('stateDate').textContent=r.date;
+  document.getElementById('stateName').textContent=REG_NAME[reg];
+  document.getElementById('stateSub').textContent=REG_SUB[reg];
+  // gauge 0..4
+  const gr=document.getElementById('gaugeRow'); gr.innerHTML='';
+  const order=[4,3,1,0]; // 위험→공격 시각화는 단순화
+  for(let k=0;k<5;k++){const p=document.createElement('div');p.className='gpip';
+    p.style.background = k<= (reg===0?4:reg===1?2:reg===2?3:reg===3?1:0) ? 'var(--accent)':'var(--surface2)';
+    gr.appendChild(p);}
+  document.getElementById('recoTicker').textContent=REG_BUY[reg];
+  document.getElementById('recoCadence').textContent=SETTINGS.cadence+' 적립';
+  document.getElementById('recoReason').textContent=`${REG_NAME[reg]} 국면에서는 ${REG_BUY[reg]}를 ${SETTINGS.cadence} 매수합니다. 목표비중 TQQQ ${(TARGET[reg][0]*100)}% · QLD ${(TARGET[reg][1]*100)}% · QQQ ${(TARGET[reg][2]*100)}%.`;
+  renderIndicators(r);
+  renderAlloc(reg);
+  renderPriceChart();
+}
+
+function indCard(label,val,cls,sub){return `<div class="ind"><div class="label">${label}</div><div class="v ${cls}">${val}</div><div class="muted" style="font-size:11px;margin-top:2px">${sub||''}</div></div>`;}
+function renderIndicators(r){
+  const g=document.getElementById('indGrid');
+  const ext=r.ext200, dd=r.dd, rsi=r.rsi;
+  const above = r.qqq>=r.sma200;
+  g.innerHTML =
+    indCard('QQQ 종가','$'+r.qqq.toFixed(2),'', r.date)
+  + indCard('200일선','$'+r.sma200.toFixed(2), above?'up':'down', above?'가격이 위 (레버리지 ON)':'가격이 아래 (레버리지 OFF)')
+  + indCard('50일선','$'+r.sma50.toFixed(2),'', r.sma50>=r.sma200?'정배열':'역배열')
+  + indCard('200일선 이격','('+(ext>=0?'+':'')+(ext*100).toFixed(1)+'%)', ext>0.20?'neutral':(ext>=0?'up':'down'), ext>0.20?'과열 경계':'정상범위')
+  + indCard('고점대비 낙폭', (dd*100).toFixed(1)+'%', dd<-0.22?'down':(dd<-0.10?'neutral':'up'), 'ATH $'+r.ath.toFixed(0))
+  + indCard('RSI(14)', rsi.toFixed(0), rsi>80?'neutral':(rsi<45?'down':'up'), rsi>80?'과매수':(rsi<45?'과매도':'중립'))
+  + indCard('200일선 기울기', (r.slope>=0?'▲ 상승':'▼ 하락'), r.slope>=0?'up':'down', '20일 변화')
+  + indCard('추세 상태', r.up===1?'상승(ON)':'하락(OFF)', r.up===1?'up':'down', '밴드 필터 적용')
+  + indCard('현재 레짐', REG_NAME[r.regime].split('(')[0], REG_COLOR[r.regime]==='red'?'down':REG_COLOR[r.regime]==='gold'?'neutral':'up', '매수: '+REG_BUY[r.regime]);
+}
+
+function renderAlloc(reg){
+  const t=TARGET[reg]; // [TQQQ,QLD,QQQ]
+  document.getElementById('allocLabel').textContent=REG_BUY[reg];
+  const ctx=document.getElementById('allocChart');
+  if(allocChart)allocChart.destroy();
+  allocChart=new Chart(ctx,{type:'doughnut',data:{labels:['TQQQ','QLD','QQQ'],
+    datasets:[{data:[t[0]*100,t[1]*100,t[2]*100],backgroundColor:['#e05c6e','#3d89c9','#52ba88'],borderColor:'#141720',borderWidth:3}]},
+    options:{cutout:'68%',plugins:{legend:{display:false}},responsive:true,maintainAspectRatio:false}});
+  document.getElementById('allocLegend').innerHTML=
+    [['TQQQ',t[0],'#e05c6e'],['QLD',t[1],'#3d89c9'],['QQQ',t[2],'#52ba88']]
+    .map(([n,v,c])=>`<div style="display:flex;justify-content:space-between;padding:3px 0"><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${c};margin-right:7px"></span>${n}</span><span class="mono">${(v*100).toFixed(0)}%</span></div>`).join('');
+}
+
+function renderPriceChart(){
+  const N=Math.min(260,SERIES.length); const s=SERIES.slice(-N);
+  const ctx=document.getElementById('priceChart');
+  if(priceChart)priceChart.destroy();
+  // regime shading via segment color on background
+  const bg=s.map(o=>{const c=REG_COLOR[o.regime];return c==='red'?'rgba(224,92,110,.06)':c==='gold'?'rgba(201,168,76,.06)':c==='blue'?'rgba(61,137,201,.05)':'rgba(82,186,136,.05)';});
+  priceChart=new Chart(ctx,{type:'line',data:{labels:s.map(o=>o.date),datasets:[
+    {label:'QQQ',data:s.map(o=>o.qqq),borderColor:'#e8ecf4',borderWidth:1.6,pointRadius:0,tension:.15},
+    {label:'200일선',data:s.map(o=>o.sma200),borderColor:'#c9a84c',borderWidth:1.4,pointRadius:0,borderDash:[5,4]},
+    {label:'50일선',data:s.map(o=>o.sma50),borderColor:'#3d89c9',borderWidth:1,pointRadius:0}
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
+    plugins:{legend:{labels:{color:'#6b7494',boxWidth:12,font:{size:11}}}},
+    scales:{x:{ticks:{color:'#6b7494',maxTicksLimit:6,font:{size:10}},grid:{color:'rgba(255,255,255,.03)'}},
+            y:{ticks:{color:'#6b7494',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}}}}});
+}
+
+/* ===================== 적립설정 ===================== */
+const BT={'매월':{adaptive:[242.8,-66.6,32.7],QQQ:[12.66,-48.0,16.0],QLD:[67.9,-79.4,25.4],TQQQ:[205.6,-92.8,31.8],split:[95.4,-76.6,27.4]},
+'매주':{adaptive:[243.5,-66.5,32.8],QQQ:[12.69,-47.9,16.0],QLD:[68.2,-79.3,25.6],TQQQ:[206.7,-92.7,31.9],split:[95.9,-76.6,27.5]},
+'매일':{adaptive:[243.3,-66.5,32.8],QQQ:[12.68,-47.8,16.0],QLD:[68.2,-79.2,25.6],TQQQ:[206.2,-92.7,31.9],split:[95.7,-76.5,27.5]}};
+const CAD_NOTE={
+'매일':'매일 적립은 평균단가를 가장 촘촘히 분산해 진입 타이밍 위험이 가장 작습니다. 거래 횟수가 많아 수수료에 민감하니 수수료 무료/소액 환경에 적합합니다. 백테스트상 매주와 수익·낙폭이 거의 동일합니다.',
+'매주':'매주 적립은 매일과 거의 같은 성과를 내면서 거래 횟수를 1/5로 줄여 실전에서 가장 균형이 좋습니다. 레짐 전환 시 리밸런싱과 함께 운용하는 것을 권장합니다.',
+'매월':'매월 적립은 급여 주기와 맞물려 실행이 가장 쉽습니다. 진입 분산은 가장 거칠지만 장기적으로 적응형 전략의 핵심 효과(하락추세 회피)는 동일하게 작동합니다.'
+};
+function onCadenceChange(){
+  const cad=document.getElementById('cadenceSel').value;
+  document.getElementById('cadTitle').textContent=cad;
+  document.getElementById('cadNote').textContent=CAD_NOTE[cad];
+  const tb=document.getElementById('cadTable');const b=BT[cad];
+  const rows=[['★ 적응형','adaptive','up'],['QQQ','QQQ',''],['QLD','QLD',''],['TQQQ','TQQQ',''],['균등3분할','split','']];
+  tb.innerHTML=rows.map(([nm,k,c])=>{const[m,d,i]=b[k];return `<tr><td class="${c?'up tkr':''}">${nm}</td><td class="mono">${m}x</td><td class="mono ${d<-80?'down':'neutral'}">${d}%</td><td class="mono ${c||''}">${i}%</td></tr>`;}).join('');
+}
+async function saveSettingsUI(){
+  const cadence=document.getElementById('cadenceSel').value;
+  const amt=parseFloat(document.getElementById('contribInput').value)||0;
+  await saveSettings({cadence,contribution_amount:amt});
+  SETTINGS=await getSettings();
+  renderDashboard();
+  flash('설정이 저장되었습니다');
+}
+
+/* ===================== 매매이력 ===================== */
+function onTypeChange(){document.getElementById('realizedWrap').style.display=document.getElementById('f_type').value==='sell'?'block':'none';}
+function calcAmount(){
+  const q=parseFloat(document.getElementById('f_qty').value)||0;
+  const p=parseFloat(document.getElementById('f_price').value)||0;
+  const fx=parseFloat(document.getElementById('f_fx').value)||0;
+  document.getElementById('f_amount').value=Math.round(q*p*fx);
+}
+function openTrade(id){
+  document.getElementById('tradeId').value=id||'';
+  document.getElementById('tradeModalTitle').textContent=id?'매매 수정':'매매 입력';
+  if(!id){
+    document.getElementById('f_date').value=CUR.date;
+    document.getElementById('f_type').value='buy';document.getElementById('f_ticker').value=REG_BUY[CUR.regime];
+    document.getElementById('f_qty').value='';document.getElementById('f_price').value=CUR[document.getElementById('f_ticker').value.toLowerCase()].toFixed(2);
+    document.getElementById('f_fx').value=1380;document.getElementById('f_amount').value='';document.getElementById('f_realized').value=0;
+  }
+  onTypeChange();calcAmount();
+  document.getElementById('tradeModal').classList.add('open');
+}
+async function submitTrade(){
+  const id=document.getElementById('tradeId').value;
+  const t={date:document.getElementById('f_date').value,ticker:document.getElementById('f_ticker').value,
+    type:document.getElementById('f_type').value,qty:parseFloat(document.getElementById('f_qty').value)||0,
+    price:parseFloat(document.getElementById('f_price').value)||0,fx:parseFloat(document.getElementById('f_fx').value)||0,
+    amount_krw:parseFloat(document.getElementById('f_amount').value)||0,
+    realized:document.getElementById('f_type').value==='sell'?(parseFloat(document.getElementById('f_realized').value)||0):0,
+    account:'기본'};
+  if(id)t.id=isNaN(+id)?id:+id;
+  if(!t.date||!t.qty){flash('날짜와 수량을 입력하세요');return;}
+  await saveTrade(t);
+  closeModal('tradeModal');
+  await renderTrades();await renderProfit();
+}
+async function delTrade(id){ if(!confirm('삭제하시겠습니까?'))return; await removeTrade(isNaN(+id)?id:+id); await renderTrades();await renderProfit(); }
+async function editTrade(id){
+  const ts=await getTrades();const t=ts.find(x=>String(x.id)===String(id));if(!t)return;
+  openTrade(t.id);
+  document.getElementById('f_date').value=t.date;document.getElementById('f_ticker').value=t.ticker;
+  document.getElementById('f_type').value=t.type;document.getElementById('f_qty').value=t.qty;
+  document.getElementById('f_price').value=t.price;document.getElementById('f_fx').value=t.fx;
+  document.getElementById('f_amount').value=t.amount_krw;document.getElementById('f_realized').value=t.realized||0;
+  onTypeChange();
+}
+const TYPE_LABEL={buy:['매수','buy'],sell:['매도','sell'],div:['배당','div']};
+async function renderTrades(){
+  const ts=await getTrades();const b=document.getElementById('tradeBody');
+  if(!ts.length){b.innerHTML='<tr><td colspan="8" class="muted" style="text-align:center;padding:30px">매매 내역이 없습니다. “+ 매매 입력”으로 추가하세요.</td></tr>';return;}
+  b.innerHTML=ts.map(t=>{const[lab,cls]=TYPE_LABEL[t.type]||['?',''];
+    return `<tr><td class="mono">${t.date}</td><td class="tkr">${t.ticker}</td>
+    <td style="text-align:right"><span class="type-badge ${cls}">${lab}</span></td>
+    <td class="mono">${(+t.qty).toLocaleString()}</td><td class="mono">$${(+t.price).toFixed(2)}</td>
+    <td class="mono">${won(t.amount_krw)}</td>
+    <td class="mono ${(t.realized||0)>0?'up':(t.realized||0)<0?'down':''}">${t.realized?won(t.realized):'—'}</td>
+    <td><button class="icon-btn" onclick="editTrade('${t.id}')">수정</button><button class="icon-btn" onclick="delTrade('${t.id}')">삭제</button></td></tr>`;}).join('');
+}
+
+/* ===================== 수익분석 ===================== */
+async function renderProfit(){
+  const ts=await getTrades();
+  const last={QQQ:CUR.qqq,QLD:CUR.qld,TQQQ:CUR.tqqq};
+  const fxNow=1380;
+  const H={}; ['QQQ','QLD','TQQQ'].forEach(k=>H[k]={qty:0,cost:0}); // cost in KRW of remaining (avg)
+  let totalRealized=0, totalDividend=0;
+  // process chronologically
+  [...ts].sort((a,b)=>a.date.localeCompare(b.date)).forEach(t=>{
+    const k=t.ticker; if(!H[k])H[k]={qty:0,cost:0};
+    if(t.type==='buy'){H[k].qty+=+t.qty;H[k].cost+=+t.amount_krw;}
+    else if(t.type==='sell'){const avg=H[k].qty>0?H[k].cost/H[k].qty:0;H[k].cost-=avg*(+t.qty);H[k].qty-=+t.qty;totalRealized+=(+t.realized||0);}
+    else if(t.type==='div'){totalDividend+=+t.amount_krw;}
+  });
+  let invested=0,curVal=0;
+  const rows=['QQQ','QLD','TQQQ'].map(k=>{
+    const h=H[k];if(h.qty<=1e-9)return null;
+    const avgUSD=h.cost/h.qty/fxNow;
+    const val=h.qty*last[k]*fxNow;
+    const pl=val-h.cost;invested+=h.cost;curVal+=val;
+    return {k,qty:h.qty,avgUSD,price:last[k],val,cost:h.cost,pl,ret:pl/h.cost};
+  }).filter(Boolean);
+  const hb=document.getElementById('holdBody');
+  hb.innerHTML=rows.length?rows.map(r=>`<tr><td class="tkr">${r.k}</td><td class="mono">${r.qty.toFixed(3)}</td>
+    <td class="mono">$${r.avgUSD.toFixed(2)}</td><td class="mono">$${r.price.toFixed(2)}</td>
+    <td class="mono">${won(r.val)}</td><td class="mono">${won(r.cost)}</td>
+    <td class="mono ${r.pl>=0?'up':'down'}">${won(r.pl)}</td>
+    <td class="mono ${r.pl>=0?'up':'down'}">${pct(r.ret)}</td></tr>`).join('')
+    :'<tr><td colspan="8" class="muted" style="text-align:center;padding:24px">보유 종목이 없습니다.</td></tr>';
+  const totalPL=curVal-invested;
+  const cards=[['매수 원금',won(invested),''],['현재 평가액',won(curVal),''],
+    ['평가 손익',won(totalPL),totalPL>=0?'up':'down'],['실현손익+배당',won(totalRealized+totalDividend),(totalRealized+totalDividend)>=0?'up':'down']];
+  document.getElementById('profitSummary').innerHTML=cards.map(([l,v,c])=>`<div class="card card-hov ${c==='up'?'green':c==='down'?'red':'blue'}"><div class="label">${l}</div><div class="big-num ${c}">${v}</div>${l==='평가 손익'&&invested>0?`<div class="${c}" style="font-size:13px;margin-top:4px">${pct(totalPL/invested)}</div>`:''}</div>`).join('');
+}
+
+/* ===================== 전략 모달 ===================== */
+function renderModalRegimes(){
+  const order=[0,1,2,3,4];
+  document.getElementById('modalRegimes').innerHTML=order.map(reg=>{
+    const t=TARGET[reg];const segs=[['TQQQ',t[0],'#e05c6e'],['QLD',t[1],'#3d89c9'],['QQQ',t[2],'#52ba88']].filter(x=>x[1]>0);
+    return `<div class="regime-card"><div class="h"><span class="chip">${REG_NAME[reg]}</span><span class="muted" style="font-size:12px">매수: <b>${REG_BUY[reg]}</b></span></div>
+    <div class="note">${REG_SUB[reg]}</div>
+    <div class="wbar">${segs.map(([n,v,c])=>`<div style="width:${v*100}%;background:${c}">${v>=0.15?n+' '+(v*100)+'%':''}</div>`).join('')}</div></div>`;
+  }).join('');
+}
+function openStrategy(){document.getElementById('strategyModal').classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+
+/* ===================== 탭 / 기타 ===================== */
+function switchTab(t){
+  ['dash','setup','trades','profit'].forEach(x=>document.getElementById('tab-'+x).classList.toggle('hidden',x!==t));
+  document.querySelectorAll('.tab-btn,[data-tab]').forEach(b=>{if(b.dataset.tab)b.classList.toggle('active',b.dataset.tab===t);});
+}
+function flash(msg){
+  let el=document.getElementById('flash');
+  if(!el){el=document.createElement('div');el.id='flash';el.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:200;background:var(--accent);color:#0c0e14;font-weight:600;padding:10px 20px;border-radius:10px;font-size:13px;box-shadow:0 8px 30px rgba(0,0,0,.4)';document.body.appendChild(el);}
+  el.textContent=msg;el.style.opacity='1';setTimeout(()=>el.style.opacity='0',1800);el.style.transition='opacity .4s';
+}
+init();
+</script>
+</body>
+</html>
