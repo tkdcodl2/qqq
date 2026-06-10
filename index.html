@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- 선택: 배포 시 config.js 에서 window.APP_CONFIG = {SUPABASE_URL, SUPABASE_ANON_KEY} 설정 -->
 <script src="config.js" onerror="void 0"></script>
@@ -91,6 +91,9 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rg
 .abar>div{position:relative;display:flex;align-items:center;justify-content:center;color:#fff;min-width:0;white-space:nowrap;transition:width .6s cubic-bezier(.33,1,.4,1)}
 .abar-seg-t{font-size:10px;font-weight:700;letter-spacing:.3px;line-height:1;color:rgba(255,255,255,.95);margin-right:5px}
 .abar-seg-p{font-size:11px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:#fff}
+.range-pills{display:inline-flex;gap:4px}
+.range-pills button{font-family:Inter;font-size:10.5px;font-weight:600;color:var(--muted);background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:3px 9px;cursor:pointer}
+.range-pills button.on{color:#0d1117;background:var(--accent);border-color:var(--accent)}
 .nowrap-table td,.nowrap-table th{white-space:nowrap}
 .nowrap-table td{padding-right:18px}
 .abar-empty{display:flex;align-items:center;justify-content:center;width:100%;color:var(--muted);font-weight:500;font-size:12px}
@@ -213,7 +216,10 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 
     <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:16px;gap:16px" id="chartRow">
       <div class="card">
-        <div class="section-title"><span class="dot"></span>QQQ 가격 · 200일선 <span class="muted" style="font-family:Inter;font-size:10.5px;letter-spacing:0;font-weight:500;margin-left:6px">드래그: 확대 · 더블클릭: 원래대로</span></div>
+        <div class="section-title" style="flex-wrap:wrap"><span class="dot"></span>QQQ 가격 · 200일선 <span class="muted" style="font-family:Inter;font-size:10.5px;letter-spacing:0;font-weight:500;margin-left:6px">드래그: 확대 · 더블클릭: 원래대로</span>
+          <span class="range-pills" id="rangePills" style="margin-left:auto">
+            <button onclick="setChartRange(126,this)">6M</button><button class="on" onclick="setChartRange(260,this)">1Y</button><button onclick="setChartRange(520,this)">2Y</button><button onclick="setChartRange(780,this)">3Y</button><button onclick="setChartRange(0,this)">전체</button>
+          </span></div>
         <div style="height:300px"><canvas id="priceChart"></canvas></div>
       </div>
       <div class="card">
@@ -564,8 +570,9 @@ function computeSeries(md){
 }
 
 /* ===================== 전역 상태 ===================== */
+try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
-const APP_VERSION='3.4';
+const APP_VERSION='3.5';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
@@ -678,8 +685,15 @@ function renderAllocBars(reg){
   + `</div></div>`;
 }
 
+let CHART_RANGE=260;
+function setChartRange(d,btn){
+  CHART_RANGE=d||SERIES.length;
+  document.querySelectorAll('#rangePills button').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  renderPriceChart();
+}
 function renderPriceChart(){
-  const N=Math.min(260,SERIES.length); const s=SERIES.slice(-N);
+  const N=Math.min(CHART_RANGE||SERIES.length,SERIES.length); const s=SERIES.slice(-N);
   const ctx=document.getElementById('priceChart');
   if(priceChart)priceChart.destroy();
   const n=s.length;
