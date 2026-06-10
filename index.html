@@ -301,26 +301,40 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   <div class="modal">
     <span class="close" onclick="closeModal('strategyModal')">&times;</span>
     <h2>적응형 레짐 배분 전략</h2>
-    <p class="note" style="margin-bottom:16px">QQQ·QLD·TQQQ를 시장 국면(레짐)에 따라 갈아타며 적립합니다. 핵심 신호는 <b>QQQ 200일 이동평균선</b>입니다. 레버리지 ETF의 치명적 하락(-90% 이상)은 거의 전부 200일선 아래에서 발생하므로, 200일선을 레버리지 ON/OFF 스위치로 사용합니다.</p>
+    <p class="note" style="margin-bottom:16px">QQQ·QLD·TQQQ를 시장 국면(레짐)에 따라 갈아타며 적립하고, <b>과열 구간에는 보유분 절반을 배당 ETF(SCHD)로 즉시 대피</b>시킵니다. 핵심 신호는 <b>QQQ 200일 이동평균선</b>입니다. 레버리지 ETF의 치명적 하락(-90% 이상)은 거의 전부 200일선 아래에서 발생하므로, 200일선을 레버리지 ON/OFF 스위치로 사용합니다.</p>
 
     <div class="section-title" style="font-size:16px"><span class="dot"></span>5가지 레짐과 대응</div>
     <div id="modalRegimes"></div>
 
-    <div class="section-title" style="font-size:16px;margin-top:18px"><span class="dot"></span>비중 조절(매도 포함) 방식</div>
-    <p class="note">레짐이 <b>바뀌는 날</b>, 기존 보유분을 해당 레짐의 목표 비중으로 리밸런싱합니다. 예: 과열↗ 판단 시 TQQQ를 일부 <b>매도</b>해 QLD·QQQ로 이동, 하락추세 진입 시 레버리지를 전량 정리하고 QQQ로 회피. 매 주기 신규 적립금은 그 레짐의 1순위 종목을 매수합니다. (거래비용 0.05% 반영)</p>
+    <div class="section-title" style="font-size:16px;margin-top:18px"><span class="dot"></span>매수 추천 종목·비중은 이렇게 계산됩니다</div>
+    <p class="note" style="margin-bottom:8px">매일 종가 기준으로 QQQ에서 5개 지표를 계산합니다: <b>200일선·50일선·200일선 기울기(20일 변화)·고점 대비 낙폭(DD)·이격률(200일선 대비 %)·RSI(14)</b>. 그리고 아래 순서로 판정합니다.</p>
+    <p class="note" style="margin-bottom:8px"><b>1단계 — 추세 ON/OFF.</b> QQQ가 200일선 <b>아래</b>로 내려가면 추세 OFF. 다시 ON이 되려면 200일선보다 <b>1% 이상</b> 위로 올라오고 50일선이 200일선의 99% 이상이어야 합니다(휩쏘 방지 밴드).</p>
+    <p class="note" style="margin-bottom:8px"><b>2단계 — 레짐 판정과 목표 비중.</b> 위에서부터 먼저 맞는 조건이 그날의 레짐입니다.</p>
+    <table style="font-size:12.5px">
+      <thead><tr><th>조건 (QQQ 기준)</th><th>레짐</th><th>목표 비중</th><th>매수 1순위</th></tr></thead>
+      <tbody>
+        <tr><td>추세 OFF + 고점대비 −22% 이상 낙폭 + RSI&lt;45 + 주가가 50일선 회복</td><td class="tkr up">저점(바닥반등)</td><td class="mono">TQQQ 90 · QLD 10</td><td class="tkr">TQQQ</td></tr>
+        <tr><td>추세 ON + 과열 아님</td><td class="tkr up">상승추세(정상)</td><td class="mono">TQQQ 80 · QLD 20</td><td class="tkr">TQQQ</td></tr>
+        <tr><td>추세 ON + (200일선 대비 +20% 이상 이격 <b>또는</b> RSI&gt;80)</td><td class="tkr neutral">상승추세(과열)</td><td class="mono">SCHD 50 · QLD 22.5 · TQQQ 20 · QQQ 7.5</td><td class="tkr">SCHD</td></tr>
+        <tr><td>추세 OFF + 200일선 기울기는 아직 상승</td><td class="tkr">조정(눌림목)</td><td class="mono">QLD 50 · QQQ 50</td><td class="tkr">QLD</td></tr>
+        <tr><td>추세 OFF + 200일선 기울기 하락</td><td class="tkr down">하락추세</td><td class="mono">QQQ 100</td><td class="tkr">QQQ</td></tr>
+      </tbody>
+    </table>
+    <p class="note" style="margin:8px 0 0"><b>3단계 — 실행.</b> 레짐이 <b>바뀐 날</b> 보유 전체를 그 레짐의 목표 비중으로 <b>즉시(분할 없이) 리밸런싱</b>합니다. 예: 과열 진입 시 레버리지 절반을 그날 매도해 SCHD 50%를 채우고, 과열 해제 시 SCHD를 전량 매도해 새 레짐 비중으로 복귀합니다. 신규 적립금은 항상 현재 레짐의 목표 비중대로(부족한 종목 우선) 매수하며, 신규 시작자도 그날의 레짐 비중대로 첫 매수를 하면 됩니다. 대시보드의 "+N주 매수/매도"가 바로 이 목표 비중과 현재 보유의 차이를 주수로 환산한 값입니다.</p>
 
     <div class="section-title" style="font-size:16px;margin-top:18px"><span class="dot"></span>백테스트 결과 (매월 적립, 1999.12–2026.06, 원금 $31,900)</div>
     <table>
       <thead><tr><th>전략</th><th>최종평가</th><th>배수</th><th>MDD</th><th>IRR(연)</th></tr></thead>
       <tbody>
-        <tr><td class="tkr up">★ 적응형</td><td class="mono">$7,745,339</td><td class="mono">242.8x</td><td class="mono neutral">-66.6%</td><td class="mono up">32.7%</td></tr>
+        <tr><td class="tkr up">★ 적응형+SCHD과열50</td><td class="mono">$10,925,922</td><td class="mono">342.5x</td><td class="mono neutral">-66.9%</td><td class="mono up">34.7%</td></tr>
+        <tr><td>적응형(SCHD 없음)</td><td class="mono">$7,737,460</td><td class="mono">242.6x</td><td class="mono neutral">-66.6%</td><td class="mono">32.7%</td></tr>
         <tr><td>QQQ 단독</td><td class="mono">$403,733</td><td class="mono">12.66x</td><td class="mono">-48.0%</td><td class="mono">16.0%</td></tr>
         <tr><td>QLD 단독</td><td class="mono">$2,166,285</td><td class="mono">67.9x</td><td class="mono down">-79.4%</td><td class="mono">25.4%</td></tr>
         <tr><td>TQQQ 단독</td><td class="mono">$6,559,924</td><td class="mono">205.6x</td><td class="mono down">-92.8%</td><td class="mono">31.8%</td></tr>
         <tr><td>균등 3분할</td><td class="mono">$3,043,314</td><td class="mono">95.4x</td><td class="mono down">-76.6%</td><td class="mono">27.4%</td></tr>
       </tbody>
     </table>
-    <p class="note" style="margin-top:10px">검증 구간은 닷컴버블(-83%)·금융위기(-54%)·실제 TQQQ(2010–19)에 더해 <b>2020 코로나 폭락·2022 약세장(QQQ -33%·TQQQ -80%대)·2025 4월 급락</b>까지 한 사이클 전체를 포함합니다. 전체 기간 기준 적응형은 <b>TQQQ 단독과 비슷하거나 더 높은 연수익(32.7% vs 31.8%)을 −66.6% 낙폭으로</b> 달성합니다(TQQQ는 −92.8%). 즉 자산이 커진 뒤의 폭락을 회피하는 효과가 장기 사이클에서 누적됩니다(03–07 적립 후 08위기: 적응형 0.73x vs TQQQ 0.27x / 21고점~22약세장: 적응형 −32.7% vs TQQQ −61.5%).</p>
+    <p class="note" style="margin-top:10px">검증 구간은 닷컴버블(-83%)·금융위기(-54%)·실제 TQQQ(2010–19)에 더해 <b>2020 코로나 폭락·2022 약세장·2025 4월 급락</b>까지 한 사이클 전체를 포함합니다. SCHD 과열50 오버레이는 과열 구간(전체 거래일의 약 11%)의 신규 매수·보유 절반을 배당 ETF로 돌려 거품 구간 손실을 피하는 효과를 냅니다. ※SCHD는 2011.10 상장으로, 그 이전 구간은 현금(0%)으로 대체했고 SCHD 수익률은 실측 연간 총수익·낙폭 시점을 앵커로 월간 재구성한 근사치입니다. 이 오버레이의 초과수익은 2013년 이후(특히 2021·2024–25 과열기)에 편중되어 있어 과거 의존성이 있습니다.</p>
 
     <div class="disclaim">⚠️ 본 자료는 과거 데이터 기반 시뮬레이션이며 투자 조언이 아닙니다. 백테스트 구간은 1999–2026 전체로 2020·2022·2025 하락을 포함합니다(1999–2019는 실제 QQQ, 2019–2026은 NASDAQ-100 Total Return 수익률로 연결). 과거 성과가 미래를 보장하지 않으며, 레버리지 ETF는 변동성 끌림(decay)과 -90% 이상의 실제 손실 위험이 있습니다. 모든 투자 책임은 본인에게 있습니다.</div>
   </div>
@@ -339,7 +353,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         <option value="deposit">입금</option><option value="withdrawal">출금</option></select></div>
     </div>
     <div class="row2" id="secRow1">
-      <div class="field"><label>종목</label><select id="f_ticker" onchange="onTickerChange()"><option>QQQ</option><option>QLD</option><option>TQQQ</option></select></div>
+      <div class="field"><label>종목</label><select id="f_ticker" onchange="onTickerChange()"><option>QQQ</option><option>QLD</option><option>TQQQ</option><option>SCHD</option></select></div>
       <div class="field"><label>수량</label><input id="f_qty" type="number" step="any" oninput="calcAmount()"></div>
     </div>
     <div class="row2" id="secRow2">
@@ -454,7 +468,7 @@ function autoMonthlyRows(ts){
   const yms=[]; while(y<ly||(y===ly&&m<=lm)){ yms.push(`${y}-${String(m).padStart(2,'0')}`); m++; if(m>12){m=1;y++;} if(yms.length>60)break; }
   const priceAsOf=ym=>{ const cut=ym+'-31'; let row=null; for(const r of SERIES){ if(r.date<=cut)row=r; else break; } return row||SERIES[0]; };
   return yms.map(ym=>{
-    const cut=ym+'-31'; const H={QQQ:0,QLD:0,TQQQ:0}; let dep=0,cash=0;
+    const cut=ym+'-31'; const H={QQQ:0,QLD:0,TQQQ:0,SCHD:0}; let dep=0,cash=0;
     ts.filter(t=>t.date<=cut).forEach(t=>{const k=t.ticker;
       if(t.type==='buy'){if(H[k]!=null)H[k]+=+t.qty;cash-=+t.amount_krw;}
       else if(t.type==='sell'){if(H[k]!=null)H[k]-=+t.qty;cash+=+t.amount_krw;}
@@ -462,7 +476,7 @@ function autoMonthlyRows(ts){
       else if(t.type==='deposit'){dep+=+t.amount_krw;cash+=+t.amount_krw;}
       else if(t.type==='withdrawal'){dep-=+t.amount_krw;cash-=+t.amount_krw;}});
     const pr=priceAsOf(ym), fx=pr.fx?+pr.fx:FXNOW;
-    const stock=H.QQQ*pr.qqq*fx+H.QLD*pr.qld*fx+H.TQQQ*pr.tqqq*fx;
+    const stock=(H.QQQ*pr.qqq+H.QLD*pr.qld+H.TQQQ*pr.tqqq+H.SCHD*schdPx(pr))*fx;
     return {ym, principal:Math.round(dep), eval_amount:Math.round(stock), cash:Math.round(cash), manual:false};
   });
 }
@@ -475,12 +489,12 @@ async function syncAutoMonthly(){
 
 /* ===================== 전략 엔진 (backtest4.py 동일 로직) ===================== */
 const REG_NAME={0:'저점(바닥반등)',1:'상승추세(정상)',2:'상승추세(과열)',3:'조정(눌림목)',4:'하락추세'};
-const REG_BUY ={0:'TQQQ',1:'TQQQ',2:'QLD',3:'QLD',4:'QQQ'};
-const TARGET  ={0:[0.90,0.10,0.00],1:[0.80,0.20,0.00],2:[0.40,0.45,0.15],3:[0.00,0.50,0.50],4:[0.00,0.00,1.00]}; // [TQQQ,QLD,QQQ]
+const REG_BUY ={0:'TQQQ',1:'TQQQ',2:'SCHD',3:'QLD',4:'QQQ'};
+const TARGET  ={0:[0.90,0.10,0.00,0.00],1:[0.80,0.20,0.00,0.00],2:[0.20,0.225,0.075,0.50],3:[0.00,0.50,0.50,0.00],4:[0.00,0.00,1.00,0.00]}; // [TQQQ,QLD,QQQ,SCHD]
 const REG_SUB={
   0:'바닥 반등 신호. 레버리지 비중을 가장 공격적으로 가져가는 구간입니다.',
   1:'200일선 위 정상 상승. 레버리지 중심으로 적립합니다.',
-  2:'과열 구간. TQQQ 비중을 줄이고 QLD로 이동해 위험을 낮춥니다.',
+  2:'과열 구간. 레버리지 절반을 즉시 매도해 배당 ETF(SCHD)에 50% 대피시킵니다.',
   3:'200일선은 우상향이나 가격이 눌린 조정. 레버리지를 절반으로 줄입니다.',
   4:'200일선 아래 하락추세. 레버리지를 전량 정리하고 QQQ로 회피합니다.'
 };
@@ -525,14 +539,16 @@ function computeSeries(md){
 
 /* ===================== 전역 상태 ===================== */
 let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0;
-const APP_VERSION='2.4';
+const APP_VERSION='2.5';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
 const pct = n => (n>=0?'+':'')+ (n*100).toFixed(1)+'%';
-const ALLOC_COLORS={TQQQ:'#ff5aa0',QLD:'#ff7064',QQQ:'#ffab46',CASH:'#7d86a6'};
-const ALLOC_GRAD={TQQQ:'linear-gradient(180deg,rgba(255,150,202,.92),rgba(255,92,162,.82))',QLD:'linear-gradient(180deg,rgba(255,172,132,.92),rgba(255,114,100,.82))',QQQ:'linear-gradient(180deg,rgba(255,216,120,.92),rgba(255,170,68,.82))',CASH:'linear-gradient(180deg,rgba(150,160,190,.78),rgba(108,116,148,.68))'};
-const ALLOC_DISP={TQQQ:'TQQQ',QLD:'QLD',QQQ:'QQQ',CASH:'현금'};
+const ALLOC_COLORS={TQQQ:'#ff5aa0',QLD:'#ff7064',QQQ:'#ffab46',SCHD:'#8e9bff',CASH:'#7d86a6'};
+const ALLOC_GRAD={TQQQ:'linear-gradient(180deg,rgba(255,150,202,.92),rgba(255,92,162,.82))',QLD:'linear-gradient(180deg,rgba(255,172,132,.92),rgba(255,114,100,.82))',QQQ:'linear-gradient(180deg,rgba(255,216,120,.92),rgba(255,170,68,.82))',SCHD:'linear-gradient(180deg,rgba(168,180,255,.92),rgba(120,135,245,.82))',CASH:'linear-gradient(180deg,rgba(150,160,190,.78),rgba(108,116,148,.68))'};
+const ALLOC_DISP={TQQQ:'TQQQ',QLD:'QLD',QQQ:'QQQ',SCHD:'SCHD',CASH:'현금'};
+const SCHD_FALLBACK=32.3;                                  // 시세 미수집 시 임시 단가($)
+const schdPx=row=>(row&&row.schd!=null&&!isNaN(+row.schd))?+row.schd:SCHD_FALLBACK;
 
 /* ===================== 초기화 ===================== */
 async function init(){
@@ -590,40 +606,38 @@ function renderIndicators(r){
   + indCard('현재 레짐', REG_NAME[r.regime].split('(')[0], REG_COLOR[r.regime]==='red'?'down':REG_COLOR[r.regime]==='gold'?'neutral':'up', '매수: '+REG_BUY[r.regime]);
 }
 
-function allocBar(title,arr,emptyMsg,faded){
-  const segs=[['TQQQ',arr[0]],['QLD',arr[1]],['QQQ',arr[2]],['CASH',arr[3]]];
-  const total=(arr[0]||0)+(arr[1]||0)+(arr[2]||0)+(arr[3]||0);
+function allocBar(title,pairs,emptyMsg,faded){
+  const total=pairs.reduce((s,p)=>s+(p[1]||0),0);
   const inner = total<=0.0001
     ? `<div class="abar-empty">${emptyMsg||'—'}</div>`
-    : segs.filter(([,v])=>v>0.0001).map(([n,v])=>`<div style="width:${v*100}%;background:${ALLOC_GRAD[n]}"><span class="abar-seg-t">${v>=0.1?ALLOC_DISP[n]:''}</span><span class="abar-seg-p">${v>=0.07?Math.round(v*100)+'%':''}</span></div>`).join('');
+    : pairs.filter(([,v])=>v>0.0001).map(([n,v])=>`<div style="width:${v*100}%;background:${ALLOC_GRAD[n]}"><span class="abar-seg-t">${v>=0.1?ALLOC_DISP[n]:''}</span><span class="abar-seg-p">${v>=0.07?Math.round(v*100)+'%':''}</span></div>`).join('');
   return `<div class="abar-row"><div class="abar-label">${title}</div><div class="abar${faded?' faded':''}">${inner}</div></div>`;
 }
 function renderAllocBars(reg){
-  const t=TARGET[reg];                       // [TQQQ,QLD,QQQ] 목표
+  const t=TARGET[reg];                       // [TQQQ,QLD,QQQ,SCHD] 목표
   // 현재 비중: 총자산(주식+현금) 기준 → 현금 비중 포함
   const stockVal = CUR_PORT?CUR_PORT.val:null;
   const stockTot = CUR_PORT?CUR_PORT.total:0;
   const cashV = CUR_CASH>0?CUR_CASH:0;
   const totalA = stockTot + cashV;
   const hasCur = totalA>0.0001;
-  const curArr = hasCur
-    ? [ (stockVal?stockVal.TQQQ:0)/totalA, (stockVal?stockVal.QLD:0)/totalA, (stockVal?stockVal.QQQ:0)/totalA, cashV/totalA ]
-    : [0,0,0,0];
+  const TK=['TQQQ','QLD','QQQ','SCHD'];
+  const curPairs = TK.map(k=>[k, hasCur?((stockVal&&stockVal[k]||0)/totalA):0]).concat([['CASH',hasCur?cashV/totalA:0]]);
+  const tgtPairs = TK.map((k,i)=>[k,t[i]]);
   const el=document.getElementById('allocBars');
-  const TK=['TQQQ','QLD','QQQ'];
+  const priceUSD=k=>k==='SCHD'?schdPx(CUR):(+CUR[k.toLowerCase()]);
   // 목표 달성에 필요한 매수/매도 주수 (현재 총액 기준 리밸런싱)
   function sharesFor(i){
     if(!CUR_PORT||!CUR||CUR_PORT.total<=0) return null;
     const k=TK[i];
     const targetVal=t[i]*CUR_PORT.total;
-    const deltaVal=targetVal-(CUR_PORT.val[k]||0);   // +면 매수 필요, -면 매도
-    const priceKRW=(+CUR[k.toLowerCase()])*FXNOW;
+    const deltaVal=targetVal-((CUR_PORT.val&&CUR_PORT.val[k])||0);   // +면 매수 필요, -면 매도
+    const priceKRW=priceUSD(k)*FXNOW;
     return priceKRW>0 ? deltaVal/priceKRW : null;
   }
   el.innerHTML =
     `<div class="alloc-grid"><div class="abar-legend">`
   + TK.map((n,i)=>{
-      const c=curArr[i], tg=t[i];
       const sh=sharesFor(i);
       let act;
       const shN = sh===null?null:Math.floor(Math.abs(sh));
@@ -635,8 +649,8 @@ function renderAllocBars(reg){
         + `<span class="abar-act">${act}</span></div>`;
     }).join('')
   + `</div><div class="alloc-bars">`
-  + allocBar('목표 비중 · '+REG_NAME[reg].split('(')[0], t, null, false)        // 목표 먼저
-  + allocBar('현재 비중'+(hasCur?'':' (보유 없음)'), curArr, '보유 종목이 없습니다', true)  // 현재 나중
+  + allocBar('목표 비중 · '+REG_NAME[reg].split('(')[0], tgtPairs, null, false)        // 목표 먼저
+  + allocBar('현재 비중'+(hasCur?'':' (보유 없음)'), curPairs, '보유 종목이 없습니다', true)  // 현재 나중
   + `</div></div>`;
 }
 
@@ -723,9 +737,9 @@ async function submitMonthly(){
 async function delMonthly(ym){ if(!confirm(ym+' 데이터를 삭제하시겠습니까?'))return; await removeMonthly(ym); await renderMonthly(); }
 
 /* ===================== 적립설정 ===================== */
-const BT={'매월':{adaptive:[242.8,-66.6,32.7],QQQ:[12.66,-48.0,16.0],QLD:[67.9,-79.4,25.4],TQQQ:[205.6,-92.8,31.8],split:[95.4,-76.6,27.4]},
-'매주':{adaptive:[243.5,-66.5,32.8],QQQ:[12.69,-47.9,16.0],QLD:[68.2,-79.3,25.6],TQQQ:[206.7,-92.7,31.9],split:[95.9,-76.6,27.5]},
-'매일':{adaptive:[243.3,-66.5,32.8],QQQ:[12.68,-47.8,16.0],QLD:[68.2,-79.2,25.6],TQQQ:[206.2,-92.7,31.9],split:[95.7,-76.5,27.5]}};
+const BT={'매월':{adaptive:[342.5,-66.9,34.7],QQQ:[12.66,-48.0,16.0],QLD:[67.9,-79.4,25.4],TQQQ:[205.6,-92.8,31.8],split:[95.4,-76.6,27.4]},
+'매주':{adaptive:[343.4,-66.9,34.8],QQQ:[12.69,-47.9,16.0],QLD:[68.2,-79.3,25.6],TQQQ:[206.7,-92.7,31.9],split:[95.9,-76.6,27.5]},
+'매일':{adaptive:[342.9,-66.8,34.8],QQQ:[12.68,-47.8,16.0],QLD:[68.2,-79.2,25.6],TQQQ:[206.2,-92.7,31.9],split:[95.7,-76.5,27.5]}};
 const CAD_NOTE={
 '매일':'매일 적립은 평균단가를 가장 촘촘히 분산해 진입 타이밍 위험이 가장 작습니다. 거래 횟수가 많아 수수료에 민감하니 수수료 무료/소액 환경에 적합합니다. 백테스트상 매주와 수익·낙폭이 거의 동일합니다.',
 '매주':'매주 적립은 매일과 거의 같은 성과를 내면서 거래 횟수를 1/5로 줄여 실전에서 가장 균형이 좋습니다. 레짐 전환 시 리밸런싱과 함께 운용하는 것을 권장합니다.',
@@ -736,7 +750,7 @@ function onCadenceChange(){
   document.getElementById('cadTitle').textContent=cad;
   document.getElementById('cadNote').textContent=CAD_NOTE[cad];
   const tb=document.getElementById('cadTable');const b=BT[cad];
-  const rows=[['★ 적응형','adaptive','up'],['QQQ','QQQ',''],['QLD','QLD',''],['TQQQ','TQQQ',''],['균등3분할','split','']];
+  const rows=[['★ 적응형+SCHD','adaptive','up'],['QQQ','QQQ',''],['QLD','QLD',''],['TQQQ','TQQQ',''],['균등3분할','split','']];
   tb.innerHTML=rows.map(([nm,k,c])=>{const[m,d,i]=b[k];return `<tr><td class="${c?'up tkr':''}">${nm}</td><td class="mono">${m}x</td><td class="mono ${d<-80?'down':'neutral'}">${d}%</td><td class="mono ${c||''}">${i}%</td></tr>`;}).join('');
 }
 async function saveSettingsUI(){
@@ -768,8 +782,9 @@ function calcAmount(){
   document.getElementById('f_amount').value=Math.round(q*p*fx).toLocaleString('ko-KR');
 }
 function onTickerChange(){
-  const tk=document.getElementById('f_ticker').value.toLowerCase();
-  if(CUR && CUR[tk]!=null) document.getElementById('f_price').value=(+CUR[tk]).toFixed(2);
+  const tkU=document.getElementById('f_ticker').value;
+  const px = tkU==='SCHD' ? schdPx(CUR) : (CUR && CUR[tkU.toLowerCase()]!=null ? +CUR[tkU.toLowerCase()] : null);
+  if(px!=null) document.getElementById('f_price').value=px.toFixed(2);
   calcAmount();
 }
 function openTrade(id){
@@ -778,7 +793,8 @@ function openTrade(id){
   if(!id){
     document.getElementById('f_date').value=CUR.date;
     document.getElementById('f_type').value='buy';document.getElementById('f_ticker').value=REG_BUY[CUR.regime];
-    document.getElementById('f_qty').value='';document.getElementById('f_price').value=CUR[document.getElementById('f_ticker').value.toLowerCase()].toFixed(2);
+    const _tk=document.getElementById('f_ticker').value;
+    document.getElementById('f_qty').value='';document.getElementById('f_price').value=(_tk==='SCHD'?schdPx(CUR):CUR[_tk.toLowerCase()]).toFixed(2);
     document.getElementById('f_fx').value=FXNOW;document.getElementById('f_amount').value='';document.getElementById('f_realized').value=0;
   }
   onTypeChange();calcAmount();
@@ -831,9 +847,9 @@ async function renderTrades(){
 /* ===================== 수익분석 ===================== */
 async function renderProfit(){
   const ts=await getTrades();
-  const last={QQQ:CUR.qqq,QLD:CUR.qld,TQQQ:CUR.tqqq};
+  const last={QQQ:CUR.qqq,QLD:CUR.qld,TQQQ:CUR.tqqq,SCHD:schdPx(CUR)};
   const fxNow=FXNOW;
-  const H={}; ['QQQ','QLD','TQQQ'].forEach(k=>H[k]={qty:0,cost:0}); // cost in KRW of remaining (avg)
+  const H={}; ['QQQ','QLD','TQQQ','SCHD'].forEach(k=>H[k]={qty:0,cost:0}); // cost in KRW of remaining (avg)
   let totalRealized=0, totalDividend=0, cash=0, netDeposits=0;
   // process chronologically
   [...ts].sort((a,b)=>a.date.localeCompare(b.date)).forEach(t=>{
@@ -845,7 +861,7 @@ async function renderProfit(){
     else if(t.type==='withdrawal'){cash-=+t.amount_krw;netDeposits-=+t.amount_krw;}
   });
   let invested=0,curVal=0;
-  const rows=['QQQ','QLD','TQQQ'].map(k=>{
+  const rows=['QQQ','QLD','TQQQ','SCHD'].map(k=>{
     const h=H[k];if(h.qty<=1e-9)return null;
     const avgUSD=h.cost/h.qty/fxNow;
     const val=h.qty*last[k]*fxNow;
@@ -855,7 +871,7 @@ async function renderProfit(){
   // 현재 비중(평가금액 기준) + 절대 평가액/총액 → 막대·목표달성 주수 계산에 사용
   CUR_CASH = cash>0?cash:0;
   if(curVal>0){
-    const v={QQQ:0,QLD:0,TQQQ:0}; rows.forEach(r=>v[r.k]=r.val);
+    const v={QQQ:0,QLD:0,TQQQ:0,SCHD:0}; rows.forEach(r=>v[r.k]=r.val);
     CUR_ALLOC={TQQQ:v.TQQQ/curVal,QLD:v.QLD/curVal,QQQ:v.QQQ/curVal};
     CUR_PORT={total:curVal, val:v};
   } else { CUR_ALLOC=null; CUR_PORT={total:0, val:{QQQ:0,QLD:0,TQQQ:0}}; }
@@ -875,7 +891,7 @@ async function renderProfit(){
   // 금일손익 = 보유분의 전일 대비 평가 변동
   let todayPL=0;
   if(SERIES.length>=2){ const prev=SERIES[SERIES.length-2];
-    rows.forEach(r=>{ todayPL += (+H[r.k].qty) * ((+last[r.k]) - (+prev[r.k.toLowerCase()])) * fxNow; }); }
+    rows.forEach(r=>{ const pv=r.k==='SCHD'?schdPx(prev):(+prev[r.k.toLowerCase()]); todayPL += (+H[r.k].qty) * ((+last[r.k]) - pv) * fxNow; }); }
   const cards=[
     ['원금 (입금누계)', netDeposits, '','amt'],
     ['평가금액', totalAssets, '','amt'],
@@ -894,10 +910,10 @@ async function renderProfit(){
 function renderModalRegimes(){
   const order=[0,1,2,3,4];
   document.getElementById('modalRegimes').innerHTML=order.map(reg=>{
-    const t=TARGET[reg];const segs=[['TQQQ',t[0],ALLOC_GRAD.TQQQ],['QLD',t[1],ALLOC_GRAD.QLD],['QQQ',t[2],ALLOC_GRAD.QQQ]].filter(x=>x[1]>0);
-    return `<div class="regime-card"><div class="h"><span class="chip">${REG_NAME[reg]}</span><span class="muted" style="font-size:12px">매수: <b>${REG_BUY[reg]}</b></span></div>
+    const t=TARGET[reg];const segs=[['TQQQ',t[0]],['QLD',t[1]],['QQQ',t[2]],['SCHD',t[3]]].filter(x=>x[1]>0);
+    return `<div class="regime-card"><div class="h"><span class="chip">${REG_NAME[reg]}</span><span class="muted" style="font-size:12px">매수 1순위: <b>${REG_BUY[reg]}</b></span></div>
     <div class="note">${REG_SUB[reg]}</div>
-    <div class="wbar">${segs.map(([n,v,c])=>`<div style="width:${v*100}%;background:${c}">${v>=0.15?n+' '+(v*100)+'%':''}</div>`).join('')}</div></div>`;
+    <div class="wbar">${segs.map(([n,v])=>`<div style="width:${v*100}%;background:${ALLOC_GRAD[n]}">${v>=0.15?n+' '+Math.round(v*1000)/10+'%':''}</div>`).join('')}</div></div>`;
   }).join('');
 }
 function openStrategy(){document.getElementById('strategyModal').classList.add('open');}
