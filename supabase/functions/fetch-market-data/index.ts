@@ -87,10 +87,10 @@ async function naverFx(): Promise<Bars | null> {
 }
 
 // ---------- 폴백 ----------
-async function yahoo(t: Ticker, range = "1mo"): Promise<Bars | null> {
+async function yahoo(t: Ticker): Promise<Bars | null> {
   for (const host of ["query1", "query2"]) {
     try {
-      const res = await fetch(`https://${host}.finance.yahoo.com/v8/finance/chart/${t}?interval=1d&range=${range}`, { headers: { "User-Agent": UA } });
+      const res = await fetch(`https://${host}.finance.yahoo.com/v8/finance/chart/${t}?interval=1d&range=1mo`, { headers: { "User-Agent": UA } });
       if (!res.ok) { diag[`yahoo:${t}`] = `HTTP ${res.status}`; continue; }
       const r = (await res.json())?.chart?.result?.[0];
       const ts: number[] = r?.timestamp ?? [], cl = r?.indicators?.quote?.[0]?.close ?? [];
@@ -109,20 +109,13 @@ async function erApiFx(): Promise<number | null> {
 }
 
 async function priceSeries(t: Ticker): Promise<Bars> { return (await naverStock(t)) ?? (await yahoo(t)) ?? {}; }
-// 백필: 야후에서 장기 일별 시세 (합성 시드를 실데이터로 교체할 때 사용)
-async function backfillSeries(t: Ticker, range: string): Promise<Bars> { return (await yahoo(t, range)) ?? {}; }
 
-Deno.serve(async (req) => {
+Deno.serve(async () => {
   const sb = createClient(SUPABASE_URL, SERVICE_KEY);
   const out: Record<string, unknown> = {};
-  // ?backfill=2y (또는 1y/5y/max): 야후에서 장기 시세를 받아 기존(합성 시드 포함) 행을 전부 덮어씀
-  const backfill = new URL(req.url).searchParams.get("backfill");
 
   const maps = {} as Record<Ticker, Bars>;
-  for (const t of TICKERS) {
-    maps[t] = backfill ? await backfillSeries(t, backfill) : await priceSeries(t);
-    out[`${t}_days`] = Object.keys(maps[t]).length;
-  }
+  for (const t of TICKERS) { maps[t] = await priceSeries(t); out[`${t}_days`] = Object.keys(maps[t]).length; }
 
   // 환율: 네이버 → er-api
   let fxMap = await naverFx() ?? {};
@@ -135,15 +128,14 @@ Deno.serve(async (req) => {
   const common = Object.keys(maps.QQQ).filter((d) => maps.QLD[d] != null && maps.TQQQ[d] != null).sort();
   if (!common.length) { out["note"] = "완전한 행(3종목 동일일자) 없음 — upsert 생략"; out["diag"] = diag; return json(out); }
 
-  const take = backfill ? common : common.slice(-10);
-  const rows = take.map((d) => ({
+  const rows = common.slice(-10).map((d) => ({
     date: d, qqq: maps.QQQ[d], qld: maps.QLD[d], tqqq: maps.TQQQ[d],
     schd: maps.SCHD?.[d] ?? null,
     fx: fxMap[d] ?? latestFx ?? null,
   }));
   const { error } = await sb.from("market_data").upsert(rows, { onConflict: "date" });
   if (error) out["upsert_error"] = error.message;
-  else { out["upserted"] = backfill ? `${rows.length} rows (backfill=${backfill})` : rows.map((r) => r.date); out["latest"] = rows[rows.length - 1]; }
+  else { out["upserted_dates"] = rows.map((r) => r.date); out["latest"] = rows[rows.length - 1]; }
   if (Object.keys(diag).length) out["diag"] = diag;
   return json(out);
 });
