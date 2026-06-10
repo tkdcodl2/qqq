@@ -83,12 +83,12 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rg
 /* allocation bars (현재 vs 목표) */
 .abar-row{margin:0 0 13px}
 .abar-label{font-size:10.5px;color:var(--muted);margin-bottom:6px;letter-spacing:.4px;font-weight:500;text-transform:uppercase}
-.abar{display:flex;height:32px;border-radius:12px;overflow:hidden;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 4px 18px rgba(150,80,200,.16)}
-.abar.faded{height:26px;box-shadow:0 3px 12px rgba(0,0,0,.3)}
-.abar.faded>div{filter:saturate(.7) brightness(.92)}
-.abar>div{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;min-width:0;white-space:nowrap;transition:width .6s cubic-bezier(.33,1,.4,1)}
+.abar{display:flex;height:32px;border-radius:9px;overflow:hidden;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(16px) saturate(1.25);-webkit-backdrop-filter:blur(16px) saturate(1.25);box-shadow:0 0 0 1px rgba(255,255,255,.05),0 2px 16px rgba(255,255,255,.07),inset 0 1px 0 rgba(255,255,255,.34),0 6px 22px rgba(0,0,0,.34)}
+.abar.faded{box-shadow:0 0 0 1px rgba(255,255,255,.04),0 1px 10px rgba(255,255,255,.05),inset 0 1px 0 rgba(255,255,255,.22),0 4px 14px rgba(0,0,0,.28)}
+.abar.faded>div{filter:saturate(.92) brightness(.99)}
+.abar>div{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;min-width:0;white-space:nowrap;transition:width .6s cubic-bezier(.33,1,.4,1);box-shadow:inset 0 -7px 12px -7px rgba(255,255,255,.32);filter:saturate(1.18) brightness(1.06)}
 .abar>div:not(:first-child)::before{content:'';position:absolute;left:-1px;top:-2px;bottom:-2px;width:2px;z-index:3;background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,.5));box-shadow:0 0 8px 1px rgba(255,255,255,.65);pointer-events:none}
-.abar>div::after{content:'';position:absolute;left:0;right:0;top:0;height:50%;background:linear-gradient(180deg,rgba(255,255,255,.38),rgba(255,255,255,0));pointer-events:none}
+.abar>div::after{content:'';position:absolute;left:0;right:0;top:0;height:55%;background:linear-gradient(180deg,rgba(255,255,255,.45),rgba(255,255,255,0));pointer-events:none}
 .abar-seg-t{font-size:9px;font-weight:700;letter-spacing:.6px;line-height:1;color:rgba(255,255,255,.9);text-shadow:0 1px 1px rgba(0,0,0,.3)}
 .abar-seg-p{font-size:12px;font-weight:800;line-height:1.2;font-variant-numeric:tabular-nums;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35)}
 .abar-empty{display:flex;align-items:center;justify-content:center;width:100%;color:var(--muted);font-weight:500;font-size:12px}
@@ -428,13 +428,13 @@ function computeSeries(md){
 
 /* ===================== 전역 상태 ===================== */
 let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null;
-const APP_VERSION='1.6';
+const APP_VERSION='1.9';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
 const pct = n => (n>=0?'+':'')+ (n*100).toFixed(1)+'%';
-const ALLOC_COLORS={TQQQ:'#ff3db0',QLD:'#ffb030',QQQ:'#34d98a'};
-const ALLOC_GRAD={TQQQ:'linear-gradient(135deg,rgba(255,61,176,.94),rgba(150,55,232,.7))',QLD:'linear-gradient(135deg,rgba(255,176,48,.94),rgba(255,108,40,.7))',QQQ:'linear-gradient(135deg,rgba(90,235,150,.94),rgba(24,185,118,.7))'};
+const ALLOC_COLORS={TQQQ:'#ff5aa0',QLD:'#ff7064',QQQ:'#ffab46'};
+const ALLOC_GRAD={TQQQ:'linear-gradient(180deg,rgba(255,150,202,.92),rgba(255,92,162,.82))',QLD:'linear-gradient(180deg,rgba(255,172,132,.92),rgba(255,114,100,.82))',QQQ:'linear-gradient(180deg,rgba(255,216,120,.92),rgba(255,170,68,.82))'};
 
 /* ===================== 초기화 ===================== */
 async function init(){
@@ -527,7 +527,7 @@ function renderAllocBars(reg){
       else if(shN===0) act='<b class="muted">유지</b>';
       else if(sh>0) act=`<b class="up">+${shN}주 매수</b>`;
       else act=`<b class="down">${shN}주 매도</b>`;
-      return `<div class="abar-leg"><span class="abar-leg-n"><span class="dotc" style="background:${ALLOC_GRAD[n]}"></span>${n}</span>`
+      return `<div class="abar-leg"><span class="abar-leg-n"><span class="dotc" style="background:${ALLOC_COLORS[n]}"></span>${n}</span>`
         + `<span class="abar-leg-v"><span class="mono muted">목표 ${Math.round(tg*100)}% · 현재 ${Math.round(c*100)}%</span><span class="abar-act">${act}</span></span></div>`;
     }).join('')
   + `</div>`;
@@ -714,6 +714,12 @@ function renderModalRegimes(){
 function openStrategy(){document.getElementById('strategyModal').classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+document.getElementById('tradeModal').addEventListener('keydown',e=>{
+  if(e.key==='Enter' && !e.isComposing && e.keyCode!==229){
+    const tag=(e.target.tagName||'').toUpperCase();
+    if(tag==='INPUT'||tag==='SELECT'){ e.preventDefault(); submitTrade(); }
+  }
+});
 
 /* ===================== 탭 / 기타 ===================== */
 function switchTab(t){
