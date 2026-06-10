@@ -65,12 +65,12 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rg
 /* state hero */
 .hero{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
 .state-box{display:flex;flex-direction:column;justify-content:center;gap:6px;min-height:104px}
-.state-name{font-family:'Bebas Neue';font-size:24px;letter-spacing:1px;line-height:1}
+.state-name{font-family:'Bebas Neue';font-size:19px;letter-spacing:.8px;line-height:1.05}
 .state-sub{font-size:12px;color:var(--muted);max-width:94%;line-height:1.45}
 .gauge-row{display:flex;gap:6px;margin-top:6px}
 .gpip{flex:1;height:7px;border-radius:4px;background:var(--surface2);border:1px solid var(--border)}
 .reco-box{display:flex;flex-direction:column;gap:10px;justify-content:center}
-.reco-ticker{font-family:'Bebas Neue';font-size:27px;letter-spacing:1px;line-height:.95}
+.reco-ticker{font-family:'Bebas Neue';font-size:22px;letter-spacing:.8px;line-height:1}
 .pill{display:inline-block;font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--border)}
 .pill.buy{color:var(--accent);border-color:rgba(82,186,136,.4);background:rgba(82,186,136,.1)}
 
@@ -159,7 +159,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   .mobile-tabbar button{flex:1;background:none;border:none;color:var(--muted);font-size:10px;padding:8px 2px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
   .mobile-tabbar button.active{color:var(--accent)}
   .mobile-tabbar .ic{font-size:17px}
-  .big-num{font-size:20px}.state-name{font-size:22px}.reco-ticker{font-size:26px}
+  .big-num{font-size:20px}.state-name{font-size:18px}.reco-ticker{font-size:21px}
 }
 </style>
 </head>
@@ -183,7 +183,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   <section id="tab-dash">
     <div class="hero">
       <div class="card green card-hov state-box" id="stateCard">
-        <div class="label">현재 시장 레짐 · <span id="stateDate" class="mono"></span></div>
+        <div class="label">현재 시장 · <span id="stateDate" class="mono"></span></div>
         <div class="state-name" id="stateName">—</div>
         <div class="state-sub" id="stateSub"></div>
         <div class="gauge-row" id="gaugeRow"></div>
@@ -192,13 +192,12 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         <div class="label">오늘 매수 추천 종목</div>
         <div class="reco-ticker" id="recoTicker">—</div>
         <div><span class="pill buy" id="recoCadence"></span></div>
-        <div class="state-sub" id="recoReason"></div>
       </div>
     </div>
 
     <div class="grid" style="grid-template-columns:1.4fr 1fr;margin-top:24px;gap:16px" id="chartRow">
       <div class="card">
-        <div class="section-title"><span class="dot"></span>QQQ 가격 · 200일선 · 레짐</div>
+        <div class="section-title"><span class="dot"></span>QQQ 가격 · 200일선</div>
         <div style="height:300px"><canvas id="priceChart"></canvas></div>
       </div>
       <div class="card">
@@ -215,7 +214,6 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         <tbody id="holdBody"></tbody>
       </table>
     </div>
-    <p class="note" style="margin-top:10px">금액은 원화 기준이며 아래 작은 글씨는 달러 환산(환율 1,380원/$)입니다. 현금 잔고 = 입금 − 출금 − 매수 + 매도 + 배당, 총 자산 = 평가액 + 현금. 현재가는 시장데이터 최신 종가 기준입니다.</p>
 
     <div class="section-title" style="margin-top:26px"><span class="dot"></span>핵심 지표</div>
     <div class="ind-grid" id="indGrid"></div>
@@ -430,7 +428,7 @@ function computeSeries(md){
 
 /* ===================== 전역 상태 ===================== */
 let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null;
-const APP_VERSION='1.4';
+const APP_VERSION='1.5';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
@@ -471,7 +469,6 @@ function renderDashboard(){
     gr.appendChild(p);}
   document.getElementById('recoTicker').textContent=REG_BUY[reg];
   document.getElementById('recoCadence').textContent=SETTINGS.cadence+' 적립';
-  document.getElementById('recoReason').textContent=`${REG_NAME[reg]} 국면에서는 ${REG_BUY[reg]}를 ${SETTINGS.cadence} 매수합니다. 목표비중 TQQQ ${(TARGET[reg][0]*100)}% · QLD ${(TARGET[reg][1]*100)}% · QQQ ${(TARGET[reg][2]*100)}%.`;
   renderIndicators(r);
   renderAllocBars(reg);
   renderPriceChart();
