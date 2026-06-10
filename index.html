@@ -90,6 +90,8 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rg
 .abar>div{position:relative;display:flex;align-items:center;justify-content:center;color:#fff;min-width:0;white-space:nowrap;transition:width .6s cubic-bezier(.33,1,.4,1)}
 .abar-seg-t{display:none}
 .abar-seg-p{font-size:11px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:#fff}
+.nowrap-table td,.nowrap-table th{white-space:nowrap}
+.nowrap-table td{padding-right:18px}
 .abar-empty{display:flex;align-items:center;justify-content:center;width:100%;color:var(--muted);font-weight:500;font-size:12px}
 .abar-legend{margin-top:15px;display:flex;flex-direction:column;gap:9px;border-top:1px solid var(--border);padding-top:13px}
 .alloc-grid{display:flex;gap:18px;align-items:center}
@@ -162,6 +164,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   .ind-grid{grid-template-columns:repeat(2,1fr)}
   .summary-grid{grid-template-columns:repeat(2,1fr)}
   .row3{grid-template-columns:1fr}
+  #chartRow{grid-template-columns:1fr !important}
 }
 @media(max-width:560px){
   .tabs{display:none}
@@ -221,8 +224,8 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     <div class="section-title" style="margin-top:26px"><span class="dot"></span>수익 현황</div>
     <div class="summary-grid" id="profitSummary"></div>
     <div class="card" style="margin-top:16px;padding:0;overflow-x:auto">
-      <table>
-        <thead><tr><th>종목</th><th>보유수량</th><th>평균단가</th><th>현재가</th><th>매수원금</th><th>평가금액</th><th>평가손익</th><th>수익률</th></tr></thead>
+      <table class="nowrap-table">
+        <thead><tr><th>종목</th><th>수량</th><th>평균단가</th><th>현재가</th><th>매수원금</th><th>평가금액</th><th>평가손익</th><th>수익률</th></tr></thead>
         <tbody id="holdBody"></tbody>
       </table>
     </div>
@@ -231,7 +234,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       <button class="btn primary" style="margin-left:auto;padding:7px 14px;font-size:13px;letter-spacing:0" onclick="openMonthly()">+ 월별 데이터 추가</button>
     </div>
     <div class="card" style="padding:0;overflow-x:auto">
-      <table>
+      <table class="nowrap-table">
         <thead><tr><th>년월</th><th>총자산</th><th>원금(입금누계)</th><th>평가금액</th><th>평가손익</th><th>수익률</th><th></th></tr></thead>
         <tbody id="monthlyBody"></tbody>
       </table>
@@ -310,13 +313,13 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     <p class="note" style="margin-bottom:8px"><b>1단계 — 추세 ON/OFF.</b> QQQ가 200일선 <b>아래</b>로 내려가면 추세 OFF. 다시 ON이 되려면 200일선보다 <b>1% 이상</b> 위로 올라오고 50일선이 200일선의 99% 이상이어야 합니다(휩쏘 방지 밴드).</p>
     <p class="note" style="margin-bottom:8px"><b>2단계 — 레짐 판정과 목표 비중.</b> 위에서부터 먼저 맞는 조건이 그날의 레짐입니다.</p>
     <table style="font-size:12.5px">
-      <thead><tr><th>조건 (QQQ 기준)</th><th>레짐</th><th>목표 비중</th><th>매수 1순위</th></tr></thead>
+      <thead><tr><th>레짐</th><th>조건 (QQQ 기준)</th><th>목표 비중</th><th>매수 1순위</th></tr></thead>
       <tbody>
-        <tr><td>추세 OFF + 고점대비 −22% 이상 낙폭 + RSI&lt;45 + 주가가 50일선 회복</td><td class="tkr up">저점(바닥반등)</td><td class="mono">TQQQ 90 · QLD 10</td><td class="tkr">TQQQ</td></tr>
-        <tr><td>추세 ON + 과열 아님</td><td class="tkr up">상승추세(정상)</td><td class="mono">TQQQ 80 · QLD 20</td><td class="tkr">TQQQ</td></tr>
-        <tr><td>추세 ON + (200일선 대비 +20% 이상 이격 <b>또는</b> RSI&gt;80)</td><td class="tkr neutral">상승추세(과열)</td><td class="mono">SCHD 50 · QLD 22.5 · TQQQ 20 · QQQ 7.5</td><td class="tkr">SCHD</td></tr>
-        <tr><td>추세 OFF + 200일선 기울기는 아직 상승</td><td class="tkr">조정(눌림목)</td><td class="mono">QLD 50 · QQQ 50</td><td class="tkr">QLD</td></tr>
-        <tr><td>추세 OFF + 200일선 기울기 하락</td><td class="tkr down">하락추세</td><td class="mono">QQQ 100</td><td class="tkr">QQQ</td></tr>
+        <tr><td class="tkr up">저점</td><td>추세 OFF + 고점대비 −22% 이상 낙폭 + RSI&lt;45 + 주가가 50일선 회복</td><td class="mono">TQQQ 90 · QLD 10</td><td class="tkr">TQQQ</td></tr>
+        <tr><td class="tkr up">정상</td><td>추세 ON + 과열 아님</td><td class="mono">TQQQ 80 · QLD 20</td><td class="tkr">TQQQ</td></tr>
+        <tr><td class="tkr neutral">과열</td><td>추세 ON + (200일선 대비 +20% 이상 이격 <b>또는</b> RSI&gt;80)</td><td class="mono">SCHD 50 · QLD 22.5 · TQQQ 20 · QQQ 7.5</td><td class="tkr">SCHD</td></tr>
+        <tr><td class="tkr">조정</td><td>추세 OFF + 200일선 기울기는 아직 상승</td><td class="mono">QLD 50 · QQQ 50</td><td class="tkr">QLD</td></tr>
+        <tr><td class="tkr down">하락</td><td>추세 OFF + 200일선 기울기 하락</td><td class="mono">QQQ 100</td><td class="tkr">QQQ</td></tr>
       </tbody>
     </table>
     <p class="note" style="margin:8px 0 0"><b>3단계 — 실행.</b> 레짐이 <b>바뀐 날</b> 보유 전체를 그 레짐의 목표 비중으로 <b>즉시(분할 없이) 리밸런싱</b>합니다. 예: 과열 진입 시 레버리지 절반을 그날 매도해 SCHD 50%를 채우고, 과열 해제 시 SCHD를 전량 매도해 새 레짐 비중으로 복귀합니다. 신규 적립금은 항상 현재 레짐의 목표 비중대로(부족한 종목 우선) 매수하며, 신규 시작자도 그날의 레짐 비중대로 첫 매수를 하면 됩니다. 대시보드의 "+N주 매수/매도"가 바로 이 목표 비중과 현재 보유의 차이를 주수로 환산한 값입니다.</p>
@@ -487,7 +490,7 @@ async function syncAutoMonthly(){
 }
 
 /* ===================== 전략 엔진 (backtest4.py 동일 로직) ===================== */
-const REG_NAME={0:'저점(바닥반등)',1:'상승추세(정상)',2:'상승추세(과열)',3:'조정(눌림목)',4:'하락추세'};
+const REG_NAME={0:'저점',1:'정상',2:'과열',3:'조정',4:'하락'};
 const REG_BUY ={0:'TQQQ',1:'TQQQ',2:'SCHD',3:'QLD',4:'QQQ'};
 const TARGET  ={0:[0.90,0.10,0.00,0.00],1:[0.80,0.20,0.00,0.00],2:[0.20,0.225,0.075,0.50],3:[0.00,0.50,0.50,0.00],4:[0.00,0.00,1.00,0.00]}; // [TQQQ,QLD,QQQ,SCHD]
 const REG_SUB={
@@ -538,7 +541,7 @@ function computeSeries(md){
 
 /* ===================== 전역 상태 ===================== */
 let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0;
-const APP_VERSION='2.7';
+const APP_VERSION='2.8';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
@@ -603,7 +606,7 @@ function renderIndicators(r){
   + indCard('RSI(14)', rsi.toFixed(0), rsi>80?'neutral':(rsi<45?'down':'up'), rsi>80?'과매수':(rsi<45?'과매도':'중립'))
   + indCard('200일선 기울기', (r.slope>=0?'▲ 상승':'▼ 하락'), r.slope>=0?'up':'down', '20일 변화')
   + indCard('추세 상태', r.up===1?'상승(ON)':'하락(OFF)', r.up===1?'up':'down', '밴드 필터 적용')
-  + indCard('현재 레짐', REG_NAME[r.regime].split('(')[0], REG_COLOR[r.regime]==='red'?'down':REG_COLOR[r.regime]==='gold'?'neutral':'up', '매수: '+REG_BUY[r.regime]);
+  + indCard('현재 레짐', REG_NAME[r.regime], REG_COLOR[r.regime]==='red'?'down':REG_COLOR[r.regime]==='gold'?'neutral':'up', '매수: '+REG_BUY[r.regime]);
 }
 
 function allocBar(title,pairs,emptyMsg,faded){
@@ -646,7 +649,7 @@ function renderAllocBars(reg){
         + `<span class="abar-act">${act}</span></div>`;
     }).join('')
   + `</div><div class="alloc-bars">`
-  + allocBar('목표 비중 · '+REG_NAME[reg].split('(')[0], tgtPairs, null, false)        // 목표 먼저
+  + allocBar('목표 비중 · '+REG_NAME[reg], tgtPairs, null, false)        // 목표 먼저
   + allocBar('현재 비중'+(hasCur?'':' (보유 없음)'), curPairs, '보유 종목이 없습니다', true)  // 현재 나중
   + `</div></div>`;
 }
@@ -655,14 +658,32 @@ function renderPriceChart(){
   const N=Math.min(260,SERIES.length); const s=SERIES.slice(-N);
   const ctx=document.getElementById('priceChart');
   if(priceChart)priceChart.destroy();
-  // regime shading via segment color on background
-  const bg=s.map(o=>{const c=REG_COLOR[o.regime];return c==='red'?'rgba(224,92,110,.06)':c==='gold'?'rgba(201,168,76,.06)':c==='blue'?'rgba(61,137,201,.05)':'rgba(82,186,136,.05)';});
+  // 레짐별 선 색: 저점 밝은 초록 · 정상 초록 · 과열 빨강 · 조정 파랑 · 하락 진빨강
+  const REG_LINE={0:'#2fe08c',1:'#52ba88',2:'#ff5d6e',3:'#3d89c9',4:'#d6486a'};
+  const n=s.length;
+  function regimeGradient(c){
+    const area=c.chart.chartArea; if(!area||!c.chart.ctx.createLinearGradient) return '#e8ecf4';
+    const g=c.chart.ctx.createLinearGradient(area.left,0,area.right,0);
+    let prev=null;
+    for(let i=0;i<n;i++){
+      const col=REG_LINE[s[i].regime]||'#52ba88';
+      const pos=n<=1?0:i/(n-1);
+      if(col!==prev){
+        if(prev!==null) g.addColorStop(Math.max(0,pos-0.012), prev);   // 전환부 ~3일 폭으로 자연스럽게 블렌딩
+        g.addColorStop(Math.min(1,pos+0.012), col);
+        prev=col;
+      }
+    }
+    if(prev!==null) g.addColorStop(1,prev);
+    return g;
+  }
   priceChart=new Chart(ctx,{type:'line',data:{labels:s.map(o=>o.date),datasets:[
-    {label:'QQQ',data:s.map(o=>o.qqq),borderColor:'#e8ecf4',borderWidth:1.6,pointRadius:0,tension:.15},
+    {label:'QQQ',data:s.map(o=>o.qqq),borderColor:regimeGradient,borderWidth:2,pointRadius:0,tension:.15},
     {label:'200일선',data:s.map(o=>o.sma200),borderColor:'#c9a84c',borderWidth:1.4,pointRadius:0,borderDash:[5,4]},
-    {label:'50일선',data:s.map(o=>o.sma50),borderColor:'#3d89c9',borderWidth:1,pointRadius:0}
+    {label:'50일선',data:s.map(o=>o.sma50),borderColor:'#6b7494',borderWidth:1,pointRadius:0}
   ]},options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
-    plugins:{legend:{labels:{color:'#6b7494',boxWidth:12,font:{size:11}}}},
+    plugins:{legend:{labels:{color:'#6b7494',boxWidth:12,font:{size:11}}},
+      tooltip:{callbacks:{afterTitle:items=>{const i=items[0].dataIndex;return '레짐: '+REG_NAME[s[i].regime];}}}},
     scales:{x:{ticks:{color:'#6b7494',maxTicksLimit:6,font:{size:10}},grid:{color:'rgba(255,255,255,.03)'}},
             y:{ticks:{color:'#6b7494',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}}}}});
 }
