@@ -242,6 +242,12 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 
     <div class="section-title" style="margin-top:26px"><span class="dot"></span>수익현황 <span class="muted" style="font-family:Inter;font-size:11px;letter-spacing:0;font-weight:500">누적 기준</span></div>
     <div class="summary-grid" id="cumSummary"></div>
+    <div class="card" style="margin-top:16px;padding:0;overflow-x:auto">
+      <table class="nowrap-table">
+        <thead><tr><th>종목</th><th>수량</th><th>년월</th><th>평균단가</th><th>매도단가</th><th>원금</th><th>매도금액</th><th>총손익</th><th>수익률</th></tr></thead>
+        <tbody id="sellBody"></tbody>
+      </table>
+    </div>
 
     <div class="section-title" style="margin-top:26px"><span class="dot"></span>핵심 지표</div>
     <div class="ind-grid" id="indGrid"></div>
@@ -544,7 +550,7 @@ function computeSeries(md){
 
 /* ===================== 전역 상태 ===================== */
 let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
-const APP_VERSION='2.9';
+const APP_VERSION='3.0';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
@@ -661,19 +667,19 @@ function renderPriceChart(){
   const N=Math.min(260,SERIES.length); const s=SERIES.slice(-N);
   const ctx=document.getElementById('priceChart');
   if(priceChart)priceChart.destroy();
-  // 레짐별 선 색: 저점 밝은 초록 · 정상 초록 · 과열 빨강 · 조정 파랑 · 하락 진빨강
-  const REG_LINE={0:'#2fe08c',1:'#52ba88',2:'#ff5d6e',3:'#3d89c9',4:'#d6486a'};
+  // 레짐별 선 색: 저점 초록 · 조정 연두 · 정상 흰색 · 과열 주황 · 하락 빨강 (막대 팔레트 톤)
+  const REG_LINE={0:'#2fce7f',1:'#eef2f8',2:'#f5a623',3:'#b5d94a',4:'#e35454'};
   const n=s.length;
   function regimeGradient(c){
-    const area=c.chart.chartArea; if(!area||!c.chart.ctx.createLinearGradient) return '#e8ecf4';
+    const area=c.chart.chartArea; if(!area||!c.chart.ctx.createLinearGradient) return '#eef2f8';
     const g=c.chart.ctx.createLinearGradient(area.left,0,area.right,0);
     let prev=null;
     for(let i=0;i<n;i++){
-      const col=REG_LINE[s[i].regime]||'#52ba88';
+      const col=REG_LINE[s[i].regime]||'#eef2f8';
       const pos=n<=1?0:i/(n-1);
       if(col!==prev){
-        if(prev!==null) g.addColorStop(Math.max(0,pos-0.012), prev);   // 전환부 ~3일 폭으로 자연스럽게 블렌딩
-        g.addColorStop(Math.min(1,pos+0.012), col);
+        if(prev!==null) g.addColorStop(Math.max(0,pos-0.025), prev);   // 전환부 ~6일 폭 자연 블렌딩
+        g.addColorStop(Math.min(1,pos+0.025), col);
         prev=col;
       }
     }
@@ -953,8 +959,8 @@ async function renderProfit(){
   const cards=[
     ['총자산 (현금포함)', totalAssets, '','amt'],
     ['원금 (매수원금)', invested, '','amt'],
+    ['평가금액', curVal, '','amt'],
     ['현금', cash, '','amt'],
-    ['실현손익', totalRealized, totalRealized>=0?'up':'down','amt'],
     ['금일손익', todayPL, todayPL>=0?'up':'down','amt'],
     ['평가손익', evalPL, evalPL>=0?'up':'down','amtpct'],
   ];
@@ -975,6 +981,33 @@ async function renderProfit(){
     const amtPct=(kind==='amtpct'&&ret!=null)?`<span class="card-pct ${c}">(${pct(ret)})</span>`:'';
     return `<div class="card card-hov ${cardCls}"><div class="label">${l}</div><div class="card-val"><div class="card-amt"><span class="big-num ${c}">${won(v)}</span>${amtPct}</div>${usdSub(v)}</div></div>`;
   }).join('');
+  // 종목별 매도 누적 (월간 합계)
+  const sb=document.getElementById('sellBody');
+  if(sb){
+    const G={};
+    ts.filter(t=>t.type==='sell').forEach(t=>{
+      const ym=String(t.date).slice(0,7), key=t.ticker+'|'+ym;
+      const g=G[key]||(G[key]={k:t.ticker,ym,qty:0,sellKrw:0,pnl:0,qfx:0});
+      g.qty+=+t.qty; g.sellKrw+=+t.amount_krw; g.pnl+=(+t.realized||0); g.qfx+=(+t.qty)*(+t.fx||FXNOW);
+    });
+    const list=Object.values(G).sort((a,b)=>b.ym.localeCompare(a.ym)||a.k.localeCompare(b.k));
+    sb.innerHTML=list.length?list.map(g=>{
+      const fxW=g.qty>0?g.qfx/g.qty:FXNOW;
+      const costKrw=g.sellKrw-g.pnl;
+      const avgUSD=g.qty>0?costKrw/g.qty/fxW:0;
+      const sellUSD=g.qty>0?g.sellKrw/g.qty/fxW:0;
+      const ret=costKrw>0?g.pnl/costKrw:null;
+      const c=g.pnl>=0?'up':'down';
+      return `<tr><td class="tkr">${g.k}</td><td class="mono">${(+g.qty).toLocaleString('ko-KR',{maximumFractionDigits:0})}</td>
+        <td class="mono">${g.ym}</td>
+        <td class="mono">$${avgUSD.toFixed(2)}</td>
+        <td class="mono">$${sellUSD.toFixed(2)}</td>
+        <td class="mono">${won(costKrw)}${usdSub(costKrw)}</td>
+        <td class="mono">${won(g.sellKrw)}${usdSub(g.sellKrw)}</td>
+        <td class="mono ${c}">${won(g.pnl)}${usdSub(g.pnl)}</td>
+        <td class="mono ${c}">${ret!=null?pct(ret):'—'}</td></tr>`;
+    }).join(''):'<tr><td colspan="9" class="muted" style="text-align:center;padding:24px">매도 내역이 없습니다.</td></tr>';
+  }
   document.getElementById('profitSummary').innerHTML=cards.map(([l,v,c,kind])=>{
     const cardCls=c==='up'?'green':c==='down'?'red':'blue';
     const amtPct=(kind==='amtpct'&&evalRet!=null)?`<span class="card-pct ${c}">(${pct(evalRet)})</span>`:'';
