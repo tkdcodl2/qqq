@@ -196,10 +196,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       </div>
     </div>
 
-    <div class="section-title" style="margin-top:24px"><span class="dot"></span>핵심 지표</div>
-    <div class="ind-grid" id="indGrid"></div>
-
-    <div class="grid" style="grid-template-columns:1.4fr 1fr;margin-top:20px;gap:16px" id="chartRow">
+    <div class="grid" style="grid-template-columns:1.4fr 1fr;margin-top:24px;gap:16px" id="chartRow">
       <div class="card">
         <div class="section-title"><span class="dot"></span>QQQ 가격 · 200일선 · 레짐</div>
         <div style="height:300px"><canvas id="priceChart"></canvas></div>
@@ -219,6 +216,9 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       </table>
     </div>
     <p class="note" style="margin-top:10px">금액은 원화 기준이며 아래 작은 글씨는 달러 환산(환율 1,380원/$)입니다. 현금 잔고 = 입금 − 출금 − 매수 + 매도 + 배당, 총 자산 = 평가액 + 현금. 현재가는 시장데이터 최신 종가 기준입니다.</p>
+
+    <div class="section-title" style="margin-top:26px"><span class="dot"></span>핵심 지표</div>
+    <div class="ind-grid" id="indGrid"></div>
   </section>
 
   <!-- ===== SETUP ===== -->
@@ -361,7 +361,8 @@ async function getTrades(){
 }
 async function saveTrade(t){
   if(DEMO){ if(t.id){memTrades=memTrades.map(x=>x.id===t.id?{...x,...t}:x);} else {t.id=Date.now();memTrades.push(t);} return; }
-  if(t.id){await sb.from('trades').update(t).eq('id',t.id);} else {delete t.id; await sb.from('trades').insert(t);}
+  if(t.id){ const {id,created_at,...rest}=t; const {error}=await sb.from('trades').update(rest).eq('id',id); if(error){console.error(error);flash('수정 실패: '+error.message);} }
+  else { const {id,...rest}=t; const {error}=await sb.from('trades').insert(rest); if(error){console.error(error);flash('저장 실패: '+error.message);} }
 }
 async function removeTrade(id){
   if(DEMO){memTrades=memTrades.filter(x=>x.id!==id);return;}
@@ -429,7 +430,7 @@ function computeSeries(md){
 
 /* ===================== 전역 상태 ===================== */
 let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null;
-const APP_VERSION='1.3';
+const APP_VERSION='1.4';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
@@ -524,10 +525,11 @@ function renderAllocBars(reg){
       const c=curArr[i], tg=t[i];
       const sh=sharesFor(i);
       let act;
+      const shN = sh===null?null:Math.floor(Math.abs(sh));
       if(sh===null) act='<b class="muted">—</b>';
-      else if(Math.abs(sh)<0.05) act='<b class="muted">유지</b>';
-      else if(sh>0) act=`<b class="up">+${sh.toFixed(1)}주 매수</b>`;
-      else act=`<b class="down">${sh.toFixed(1)}주 매도</b>`;
+      else if(shN===0) act='<b class="muted">유지</b>';
+      else if(sh>0) act=`<b class="up">+${shN}주 매수</b>`;
+      else act=`<b class="down">${shN}주 매도</b>`;
       return `<div class="abar-leg"><span class="abar-leg-n"><span class="dotc" style="background:${ALLOC_GRAD[n]}"></span>${n}</span>`
         + `<span class="abar-leg-v"><span class="mono muted">목표 ${Math.round(tg*100)}% · 현재 ${Math.round(c*100)}%</span><span class="abar-act">${act}</span></span></div>`;
     }).join('')
