@@ -70,7 +70,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rg
 .gauge-row{display:flex;gap:6px;margin-top:6px}
 .gpip{flex:1;height:7px;border-radius:4px;background:var(--surface2);border:1px solid var(--border)}
 .reco-box{display:flex;flex-direction:column;gap:8px;justify-content:center;align-items:center;text-align:center}
-.reco-weights{display:flex;flex-wrap:wrap;gap:4px 10px;justify-content:center;font-size:11px;color:var(--muted);font-weight:600}
+.reco-weights{display:flex;flex-wrap:wrap;gap:6px 12px;justify-content:center;font-size:12.5px;color:var(--text);font-weight:700}
 .reco-weights .rw{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
 .reco-ticker{font-family:'Bebas Neue';font-size:22px;letter-spacing:.8px;line-height:1}
 .pill{display:inline-block;font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--border)}
@@ -199,7 +199,6 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       </div>
       <div class="card blue card-hov reco-box" id="recoCard">
         <div class="label">매수 종목</div>
-        <div class="reco-ticker" id="recoTicker">—</div>
         <div class="reco-weights" id="recoWeights"></div>
         <div><span class="pill buy" id="recoCadence"></span></div>
       </div>
@@ -539,7 +538,7 @@ function computeSeries(md){
 
 /* ===================== 전역 상태 ===================== */
 let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0;
-const APP_VERSION='2.6';
+const APP_VERSION='2.7';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
@@ -582,7 +581,6 @@ function renderDashboard(){
   for(let k=0;k<5;k++){const p=document.createElement('div');p.className='gpip';
     p.style.background = k<= (reg===0?4:reg===1?2:reg===2?3:reg===3?1:0) ? 'var(--accent)':'var(--surface2)';
     gr.appendChild(p);}
-  document.getElementById('recoTicker').textContent=REG_BUY[reg];
   const _tw=TARGET[reg], _tk=['TQQQ','QLD','QQQ','SCHD'];
   document.getElementById('recoWeights').innerHTML=_tk.map((k,i)=>_tw[i]>0?`<span class="rw"><span class="dotc" style="background:${ALLOC_COLORS[k]}"></span>${k} ${Math.round(_tw[i]*1000)/10}%</span>`:'').filter(Boolean).join('');
   document.getElementById('recoCadence').textContent=SETTINGS.cadence+' 적립';
