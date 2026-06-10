@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- 선택: 배포 시 config.js 에서 window.APP_CONFIG = {SUPABASE_URL, SUPABASE_ANON_KEY} 설정 -->
 <script src="config.js" onerror="void 0"></script>
@@ -88,7 +89,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rg
 .abar{display:flex;height:18px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.12)}
 .abar.faded{opacity:.78}
 .abar>div{position:relative;display:flex;align-items:center;justify-content:center;color:#fff;min-width:0;white-space:nowrap;transition:width .6s cubic-bezier(.33,1,.4,1)}
-.abar-seg-t{display:none}
+.abar-seg-t{font-size:10px;font-weight:700;letter-spacing:.3px;line-height:1;color:rgba(255,255,255,.95);margin-right:5px}
 .abar-seg-p{font-size:11px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:#fff}
 .nowrap-table td,.nowrap-table th{white-space:nowrap}
 .nowrap-table td{padding-right:18px}
@@ -212,7 +213,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 
     <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:16px;gap:16px" id="chartRow">
       <div class="card">
-        <div class="section-title"><span class="dot"></span>QQQ 가격 · 200일선</div>
+        <div class="section-title"><span class="dot"></span>QQQ 가격 · 200일선 <span class="muted" style="font-family:Inter;font-size:10.5px;letter-spacing:0;font-weight:500;margin-left:6px">드래그: 확대 · 더블클릭: 원래대로</span></div>
         <div style="height:300px"><canvas id="priceChart"></canvas></div>
       </div>
       <div class="card">
@@ -324,11 +325,11 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     <table style="font-size:12.5px">
       <thead><tr><th>레짐</th><th>조건 (QQQ 기준)</th><th>목표 비중</th><th>매수 1순위</th></tr></thead>
       <tbody>
-        <tr><td class="tkr up">저점</td><td>추세 OFF + 고점대비 −22% 이상 낙폭 + RSI&lt;45 + 주가가 50일선 회복</td><td class="mono">TQQQ 90 · QLD 10</td><td class="tkr">TQQQ</td></tr>
-        <tr><td class="tkr down">하락</td><td>추세 OFF + 200일선 기울기 하락</td><td class="mono">QQQ 100</td><td class="tkr">QQQ</td></tr>
-        <tr><td class="tkr">조정</td><td>추세 OFF + 200일선 기울기는 아직 상승</td><td class="mono">QLD 50 · QQQ 50</td><td class="tkr">QLD</td></tr>
-        <tr><td class="tkr up">정상</td><td>추세 ON + 과열 아님</td><td class="mono">TQQQ 80 · QLD 20</td><td class="tkr">TQQQ</td></tr>
-        <tr><td class="tkr neutral">과열</td><td>추세 ON + (200일선 대비 +20% 이상 이격 <b>또는</b> RSI&gt;80)</td><td class="mono">SCHD 50 · QLD 22.5 · TQQQ 20 · QQQ 7.5</td><td class="tkr">SCHD</td></tr>
+        <tr><td class="tkr" style="color:#0f9d58">저점</td><td>추세 OFF + 고점대비 −22% 이상 낙폭 + RSI&lt;45 + 주가가 50일선 회복</td><td class="mono">TQQQ 90 · QLD 10</td><td class="tkr">TQQQ</td></tr>
+        <tr><td class="tkr" style="color:#3ddb8c">하락</td><td>추세 OFF + 200일선 기울기 하락</td><td class="mono">QQQ 100</td><td class="tkr">QQQ</td></tr>
+        <tr><td class="tkr" style="color:#6fcf5a">조정</td><td>추세 OFF + 200일선 기울기는 아직 상승</td><td class="mono">QLD 50 · QQQ 50</td><td class="tkr">QLD</td></tr>
+        <tr><td class="tkr" style="color:#c9cfdb">정상</td><td>추세 ON + 과열 아님</td><td class="mono">TQQQ 80 · QLD 20</td><td class="tkr">TQQQ</td></tr>
+        <tr><td class="tkr" style="color:#e35454">과열</td><td>추세 ON + (200일선 대비 +20% 이상 이격 <b>또는</b> RSI&gt;80)</td><td class="mono">SCHD 50 · QLD 22.5 · TQQQ 20 · QQQ 7.5</td><td class="tkr">SCHD</td></tr>
       </tbody>
     </table>
     <p class="note" style="margin:8px 0 0"><b>3단계 — 실행.</b> 레짐이 <b>바뀐 날</b> 보유 전체를 그 레짐의 목표 비중으로 <b>즉시(분할 없이) 리밸런싱</b>합니다. 예: 과열 진입 시 레버리지 절반을 그날 매도해 SCHD 50%를 채우고, 과열 해제 시 SCHD를 전량 매도해 새 레짐 비중으로 복귀합니다. 신규 적립금은 항상 현재 레짐의 목표 비중대로(부족한 종목 우선) 매수하며, 신규 시작자도 그날의 레짐 비중대로 첫 매수를 하면 됩니다. 대시보드의 "+N주 매수/매도"가 바로 이 목표 비중과 현재 보유의 차이를 주수로 환산한 값입니다.</p>
@@ -427,11 +428,24 @@ let memSettings = { id:1, cadence:'매월', contribution_amount:500000, base_cur
 let memMonthly = [];   // 거래내역에서 자동 계산되어 채워짐
 
 /* ===================== 데이터 레이어 ===================== */
+function sanitizeRows(rows){
+  // 단일일 스파이크 제거: 양옆 대비 12% 이상 튀고, 양옆끼리는 6% 이내로 정상인 행
+  if(rows.length<3) return rows;
+  return rows.filter((r,i)=>{
+    if(i===0||i===rows.length-1) return true;
+    const a=+rows[i-1].qqq, b=+r.qqq, c=+rows[i+1].qqq;
+    if(!a||!b||!c) return true;
+    const spike=Math.abs(b/a-1)>0.12 && Math.abs(b/c-1)>0.12 && Math.abs(c/a-1)<0.06;
+    if(spike) console.warn('스파이크 행 제외:', r.date, b);
+    return !spike;
+  });
+}
 async function getMarketData(){
   if (DEMO) return DEMO_MARKET.map(r=>({date:r.d,qqq:r.q,qld:r.l,tqqq:r.t}));
-  const {data,error}=await sb.from('market_data').select('*').order('date');
+  // 최신부터 최대 1500행(약 6년) → 다시 날짜순 정렬 (Supabase 기본 1000행 한도 회피)
+  const {data,error}=await sb.from('market_data').select('*').order('date',{ascending:false}).range(0,1499);
   if(error||!data||!data.length){console.warn('market_data 비어있음→데모 사용');return DEMO_MARKET.map(r=>({date:r.d,qqq:r.q,qld:r.l,tqqq:r.t}));}
-  return data;
+  return sanitizeRows(data.reverse());
 }
 async function getTrades(){
   if(DEMO) return [...memTrades].sort((a,b)=>b.date.localeCompare(a.date));
@@ -510,6 +524,7 @@ const REG_SUB={
   4:'200일선 아래 하락추세. 레버리지를 전량 정리하고 QQQ로 회피합니다.'
 };
 const REG_COLOR={0:'green',1:'green',2:'gold',3:'blue',4:'red'};
+const REG_LINE={0:'#0f9d58',1:'#c9cfdb',2:'#e35454',3:'#6fcf5a',4:'#3ddb8c'};  // 차트·전략 모달 공용 레짐 색
 
 function sma(arr,n,i){ if(i<n-1)return NaN; let s=0; for(let k=i-n+1;k<=i;k++)s+=arr[k]; return s/n; }
 function computeSeries(md){
@@ -550,7 +565,7 @@ function computeSeries(md){
 
 /* ===================== 전역 상태 ===================== */
 let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
-const APP_VERSION='3.1';
+const APP_VERSION='3.4';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
@@ -622,7 +637,7 @@ function allocBar(title,pairs,emptyMsg,faded){
   const total=pairs.reduce((s,p)=>s+(p[1]||0),0);
   const inner = total<=0.0001
     ? `<div class="abar-empty">${emptyMsg||'—'}</div>`
-    : pairs.filter(([,v])=>v>0.0001).map(([n,v])=>`<div style="width:${v*100}%;background:${ALLOC_GRAD[n]}"><span class="abar-seg-t">${v>=0.1?ALLOC_DISP[n]:''}</span><span class="abar-seg-p">${v>=0.07?Math.round(v*100)+'%':''}</span></div>`).join('');
+    : pairs.filter(([,v])=>v>0.0001).map(([n,v])=>`<div title="${ALLOC_DISP[n]} ${Math.round(v*1000)/10}%" style="width:${v*100}%;background:${ALLOC_GRAD[n]}"><span class="abar-seg-t">${v>=0.16?ALLOC_DISP[n]:''}</span><span class="abar-seg-p">${v>=0.07?Math.round(v*100)+'%':''}</span></div>`).join('');
   return `<div class="abar-row"><div class="abar-label">${title}</div><div class="abar${faded?' faded':''}">${inner}</div></div>`;
 }
 function renderAllocBars(reg){
@@ -667,8 +682,6 @@ function renderPriceChart(){
   const N=Math.min(260,SERIES.length); const s=SERIES.slice(-N);
   const ctx=document.getElementById('priceChart');
   if(priceChart)priceChart.destroy();
-  // 레짐별 선 색: 저점 초록 · 조정 연두 · 정상 흰색 · 과열 주황 · 하락 빨강 (막대 팔레트 톤)
-  const REG_LINE={0:'#0f9d58',1:'#c9cfdb',2:'#e35454',3:'#b5d94a',4:'#3ddb8c'};
   const n=s.length;
   function regimeGradient(c){
     const area=c.chart.chartArea; if(!area||!c.chart.ctx.createLinearGradient) return '#c9cfdb';
@@ -692,9 +705,11 @@ function renderPriceChart(){
     {label:'50일선',data:s.map(o=>o.sma50),borderColor:'#6b7494',borderWidth:1,pointRadius:0}
   ]},options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
     plugins:{legend:{labels:{color:'#6b7494',boxWidth:12,font:{size:11}}},
+      zoom:{zoom:{drag:{enabled:true,backgroundColor:'rgba(82,186,136,.18)',borderColor:'rgba(82,186,136,.55)',borderWidth:1},mode:'x'},limits:{x:{minRange:10}}},
       tooltip:{callbacks:{afterTitle:items=>{const i=items[0].dataIndex;return '레짐: '+REG_NAME[s[i].regime];}}}},
     scales:{x:{ticks:{color:'#6b7494',maxTicksLimit:6,font:{size:10}},grid:{color:'rgba(255,255,255,.03)'}},
             y:{ticks:{color:'#6b7494',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}}}}});
+  ctx.ondblclick=()=>{ if(priceChart&&priceChart.resetZoom) priceChart.resetZoom(); };
 }
 
 /* 월별 수익 현황: Supabase 'monthly' 데이터 기반 표 + 차트 */
@@ -1020,7 +1035,8 @@ function renderModalRegimes(){
   const order=[0,4,3,1,2];  // 저점→하락→조정→정상→과열 (바닥에 가까운 순)
   document.getElementById('modalRegimes').innerHTML=order.map(reg=>{
     const t=TARGET[reg];const segs=[['TQQQ',t[0]],['QLD',t[1]],['QQQ',t[2]],['SCHD',t[3]]].filter(x=>x[1]>0);
-    return `<div class="regime-card"><div class="h"><span class="chip">${REG_NAME[reg]}</span><span class="muted" style="font-size:12px">매수 1순위: <b>${REG_BUY[reg]}</b></span></div>
+    const rc=REG_LINE[reg];
+    return `<div class="regime-card"><div class="h"><span class="chip" style="color:${rc};background:${rc}2e">${REG_NAME[reg]}</span><span class="muted" style="font-size:12px">매수 1순위: <b>${REG_BUY[reg]}</b></span></div>
     <div class="note">${REG_SUB[reg]}</div>
     <div class="wbar">${segs.map(([n,v])=>`<div style="width:${v*100}%;background:${ALLOC_GRAD[n]}">${v>=0.15?n+' '+Math.round(v*1000)/10+'%':''}</div>`).join('')}</div></div>`;
   }).join('');
