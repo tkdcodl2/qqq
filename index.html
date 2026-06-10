@@ -196,7 +196,6 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       <div class="card green card-hov state-box" id="stateCard">
         <div class="label">현재 시장 · <span id="stateDate" class="mono"></span></div>
         <div class="state-name" id="stateName">—</div>
-        <div class="state-sub" id="stateSub"></div>
         <div class="gauge-row" id="gaugeRow"></div>
       </div>
       <div class="card blue card-hov reco-box" id="recoCard">
@@ -226,6 +225,16 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       <table>
         <thead><tr><th>종목</th><th>보유수량</th><th>평균단가</th><th>현재가</th><th>매수원금</th><th>평가금액</th><th>평가손익</th><th>수익률</th></tr></thead>
         <tbody id="holdBody"></tbody>
+      </table>
+    </div>
+
+    <div class="section-title" style="margin-top:26px;display:flex;align-items:center"><span class="dot"></span>월별 수익 현황
+      <button class="btn primary" style="margin-left:auto;padding:7px 14px;font-size:13px;letter-spacing:0" onclick="openMonthly()">+ 월별 데이터 추가</button>
+    </div>
+    <div class="card" style="padding:0;overflow-x:auto">
+      <table>
+        <thead><tr><th>년월</th><th>원금(입금누계)</th><th>평가금액</th><th>총자산</th><th>평가손익</th><th>수익률</th><th></th></tr></thead>
+        <tbody id="monthlyBody"></tbody>
       </table>
     </div>
 
@@ -346,6 +355,23 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   </div>
 </div>
 
+<!-- ===== MONTHLY MODAL ===== -->
+<div class="modal-overlay" id="monthlyModal">
+  <div class="modal" style="max-width:440px">
+    <span class="close" onclick="closeModal('monthlyModal')">&times;</span>
+    <h2 id="monthlyModalTitle">월별 데이터 추가</h2>
+    <div class="field" style="margin-top:14px"><label>년월</label><input id="m_ym" type="month"></div>
+    <div class="field"><label>원금 (입금누계, 원)</label><input id="m_principal" type="text" inputmode="numeric" oninput="fmtField('m_principal')"></div>
+    <div class="field"><label>평가금액 (주식, 원)</label><input id="m_eval" type="text" inputmode="numeric" oninput="fmtField('m_eval')"></div>
+    <div class="field"><label>현금 (미투자, 원)</label><input id="m_cash" type="text" inputmode="numeric" value="0" oninput="fmtField('m_cash')"></div>
+    <p class="note" style="margin:2px 0 12px">총자산 = 평가금액 + 현금 · 평가손익 = 총자산 − 원금 (자동 계산)</p>
+    <div style="display:flex;gap:10px">
+      <button class="btn primary" style="flex:1" onclick="submitMonthly()">저장</button>
+      <button class="btn ghost" onclick="closeModal('monthlyModal')">취소</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ===================== 설정 / 데이터 소스 ===================== */
 const CFG = window.APP_CONFIG || {};
@@ -358,6 +384,13 @@ if (CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && window.supabase) {
 // 데모 모드 인메모리 저장소
 let memTrades = [];
 let memSettings = { id:1, cadence:'매월', contribution_amount:500000, base_currency:'KRW' };
+let memMonthly = [
+  {ym:'2026-02', principal:222589364, eval_amount:149618133, cash:2000000},
+  {ym:'2026-03', principal:431117483, eval_amount:312702425, cash:3000000},
+  {ym:'2026-04', principal:430789809, eval_amount:437188216, cash:2500000},
+  {ym:'2026-05', principal:429589809, eval_amount:582462729, cash:2800000},
+  {ym:'2026-06', principal:430089809, eval_amount:486244642, cash:5000000},
+];
 
 /* ===================== 데이터 레이어 ===================== */
 async function getMarketData(){
@@ -388,6 +421,19 @@ async function getSettings(){
 async function saveSettings(s){
   if(DEMO){memSettings={...memSettings,...s};return;}
   await sb.from('settings').upsert({id:1,...s});
+}
+async function getMonthly(){
+  if(DEMO) return [...memMonthly];
+  const {data}=await sb.from('monthly').select('*').order('ym');
+  return data||[];
+}
+async function saveMonthly(r){
+  if(DEMO){ const i=memMonthly.findIndex(x=>x.ym===r.ym); if(i>=0)memMonthly[i]={...memMonthly[i],...r}; else memMonthly.push(r); return; }
+  const {error}=await sb.from('monthly').upsert(r,{onConflict:'ym'}); if(error){console.error(error);flash('월별 저장 실패: '+error.message);}
+}
+async function removeMonthly(ym){
+  if(DEMO){memMonthly=memMonthly.filter(x=>x.ym!==ym);return;}
+  await sb.from('monthly').delete().eq('ym',ym);
 }
 
 /* ===================== 전략 엔진 (backtest4.py 동일 로직) ===================== */
@@ -442,7 +488,7 @@ function computeSeries(md){
 
 /* ===================== 전역 상태 ===================== */
 let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null;
-const APP_VERSION='2.2';
+const APP_VERSION='2.3';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
@@ -465,6 +511,7 @@ async function init(){
   onCadenceChange();
   await renderTrades();
   await renderProfit();
+  await renderMonthly();
 }
 
 /* ===================== 대시보드 렌더 ===================== */
@@ -474,7 +521,6 @@ function renderDashboard(){
   sc.className='card card-hov state-box '+REG_COLOR[reg];
   document.getElementById('stateDate').textContent=r.date;
   document.getElementById('stateName').textContent=REG_NAME[reg];
-  document.getElementById('stateSub').textContent=REG_SUB[reg];
   // gauge 0..4
   const gr=document.getElementById('gaugeRow'); gr.innerHTML='';
   const order=[4,3,1,0]; // 위험→공격 시각화는 단순화
@@ -564,48 +610,71 @@ function renderPriceChart(){
             y:{ticks:{color:'#6b7494',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}}}}});
 }
 
-/* 월별 자산 추이: 원금(입금누계) vs 평가금액(평가액+현금) */
-function monthlySeries(ts){
-  if(!SERIES.length||!ts.length) return [];
-  const lastDate=SERIES[SERIES.length-1].date;
-  const sorted=[...ts].sort((a,b)=>a.date.localeCompare(b.date));
-  let [y,m]=sorted[0].date.slice(0,7).split('-').map(Number);
-  const [ly,lm]=lastDate.slice(0,7).split('-').map(Number);
-  const yms=[];
-  while(y<ly||(y===ly&&m<=lm)){ yms.push(`${y}-${String(m).padStart(2,'0')}`); m++; if(m>12){m=1;y++;} if(yms.length>24)break; }
-  const show=yms.slice(-14);
-  const priceAsOf=ym=>{ const cut=ym+'-31'; let row=null; for(const r of SERIES){ if(r.date<=cut)row=r; else break; } return row||SERIES[0]; };
-  return show.map(ym=>{
-    const cut=ym+'-31'; const H={QQQ:0,QLD:0,TQQQ:0}; let dep=0,cash=0;
-    ts.filter(t=>t.date<=cut).forEach(t=>{const k=t.ticker;
-      if(t.type==='buy'){if(H[k]!=null)H[k]+=+t.qty;cash-=+t.amount_krw;}
-      else if(t.type==='sell'){if(H[k]!=null)H[k]-=+t.qty;cash+=+t.amount_krw;}
-      else if(t.type==='div'){cash+=+t.amount_krw;}
-      else if(t.type==='deposit'){dep+=+t.amount_krw;cash+=+t.amount_krw;}
-      else if(t.type==='withdrawal'){dep-=+t.amount_krw;cash-=+t.amount_krw;}});
-    const pr=priceAsOf(ym), fx=pr.fx?+pr.fx:FXNOW;
-    const stock=H.QQQ*pr.qqq*fx+H.QLD*pr.qld*fx+H.TQQQ*pr.tqqq*fx;
-    return {ym, principal:Math.round(dep), asset:Math.round(stock+cash)};
-  });
-}
+/* 월별 수익 현황: Supabase 'monthly' 데이터 기반 표 + 차트 */
+const monthLabel=ym=>ym.slice(2).replace('-','.');
 function renderAssetChart(data){
   const ctx=document.getElementById('assetChart'); if(!ctx) return;
   if(assetChart)assetChart.destroy();
   if(!data.length){ const c=ctx.getContext('2d'); c.clearRect(0,0,ctx.width,ctx.height);
     c.fillStyle='#6b7494'; c.font="13px Inter, sans-serif"; c.textAlign='center';
-    c.fillText('거래 데이터가 쌓이면 월별 추이가 표시됩니다.', ctx.width/2, ctx.height/2); return; }
-  const labels=data.map(d=>d.ym.slice(2).replace('-','.'));
+    c.fillText('월별 데이터를 추가하면 추이가 표시됩니다.', ctx.width/2, ctx.height/2); return; }
+  const labels=data.map(d=>monthLabel(d.ym));
+  const principal=data.map(d=>+d.principal);
+  const evalAmt=data.map(d=>+d.eval_amount);
+  const total=data.map(d=>(+d.eval_amount)+(+d.cash));
   const g=ctx.getContext('2d'); const grad=g.createLinearGradient(0,0,0,300);
-  grad.addColorStop(0,'rgba(82,186,136,.32)'); grad.addColorStop(1,'rgba(82,186,136,0)');
+  grad.addColorStop(0,'rgba(82,186,136,.30)'); grad.addColorStop(1,'rgba(82,186,136,0)');
   assetChart=new Chart(ctx,{type:'line',data:{labels,datasets:[
-    {label:'평가금액',data:data.map(d=>d.asset),borderColor:'#52ba88',backgroundColor:grad,borderWidth:2,pointRadius:0,tension:.35,fill:true},
-    {label:'원금',data:data.map(d=>d.principal),borderColor:'#3d89c9',borderWidth:2,pointRadius:0,tension:.35,fill:false}
+    {label:'평가금액',data:evalAmt,borderColor:'#52ba88',backgroundColor:grad,borderWidth:2,pointRadius:0,tension:.35,fill:true},
+    {label:'총자산',data:total,borderColor:'#c9a84c',borderWidth:2,pointRadius:0,tension:.35,fill:false},
+    {label:'원금',data:principal,borderColor:'#3d89c9',borderWidth:2,pointRadius:0,tension:.35,fill:false,borderDash:[5,4]}
   ]},options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
     plugins:{legend:{labels:{color:'#6b7494',boxWidth:12,font:{size:11}}},
       tooltip:{callbacks:{label:c=>c.dataset.label+': '+won(c.parsed.y)}}},
     scales:{x:{ticks:{color:'#6b7494',maxTicksLimit:8,font:{size:10}},grid:{color:'rgba(255,255,255,.03)'}},
-            y:{ticks:{color:'#6b7494',font:{size:10},callback:v=>(v/1e8>=1?(v/1e8).toFixed(1)+'억':Math.round(v/1e4).toLocaleString()+'만')},grid:{color:'rgba(255,255,255,.04)'}}}}});
+            y:{ticks:{color:'#6b7494',font:{size:10},callback:v=>(Math.abs(v)/1e8>=1?(v/1e8).toFixed(1)+'억':Math.round(v/1e4).toLocaleString()+'만')},grid:{color:'rgba(255,255,255,.04)'}}}}});
 }
+async function renderMonthly(){
+  const list=await getMonthly();
+  const asc=[...list].sort((a,b)=>a.ym.localeCompare(b.ym));
+  const desc=[...list].sort((a,b)=>b.ym.localeCompare(a.ym));
+  const tb=document.getElementById('monthlyBody');
+  tb.innerHTML = desc.length ? desc.map(r=>{
+    const total=(+r.eval_amount)+(+r.cash);
+    const pl=total-(+r.principal);
+    const ret=(+r.principal)>0?pl/(+r.principal):null;
+    const c=pl>=0?'up':'down';
+    return `<tr><td class="tkr">${r.ym}</td>
+      <td class="mono">${won(+r.principal)}</td>
+      <td class="mono">${won(+r.eval_amount)}</td>
+      <td class="mono">${won(total)}</td>
+      <td class="mono ${c}">${won(pl)}</td>
+      <td class="mono ${c}">${ret!=null?pct(ret):'—'}</td>
+      <td style="white-space:nowrap"><button class="icon-btn" onclick="editMonthly('${r.ym}')">편집</button><button class="icon-btn down" onclick="delMonthly('${r.ym}')">✕</button></td></tr>`;
+  }).join('') : '<tr><td colspan="7" class="muted" style="text-align:center;padding:24px">월별 데이터가 없습니다. “+ 월별 데이터 추가”로 입력하세요.</td></tr>';
+  renderAssetChart(asc);
+}
+function openMonthly(ym){
+  document.getElementById('monthlyModalTitle').textContent=ym?'월별 데이터 수정':'월별 데이터 추가';
+  if(!ym){ document.getElementById('m_ym').value=(CUR?CUR.date:'').slice(0,7); document.getElementById('m_ym').readOnly=false;
+    document.getElementById('m_principal').value='';document.getElementById('m_eval').value='';document.getElementById('m_cash').value='0'; }
+  document.getElementById('monthlyModal').classList.add('open');
+}
+async function editMonthly(ym){
+  const r=(await getMonthly()).find(x=>x.ym===ym); if(!r)return;
+  openMonthly(ym);
+  document.getElementById('m_ym').value=r.ym;
+  document.getElementById('m_principal').value=Number(r.principal||0).toLocaleString('ko-KR');
+  document.getElementById('m_eval').value=Number(r.eval_amount||0).toLocaleString('ko-KR');
+  document.getElementById('m_cash').value=Number(r.cash||0).toLocaleString('ko-KR');
+}
+async function submitMonthly(){
+  const ym=document.getElementById('m_ym').value;
+  if(!ym){flash('년월을 선택하세요');return;}
+  await saveMonthly({ym, principal:numv('m_principal'), eval_amount:numv('m_eval'), cash:numv('m_cash')});
+  closeModal('monthlyModal'); await renderMonthly();
+}
+async function delMonthly(ym){ if(!confirm(ym+' 데이터를 삭제하시겠습니까?'))return; await removeMonthly(ym); await renderMonthly(); }
 
 /* ===================== 적립설정 ===================== */
 const BT={'매월':{adaptive:[242.8,-66.6,32.7],QQQ:[12.66,-48.0,16.0],QLD:[67.9,-79.4,25.4],TQQQ:[205.6,-92.8,31.8],split:[95.4,-76.6,27.4]},
@@ -772,7 +841,6 @@ async function renderProfit(){
     const amtPct=(kind==='amtpct'&&evalRet!=null)?`<span class="card-pct ${c}">(${pct(evalRet)})</span>`:'';
     return `<div class="card card-hov ${cardCls}"><div class="label">${l}</div><div class="card-val"><div class="card-amt"><span class="big-num ${c}">${won(v)}</span>${amtPct}</div>${usdSub(v)}</div></div>`;
   }).join('');
-  renderAssetChart(monthlySeries(ts));
 }
 
 /* ===================== 전략 모달 ===================== */
