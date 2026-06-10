@@ -69,7 +69,9 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rg
 .state-sub{font-size:12px;color:var(--muted);max-width:94%;line-height:1.45}
 .gauge-row{display:flex;gap:6px;margin-top:6px}
 .gpip{flex:1;height:7px;border-radius:4px;background:var(--surface2);border:1px solid var(--border)}
-.reco-box{display:flex;flex-direction:column;gap:10px;justify-content:center;align-items:center;text-align:center}
+.reco-box{display:flex;flex-direction:column;gap:8px;justify-content:center;align-items:center;text-align:center}
+.reco-weights{display:flex;flex-wrap:wrap;gap:4px 10px;justify-content:center;font-size:11px;color:var(--muted);font-weight:600}
+.reco-weights .rw{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
 .reco-ticker{font-family:'Bebas Neue';font-size:22px;letter-spacing:.8px;line-height:1}
 .pill{display:inline-block;font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--border)}
 .pill.buy{color:var(--accent);border-color:rgba(82,186,136,.4);background:rgba(82,186,136,.1)}
@@ -83,14 +85,11 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rg
 /* allocation bars (현재 vs 목표) */
 .abar-row{margin:0 0 13px}
 .abar-label{font-size:10.5px;color:var(--muted);margin-bottom:6px;letter-spacing:.4px;font-weight:500;text-transform:uppercase}
-.abar{display:flex;height:28px;border-radius:9px;overflow:hidden;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(16px) saturate(1.25);-webkit-backdrop-filter:blur(16px) saturate(1.25);box-shadow:0 0 0 1px rgba(255,255,255,.05),0 2px 16px rgba(255,255,255,.07),inset 0 1px 0 rgba(255,255,255,.34),0 6px 22px rgba(0,0,0,.34)}
-.abar.faded{box-shadow:0 0 0 1px rgba(255,255,255,.04),0 1px 10px rgba(255,255,255,.05),inset 0 1px 0 rgba(255,255,255,.22),0 4px 14px rgba(0,0,0,.28)}
-.abar.faded>div{filter:saturate(.92) brightness(.99)}
-.abar>div{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;min-width:0;white-space:nowrap;transition:width .6s cubic-bezier(.33,1,.4,1);box-shadow:inset 0 -7px 12px -7px rgba(255,255,255,.32);filter:saturate(1.18) brightness(1.06)}
-.abar>div:not(:first-child)::before{content:'';position:absolute;left:-1px;top:-2px;bottom:-2px;width:2px;z-index:3;background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,.5));box-shadow:0 0 8px 1px rgba(255,255,255,.65);pointer-events:none}
-.abar>div::after{content:'';position:absolute;left:0;right:0;top:0;height:55%;background:linear-gradient(180deg,rgba(255,255,255,.45),rgba(255,255,255,0));pointer-events:none}
-.abar-seg-t{font-size:9px;font-weight:700;letter-spacing:.6px;line-height:1;color:rgba(255,255,255,.9);text-shadow:0 1px 1px rgba(0,0,0,.3)}
-.abar-seg-p{font-size:12px;font-weight:800;line-height:1.2;font-variant-numeric:tabular-nums;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.abar{display:flex;height:18px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.12)}
+.abar.faded{opacity:.78}
+.abar>div{position:relative;display:flex;align-items:center;justify-content:center;color:#fff;min-width:0;white-space:nowrap;transition:width .6s cubic-bezier(.33,1,.4,1)}
+.abar-seg-t{display:none}
+.abar-seg-p{font-size:11px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:#fff}
 .abar-empty{display:flex;align-items:center;justify-content:center;width:100%;color:var(--muted);font-weight:500;font-size:12px}
 .abar-legend{margin-top:15px;display:flex;flex-direction:column;gap:9px;border-top:1px solid var(--border);padding-top:13px}
 .alloc-grid{display:flex;gap:18px;align-items:center}
@@ -201,6 +200,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       <div class="card blue card-hov reco-box" id="recoCard">
         <div class="label">매수 종목</div>
         <div class="reco-ticker" id="recoTicker">—</div>
+        <div class="reco-weights" id="recoWeights"></div>
         <div><span class="pill buy" id="recoCadence"></span></div>
       </div>
       <div class="card card-hov" id="allocCard">
@@ -233,7 +233,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     </div>
     <div class="card" style="padding:0;overflow-x:auto">
       <table>
-        <thead><tr><th>년월</th><th>원금(입금누계)</th><th>평가금액</th><th>총자산</th><th>평가손익</th><th>수익률</th><th></th></tr></thead>
+        <thead><tr><th>년월</th><th>총자산</th><th>원금(입금누계)</th><th>평가금액</th><th>평가손익</th><th>수익률</th><th></th></tr></thead>
         <tbody id="monthlyBody"></tbody>
       </table>
     </div>
@@ -539,13 +539,13 @@ function computeSeries(md){
 
 /* ===================== 전역 상태 ===================== */
 let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0;
-const APP_VERSION='2.5';
+const APP_VERSION='2.6';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
 const pct = n => (n>=0?'+':'')+ (n*100).toFixed(1)+'%';
-const ALLOC_COLORS={TQQQ:'#ff5aa0',QLD:'#ff7064',QQQ:'#ffab46',SCHD:'#8e9bff',CASH:'#7d86a6'};
-const ALLOC_GRAD={TQQQ:'linear-gradient(180deg,rgba(255,150,202,.92),rgba(255,92,162,.82))',QLD:'linear-gradient(180deg,rgba(255,172,132,.92),rgba(255,114,100,.82))',QQQ:'linear-gradient(180deg,rgba(255,216,120,.92),rgba(255,170,68,.82))',SCHD:'linear-gradient(180deg,rgba(168,180,255,.92),rgba(120,135,245,.82))',CASH:'linear-gradient(180deg,rgba(150,160,190,.78),rgba(108,116,148,.68))'};
+const ALLOC_COLORS={TQQQ:'#e35454',QLD:'#f5a623',QQQ:'#3fa7e0',SCHD:'#46546b',CASH:'#9aa3b5'};
+const ALLOC_GRAD={TQQQ:'#e35454',QLD:'#f5a623',QQQ:'#3fa7e0',SCHD:'#46546b',CASH:'#9aa3b5'};
 const ALLOC_DISP={TQQQ:'TQQQ',QLD:'QLD',QQQ:'QQQ',SCHD:'SCHD',CASH:'현금'};
 const SCHD_FALLBACK=32.3;                                  // 시세 미수집 시 임시 단가($)
 const schdPx=row=>(row&&row.schd!=null&&!isNaN(+row.schd))?+row.schd:SCHD_FALLBACK;
@@ -583,6 +583,8 @@ function renderDashboard(){
     p.style.background = k<= (reg===0?4:reg===1?2:reg===2?3:reg===3?1:0) ? 'var(--accent)':'var(--surface2)';
     gr.appendChild(p);}
   document.getElementById('recoTicker').textContent=REG_BUY[reg];
+  const _tw=TARGET[reg], _tk=['TQQQ','QLD','QQQ','SCHD'];
+  document.getElementById('recoWeights').innerHTML=_tk.map((k,i)=>_tw[i]>0?`<span class="rw"><span class="dotc" style="background:${ALLOC_COLORS[k]}"></span>${k} ${Math.round(_tw[i]*1000)/10}%</span>`:'').filter(Boolean).join('');
   document.getElementById('recoCadence').textContent=SETTINGS.cadence+' 적립';
   renderIndicators(r);
   renderAllocBars(reg);
@@ -615,14 +617,11 @@ function allocBar(title,pairs,emptyMsg,faded){
 }
 function renderAllocBars(reg){
   const t=TARGET[reg];                       // [TQQQ,QLD,QQQ,SCHD] 목표
-  // 현재 비중: 총자산(주식+현금) 기준 → 현금 비중 포함
   const stockVal = CUR_PORT?CUR_PORT.val:null;
   const stockTot = CUR_PORT?CUR_PORT.total:0;
-  const cashV = CUR_CASH>0?CUR_CASH:0;
-  const totalA = stockTot + cashV;
-  const hasCur = totalA>0.0001;
+  const hasCur = stockTot>0.0001;
   const TK=['TQQQ','QLD','QQQ','SCHD'];
-  const curPairs = TK.map(k=>[k, hasCur?((stockVal&&stockVal[k]||0)/totalA):0]).concat([['CASH',hasCur?cashV/totalA:0]]);
+  const curPairs = TK.map(k=>[k, hasCur?((stockVal&&stockVal[k]||0)/stockTot):0]);
   const tgtPairs = TK.map((k,i)=>[k,t[i]]);
   const el=document.getElementById('allocBars');
   const priceUSD=k=>k==='SCHD'?schdPx(CUR):(+CUR[k.toLowerCase()]);
@@ -692,7 +691,7 @@ function renderAssetChart(data){
     plugins:{legend:{labels:{color:'#6b7494',boxWidth:12,font:{size:11}}},
       tooltip:{callbacks:{label:c=>c.dataset.label+': '+won(c.parsed.y)}}},
     scales:{x:{ticks:{color:'#6b7494',maxTicksLimit:8,font:{size:10}},grid:{color:'rgba(255,255,255,.03)'}},
-            y:{ticks:{color:'#6b7494',font:{size:10},callback:v=>(Math.abs(v)/1e8>=1?(v/1e8).toFixed(1)+'억':Math.round(v/1e4).toLocaleString()+'만')},grid:{color:'rgba(255,255,255,.04)'}}}}});
+            y:{min:0,beginAtZero:true,ticks:{color:'#6b7494',font:{size:10},callback:v=>(Math.abs(v)/1e8>=1?(v/1e8).toFixed(1)+'억':Math.round(v/1e4).toLocaleString()+'만')},grid:{color:'rgba(255,255,255,.04)'}}}}});
 }
 async function renderMonthly(){
   const list=await getMonthly();
@@ -704,13 +703,14 @@ async function renderMonthly(){
     const pl=total-(+r.principal);
     const ret=(+r.principal)>0?pl/(+r.principal):null;
     const c=pl>=0?'up':'down';
+    const autoBtn=r.manual?`<button class="icon-btn" title="자동 계산으로 되돌리기" onclick="resetMonthly('${r.ym}')">↺ 자동</button>`:'';
     return `<tr><td class="tkr">${r.ym}${r.manual?' <span class="muted" style="font-size:10px;font-family:Inter">수기</span>':''}</td>
+      <td class="mono">${won(total)}</td>
       <td class="mono">${won(+r.principal)}</td>
       <td class="mono">${won(+r.eval_amount)}</td>
-      <td class="mono">${won(total)}</td>
       <td class="mono ${c}">${won(pl)}</td>
       <td class="mono ${c}">${ret!=null?pct(ret):'—'}</td>
-      <td style="white-space:nowrap"><button class="icon-btn" onclick="editMonthly('${r.ym}')">편집</button><button class="icon-btn down" onclick="delMonthly('${r.ym}')">✕</button></td></tr>`;
+      <td style="white-space:nowrap">${autoBtn}<button class="icon-btn" onclick="editMonthly('${r.ym}')">편집</button><button class="icon-btn down" onclick="delMonthly('${r.ym}')">✕</button></td></tr>`;
   }).join('') : '<tr><td colspan="7" class="muted" style="text-align:center;padding:24px">월별 데이터가 없습니다. “+ 월별 데이터 추가”로 입력하세요.</td></tr>';
   renderAssetChart(asc);
 }
@@ -735,6 +735,12 @@ async function submitMonthly(){
   closeModal('monthlyModal'); await renderMonthly();
 }
 async function delMonthly(ym){ if(!confirm(ym+' 데이터를 삭제하시겠습니까?'))return; await removeMonthly(ym); await renderMonthly(); }
+async function resetMonthly(ym){
+  if(!confirm(ym+' 데이터를 자동 계산값으로 되돌리시겠습니까?'))return;
+  await removeMonthly(ym);          // 수기 행 제거 → 자동 재계산이 다시 채움
+  await syncAutoMonthly();
+  await renderMonthly();
+}
 
 /* ===================== 적립설정 ===================== */
 const BT={'매월':{adaptive:[342.5,-66.9,34.7],QQQ:[12.66,-48.0,16.0],QLD:[67.9,-79.4,25.4],TQQQ:[205.6,-92.8,31.8],split:[95.4,-76.6,27.4]},
@@ -885,16 +891,17 @@ async function renderProfit(){
     <td class="mono ${r.pl>=0?'up':'down'}">${won(r.pl)}${usdSub(r.pl)}</td>
     <td class="mono ${r.pl>=0?'up':'down'}">${pct(r.ret)}</td></tr>`).join('')
     :'<tr><td colspan="8" class="muted" style="text-align:center;padding:24px">보유 종목이 없습니다.</td></tr>';
-  const totalAssets=curVal+cash;                 // 평가금액 = 총자산(평가액+현금)
-  const evalPL=totalAssets-netDeposits;          // 평가손익 = 평가금액 − 입금누계
-  const evalRet=netDeposits>0?evalPL/netDeposits:null;
+  const totalAssets=curVal+cash;                 // 총자산 = 주식 평가액 + 현금
+  const evalPL=curVal-invested;                  // 평가손익 = 주식 평가금액 − 매수원금
+  const evalRet=invested>0?evalPL/invested:null;
   // 금일손익 = 보유분의 전일 대비 평가 변동
   let todayPL=0;
   if(SERIES.length>=2){ const prev=SERIES[SERIES.length-2];
     rows.forEach(r=>{ const pv=r.k==='SCHD'?schdPx(prev):(+prev[r.k.toLowerCase()]); todayPL += (+H[r.k].qty) * ((+last[r.k]) - pv) * fxNow; }); }
   const cards=[
-    ['원금 (입금누계)', netDeposits, '','amt'],
-    ['평가금액', totalAssets, '','amt'],
+    ['총자산 (현금포함)', totalAssets, '','amt'],
+    ['원금 (매수원금)', invested, '','amt'],
+    ['평가금액', curVal, '','amt'],
     ['실현손익', totalRealized, totalRealized>=0?'up':'down','amt'],
     ['금일손익', todayPL, todayPL>=0?'up':'down','amt'],
     ['평가손익', evalPL, evalPL>=0?'up':'down','amtpct'],
