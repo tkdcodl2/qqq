@@ -572,7 +572,7 @@ function computeSeries(md){
 /* ===================== 전역 상태 ===================== */
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
-const APP_VERSION='3.5';
+const APP_VERSION='3.6';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
@@ -700,13 +700,14 @@ function renderPriceChart(){
   function regimeGradient(c){
     const area=c.chart.chartArea; if(!area||!c.chart.ctx.createLinearGradient) return '#c9cfdb';
     const g=c.chart.ctx.createLinearGradient(area.left,0,area.right,0);
+    const off=n>1?1.5/(n-1):0;   // 블렌딩 폭을 ±1.5거래일로 고정 → 기간(6M/1Y/2Y…)과 무관하게 동일한 색 경계
     let prev=null;
     for(let i=0;i<n;i++){
       const col=REG_LINE[s[i].regime]||'#c9cfdb';
       const pos=n<=1?0:i/(n-1);
       if(col!==prev){
-        if(prev!==null) g.addColorStop(Math.max(0,pos-0.025), prev);   // 전환부 ~6일 폭 자연 블렌딩
-        g.addColorStop(Math.min(1,pos+0.025), col);
+        if(prev!==null) g.addColorStop(Math.max(0,pos-off), prev);
+        g.addColorStop(Math.min(1,pos+off), col);
         prev=col;
       }
     }
