@@ -428,7 +428,7 @@ function computeSeries(md){
 
 /* ===================== 전역 상태 ===================== */
 let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null;
-const APP_VERSION='1.9';
+const APP_VERSION='2.0';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
@@ -685,7 +685,7 @@ async function renderProfit(){
   } else { CUR_ALLOC=null; CUR_PORT=null; }
   if(CUR) renderAllocBars(CUR.regime);
   const hb=document.getElementById('holdBody');
-  hb.innerHTML=rows.length?rows.map(r=>`<tr><td class="tkr">${r.k}</td><td class="mono">${(+r.qty).toFixed(1)}</td>
+  hb.innerHTML=rows.length?rows.map(r=>`<tr><td class="tkr">${r.k}</td><td class="mono">${(+r.qty).toLocaleString('ko-KR',{maximumFractionDigits:0})}</td>
     <td class="mono">${won(r.avgUSD*fxNow)}${usdSub(r.avgUSD*fxNow)}</td>
     <td class="mono">${won(r.price*fxNow)}${usdSub(r.price*fxNow)}</td>
     <td class="mono">${won(r.val)}${usdSub(r.val)}</td>
@@ -695,10 +695,16 @@ async function renderProfit(){
     :'<tr><td colspan="8" class="muted" style="text-align:center;padding:24px">보유 종목이 없습니다.</td></tr>';
   const totalPL=curVal-invested;
   const totalAssets=curVal+cash;
-  const cards=[['총 자산',totalAssets,''],['매수 원금',invested,''],['현재 평가액',curVal,''],
-    ['현금 잔고',cash,cash<0?'down':''],
-    ['평가 손익',totalPL,totalPL>=0?'up':'down'],['실현손익+배당',totalRealized+totalDividend,(totalRealized+totalDividend)>=0?'up':'down']];
-  document.getElementById('profitSummary').innerHTML=cards.map(([l,v,c])=>`<div class="card card-hov ${c==='up'?'green':c==='down'?'red':'blue'}"><div class="label">${l}</div><div class="big-num ${c}">${won(v)}</div>${usdSub(v)}${l==='평가 손익'&&invested>0?`<div class="${c}" style="font-size:13px;margin-top:4px">${pct(totalPL/invested)}</div>`:''}</div>`).join('');
+  const ret=invested>0?totalPL/invested:0;
+  const cards=[['총 자산',totalAssets,'','amt'],['매수 원금',invested,'','amt'],['현재 평가액',curVal,'','amt'],
+    ['현금 잔고',cash,cash<0?'down':'','amt'],
+    ['평가 손익',totalPL,totalPL>=0?'up':'down','amt'],
+    ['수익률',ret,ret>=0?'up':'down','pct']];
+  document.getElementById('profitSummary').innerHTML=cards.map(([l,v,c,kind])=>{
+    const cardCls=c==='up'?'green':c==='down'?'red':'blue';
+    const val=kind==='pct'?`<div class="big-num ${c}">${invested>0?pct(v):'—'}</div>`:`<div class="big-num ${c}">${won(v)}</div>${usdSub(v)}`;
+    return `<div class="card card-hov ${cardCls}"><div class="label">${l}</div><div style="text-align:right">${val}</div></div>`;
+  }).join('');
 }
 
 /* ===================== 전략 모달 ===================== */
