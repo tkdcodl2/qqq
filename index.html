@@ -35,9 +35,9 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rg
 .hspace{flex:1}
 .mode-pill{font-size:11px;padding:5px 10px;border-radius:20px;border:1px solid var(--border);color:var(--muted);background:var(--surface2)}
 .mode-pill.live{color:var(--accent);border-color:rgba(82,186,136,.4)}
-.btn-strategy{font-family:'Bebas Neue';letter-spacing:2px;font-size:14px;padding:7px 16px;border-radius:8px;border:1px solid rgba(82,186,136,.45);
-  background:linear-gradient(180deg,rgba(82,186,136,.18),rgba(82,186,136,.06));color:var(--accent);cursor:pointer;transition:.18s}
-.btn-strategy:hover{background:rgba(82,186,136,.28);box-shadow:0 0 18px rgba(82,186,136,.3)}
+.btn-strategy{display:inline-flex;align-items:center;gap:7px;font-family:'Inter';font-weight:600;letter-spacing:.3px;font-size:13px;padding:8px 13px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;transition:.15s}
+.btn-strategy:hover{border-color:rgba(82,186,136,.5);color:var(--accent);background:#1a2230}
+.btn-strategy svg{width:15px;height:15px;opacity:.9}
 
 /* tabs */
 .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0 18px}
@@ -81,14 +81,16 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rg
 .up{color:var(--accent)} .down{color:var(--red)} .neutral{color:var(--gold)}
 
 /* allocation bars (현재 vs 목표) */
-.abar-row{margin:0 0 12px}
-.abar-label{font-size:11px;color:var(--muted);margin-bottom:5px;letter-spacing:.5px}
-.abar{display:flex;height:26px;border-radius:7px;overflow:hidden;border:1px solid var(--border);font-size:11px;font-weight:700}
-.abar>div{display:flex;align-items:center;justify-content:center;color:#0c0e14;min-width:0;white-space:nowrap;transition:width .3s}
+.abar-row{margin:0 0 14px}
+.abar-label{font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:.5px}
+.abar{display:flex;height:30px;border-radius:9px;overflow:hidden;border:1px solid var(--border);font-size:11px;font-weight:700;box-shadow:0 3px 12px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.07);background:var(--surface2)}
+.abar>div{display:flex;align-items:center;justify-content:center;color:#0c1018;min-width:0;white-space:nowrap;position:relative;transition:width .6s cubic-bezier(.34,1.2,.4,1);text-shadow:0 1px 1px rgba(255,255,255,.3);box-shadow:inset -1px 0 0 rgba(0,0,0,.18)}
+.abar>div::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.32),rgba(255,255,255,0) 48%,rgba(0,0,0,.16));pointer-events:none}
+.abar>div::before{content:'';position:absolute;top:0;left:0;right:0;height:42%;background:linear-gradient(180deg,rgba(255,255,255,.18),transparent);pointer-events:none}
 .abar-empty{display:flex;align-items:center;justify-content:center;width:100%;color:var(--muted);font-weight:500;font-size:12px}
-.abar-legend{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.abar-legend{margin-top:14px;display:flex;flex-direction:column;gap:7px}
 .abar-leg{display:flex;justify-content:space-between;font-size:12px;align-items:center}
-.dotc{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px}
+.dotc{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:8px;box-shadow:0 0 7px rgba(255,255,255,.12),inset 0 1px 0 rgba(255,255,255,.4);vertical-align:-1px}
 .appver{text-align:center;color:var(--muted);font-size:11px;letter-spacing:.5px;padding:28px 0 12px}
 
 .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
@@ -157,10 +159,9 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 <body>
 <header>
   <div class="hbar">
-    <div class="logo">RE<span>GIME</span><small>ADAPTIVE DCA</small></div>
+    <div class="logo">Adaptive<span> DCA</span></div>
     <div class="hspace"></div>
-    <span id="modePill" class="mode-pill">데모 모드</span>
-    <button class="btn-strategy" onclick="openStrategy()">전략</button>
+    <button class="btn-strategy" onclick="openStrategy()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><polyline points="7 14 11 10 14 13 20 6"/></svg>전략</button>
   </div>
 </header>
 
@@ -258,7 +259,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     </div>
   </section>
 
-  <div class="appver">REGIME · ADAPTIVE DCA &nbsp;·&nbsp; <span id="appVer"></span></div>
+  <div class="appver">Adaptive DCA &nbsp;·&nbsp; <span id="appVer"></span></div>
 </div>
 
 <div class="mobile-tabbar" id="mtab">
@@ -421,21 +422,21 @@ function computeSeries(md){
 
 /* ===================== 전역 상태 ===================== */
 let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null;
-const APP_VERSION='1.1';
-const FX=1380;
+const APP_VERSION='1.2';
+let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
-const usdSub = krw => `<div class="sub-usd">$${(krw/FX).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
+const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
 const pct = n => (n>=0?'+':'')+ (n*100).toFixed(1)+'%';
 const ALLOC_COLORS={TQQQ:'#e05c6e',QLD:'#3d89c9',QQQ:'#52ba88'};
+const ALLOC_GRAD={TQQQ:'linear-gradient(135deg,#ff8493,#e05c6e)',QLD:'linear-gradient(135deg,#5aa6e6,#3d89c9)',QQQ:'linear-gradient(135deg,#6fd6a4,#52ba88)'};
 
 /* ===================== 초기화 ===================== */
 async function init(){
   document.getElementById('appVer').textContent='v'+APP_VERSION;
-  document.getElementById('modePill').textContent = DEMO ? '데모 모드 (Supabase 미연결)' : 'LIVE · Supabase';
-  if(!DEMO) document.getElementById('modePill').classList.add('live');
   const md = await getMarketData();
   SERIES = computeSeries(md);
   CUR = SERIES[SERIES.length-1];
+  FXNOW = (CUR && CUR.fx) ? +CUR.fx : 1380;
   SETTINGS = await getSettings();
   document.getElementById('cadenceSel').value = SETTINGS.cadence;
   document.getElementById('contribInput').value = SETTINGS.contribution_amount;
@@ -490,7 +491,7 @@ function allocBar(title,arr,emptyMsg){
   const total=(arr[0]||0)+(arr[1]||0)+(arr[2]||0);
   const inner = total<=0.0001
     ? `<div class="abar-empty">${emptyMsg||'—'}</div>`
-    : segs.filter(([,v])=>v>0.0001).map(([n,v])=>`<div style="width:${v*100}%;background:${ALLOC_COLORS[n]}">${v>=0.12?n+' '+Math.round(v*100)+'%':''}</div>`).join('');
+    : segs.filter(([,v])=>v>0.0001).map(([n,v])=>`<div style="width:${v*100}%;background:${ALLOC_GRAD[n]}">${v>=0.12?n+' '+Math.round(v*100)+'%':''}</div>`).join('');
   return `<div class="abar-row"><div class="abar-label">${title}</div><div class="abar">${inner}</div></div>`;
 }
 function renderAllocBars(reg){
@@ -506,7 +507,7 @@ function renderAllocBars(reg){
       const c=curArr[i], tg=t[i], d=c-tg;
       const dCls=!cur?'muted':(Math.abs(d)<0.005?'muted':(d>0?'up':'down'));
       const dTxt=cur?((d>=0?'+':'')+Math.round(d*100)+'%p'):'—';
-      return `<div class="abar-leg"><span><span class="dotc" style="background:${ALLOC_COLORS[n]}"></span>${n}</span>`
+      return `<div class="abar-leg"><span><span class="dotc" style="background:${ALLOC_GRAD[n]}"></span>${n}</span>`
         + `<span class="mono muted">현재 ${Math.round(c*100)}% · 목표 ${Math.round(tg*100)}% <b class="${dCls}" style="margin-left:4px">${dTxt}</b></span></div>`;
     }).join('')
   + `</div>`;
@@ -578,7 +579,7 @@ function openTrade(id){
     document.getElementById('f_date').value=CUR.date;
     document.getElementById('f_type').value='buy';document.getElementById('f_ticker').value=REG_BUY[CUR.regime];
     document.getElementById('f_qty').value='';document.getElementById('f_price').value=CUR[document.getElementById('f_ticker').value.toLowerCase()].toFixed(2);
-    document.getElementById('f_fx').value=1380;document.getElementById('f_amount').value='';document.getElementById('f_realized').value=0;
+    document.getElementById('f_fx').value=FXNOW;document.getElementById('f_amount').value='';document.getElementById('f_realized').value=0;
   }
   onTypeChange();calcAmount();
   document.getElementById('tradeModal').classList.add('open');
@@ -621,7 +622,7 @@ async function renderTrades(){
     const cash=(t.type==='deposit'||t.type==='withdrawal');
     return `<tr><td class="mono">${t.date}</td><td class="tkr">${cash?'—':t.ticker}</td>
     <td style="text-align:right"><span class="type-badge ${cls}">${lab}</span></td>
-    <td class="mono">${cash?'—':(+t.qty).toLocaleString()}</td><td class="mono">${cash?'—':'$'+(+t.price).toFixed(2)}</td>
+    <td class="mono">${cash?'—':(+t.qty).toLocaleString('ko-KR',{maximumFractionDigits:1})}</td><td class="mono">${cash?'—':'$'+(+t.price).toFixed(2)}</td>
     <td class="mono">${won(t.amount_krw)}</td>
     <td class="mono ${(t.realized||0)>0?'up':(t.realized||0)<0?'down':''}">${t.realized?won(t.realized):'—'}</td>
     <td><button class="icon-btn" onclick="editTrade('${t.id}')">수정</button><button class="icon-btn" onclick="delTrade('${t.id}')">삭제</button></td></tr>`;}).join('');
@@ -631,7 +632,7 @@ async function renderTrades(){
 async function renderProfit(){
   const ts=await getTrades();
   const last={QQQ:CUR.qqq,QLD:CUR.qld,TQQQ:CUR.tqqq};
-  const fxNow=1380;
+  const fxNow=FXNOW;
   const H={}; ['QQQ','QLD','TQQQ'].forEach(k=>H[k]={qty:0,cost:0}); // cost in KRW of remaining (avg)
   let totalRealized=0, totalDividend=0, cash=0;
   // process chronologically
@@ -658,7 +659,7 @@ async function renderProfit(){
   } else CUR_ALLOC=null;
   if(CUR) renderAllocBars(CUR.regime);
   const hb=document.getElementById('holdBody');
-  hb.innerHTML=rows.length?rows.map(r=>`<tr><td class="tkr">${r.k}</td><td class="mono">${r.qty.toFixed(3)}</td>
+  hb.innerHTML=rows.length?rows.map(r=>`<tr><td class="tkr">${r.k}</td><td class="mono">${(+r.qty).toFixed(1)}</td>
     <td class="mono">${won(r.avgUSD*fxNow)}${usdSub(r.avgUSD*fxNow)}</td>
     <td class="mono">${won(r.price*fxNow)}${usdSub(r.price*fxNow)}</td>
     <td class="mono">${won(r.val)}${usdSub(r.val)}</td>
