@@ -325,10 +325,10 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       <thead><tr><th>레짐</th><th>조건 (QQQ 기준)</th><th>목표 비중</th><th>매수 1순위</th></tr></thead>
       <tbody>
         <tr><td class="tkr up">저점</td><td>추세 OFF + 고점대비 −22% 이상 낙폭 + RSI&lt;45 + 주가가 50일선 회복</td><td class="mono">TQQQ 90 · QLD 10</td><td class="tkr">TQQQ</td></tr>
+        <tr><td class="tkr down">하락</td><td>추세 OFF + 200일선 기울기 하락</td><td class="mono">QQQ 100</td><td class="tkr">QQQ</td></tr>
+        <tr><td class="tkr">조정</td><td>추세 OFF + 200일선 기울기는 아직 상승</td><td class="mono">QLD 50 · QQQ 50</td><td class="tkr">QLD</td></tr>
         <tr><td class="tkr up">정상</td><td>추세 ON + 과열 아님</td><td class="mono">TQQQ 80 · QLD 20</td><td class="tkr">TQQQ</td></tr>
         <tr><td class="tkr neutral">과열</td><td>추세 ON + (200일선 대비 +20% 이상 이격 <b>또는</b> RSI&gt;80)</td><td class="mono">SCHD 50 · QLD 22.5 · TQQQ 20 · QQQ 7.5</td><td class="tkr">SCHD</td></tr>
-        <tr><td class="tkr">조정</td><td>추세 OFF + 200일선 기울기는 아직 상승</td><td class="mono">QLD 50 · QQQ 50</td><td class="tkr">QLD</td></tr>
-        <tr><td class="tkr down">하락</td><td>추세 OFF + 200일선 기울기 하락</td><td class="mono">QQQ 100</td><td class="tkr">QQQ</td></tr>
       </tbody>
     </table>
     <p class="note" style="margin:8px 0 0"><b>3단계 — 실행.</b> 레짐이 <b>바뀐 날</b> 보유 전체를 그 레짐의 목표 비중으로 <b>즉시(분할 없이) 리밸런싱</b>합니다. 예: 과열 진입 시 레버리지 절반을 그날 매도해 SCHD 50%를 채우고, 과열 해제 시 SCHD를 전량 매도해 새 레짐 비중으로 복귀합니다. 신규 적립금은 항상 현재 레짐의 목표 비중대로(부족한 종목 우선) 매수하며, 신규 시작자도 그날의 레짐 비중대로 첫 매수를 하면 됩니다. 대시보드의 "+N주 매수/매도"가 바로 이 목표 비중과 현재 보유의 차이를 주수로 환산한 값입니다.</p>
@@ -550,7 +550,7 @@ function computeSeries(md){
 
 /* ===================== 전역 상태 ===================== */
 let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
-const APP_VERSION='3.0';
+const APP_VERSION='3.1';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
@@ -668,14 +668,14 @@ function renderPriceChart(){
   const ctx=document.getElementById('priceChart');
   if(priceChart)priceChart.destroy();
   // 레짐별 선 색: 저점 초록 · 조정 연두 · 정상 흰색 · 과열 주황 · 하락 빨강 (막대 팔레트 톤)
-  const REG_LINE={0:'#2fce7f',1:'#eef2f8',2:'#f5a623',3:'#b5d94a',4:'#e35454'};
+  const REG_LINE={0:'#0f9d58',1:'#c9cfdb',2:'#e35454',3:'#b5d94a',4:'#3ddb8c'};
   const n=s.length;
   function regimeGradient(c){
-    const area=c.chart.chartArea; if(!area||!c.chart.ctx.createLinearGradient) return '#eef2f8';
+    const area=c.chart.chartArea; if(!area||!c.chart.ctx.createLinearGradient) return '#c9cfdb';
     const g=c.chart.ctx.createLinearGradient(area.left,0,area.right,0);
     let prev=null;
     for(let i=0;i<n;i++){
-      const col=REG_LINE[s[i].regime]||'#eef2f8';
+      const col=REG_LINE[s[i].regime]||'#c9cfdb';
       const pos=n<=1?0:i/(n-1);
       if(col!==prev){
         if(prev!==null) g.addColorStop(Math.max(0,pos-0.025), prev);   // 전환부 ~6일 폭 자연 블렌딩
@@ -687,7 +687,7 @@ function renderPriceChart(){
     return g;
   }
   priceChart=new Chart(ctx,{type:'line',data:{labels:s.map(o=>o.date),datasets:[
-    {label:'QQQ',data:s.map(o=>o.qqq),borderColor:regimeGradient,borderWidth:2,pointRadius:0,tension:.15},
+    {label:'QQQ',data:s.map(o=>o.qqq),borderColor:regimeGradient,borderWidth:2.6,pointRadius:0,tension:.15},
     {label:'200일선',data:s.map(o=>o.sma200),borderColor:'#c9a84c',borderWidth:1.4,pointRadius:0,borderDash:[5,4]},
     {label:'50일선',data:s.map(o=>o.sma50),borderColor:'#6b7494',borderWidth:1,pointRadius:0}
   ]},options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
@@ -1017,7 +1017,7 @@ async function renderProfit(){
 
 /* ===================== 전략 모달 ===================== */
 function renderModalRegimes(){
-  const order=[0,1,2,3,4];
+  const order=[0,4,3,1,2];  // 저점→하락→조정→정상→과열 (바닥에 가까운 순)
   document.getElementById('modalRegimes').innerHTML=order.map(reg=>{
     const t=TARGET[reg];const segs=[['TQQQ',t[0]],['QLD',t[1]],['QQQ',t[2]],['SCHD',t[3]]].filter(x=>x[1]>0);
     return `<div class="regime-card"><div class="h"><span class="chip">${REG_NAME[reg]}</span><span class="muted" style="font-size:12px">매수 1순위: <b>${REG_BUY[reg]}</b></span></div>
