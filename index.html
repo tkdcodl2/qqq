@@ -221,11 +221,11 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       </div>
     </div>
 
-    <div class="section-title" style="margin-top:26px"><span class="dot"></span>수익 현황</div>
+    <div class="section-title" style="margin-top:26px"><span class="dot"></span>현황</div>
     <div class="summary-grid" id="profitSummary"></div>
     <div class="card" style="margin-top:16px;padding:0;overflow-x:auto">
       <table class="nowrap-table">
-        <thead><tr><th>종목</th><th>수량</th><th>평균단가</th><th>현재가</th><th>매수원금</th><th>평가금액</th><th>평가손익</th><th>수익률</th></tr></thead>
+        <thead><tr><th>종목</th><th>수량</th><th>평균단가</th><th>현재가</th><th>매수원금</th><th>평가금액</th><th>평가손익</th><th>배당</th><th>수익률</th></tr></thead>
         <tbody id="holdBody"></tbody>
       </table>
     </div>
@@ -239,6 +239,9 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         <tbody id="monthlyBody"></tbody>
       </table>
     </div>
+
+    <div class="section-title" style="margin-top:26px"><span class="dot"></span>수익현황 <span class="muted" style="font-family:Inter;font-size:11px;letter-spacing:0;font-weight:500">누적 기준</span></div>
+    <div class="summary-grid" id="cumSummary"></div>
 
     <div class="section-title" style="margin-top:26px"><span class="dot"></span>핵심 지표</div>
     <div class="ind-grid" id="indGrid"></div>
@@ -363,7 +366,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       <div class="field"><label>환율 (원/$)</label><input id="f_fx" type="number" step="any" value="1380" oninput="calcAmount()"></div>
     </div>
     <div class="field"><label id="amtLabel">거래금액 (원, 자동계산)</label><input id="f_amount" type="text" inputmode="numeric" readonly oninput="fmtField('f_amount')"></div>
-    <div class="field" id="realizedWrap" style="display:none"><label>실현손익 (원, 매도시)</label><input id="f_realized" type="text" inputmode="numeric" value="0" oninput="fmtField('f_realized')"></div>
+    <div class="field" id="realizedWrap" style="display:none"><label>실현손익 (원, 자동계산·수정가능)</label><input id="f_realized" type="text" inputmode="numeric" value="0" oninput="fmtField('f_realized')"></div>
     <div style="display:flex;gap:10px;margin-top:6px">
       <button class="btn primary" style="flex:1" onclick="submitTrade()">저장</button>
       <button class="btn ghost" onclick="closeModal('tradeModal')">취소</button>
@@ -540,8 +543,8 @@ function computeSeries(md){
 }
 
 /* ===================== 전역 상태 ===================== */
-let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0;
-const APP_VERSION='2.8';
+let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
+const APP_VERSION='2.9';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
@@ -797,6 +800,7 @@ function onTypeChange(){
   const amt=document.getElementById('f_amount'); amt.readOnly=!cash;
   document.getElementById('amtLabel').textContent=cash?'금액 (원)':'거래금액 (원, 자동계산)';
   if(!cash)calcAmount();
+  if(ty==='sell')calcRealizedAuto();
 }
 const numv=id=>parseFloat((document.getElementById(id).value||'').toString().replace(/,/g,''))||0;
 function fmtField(id){const el=document.getElementById(id);const neg=/^\s*-/.test(el.value);const d=el.value.replace(/[^0-9]/g,'');el.value=(neg&&d?'-':'')+(d?Number(d).toLocaleString('ko-KR'):'');}
@@ -805,6 +809,29 @@ function calcAmount(){
   const p=numv('f_price');
   const fx=numv('f_fx');
   document.getElementById('f_amount').value=Math.round(q*p*fx).toLocaleString('ko-KR');
+  calcRealizedAuto();
+}
+/* 매도 실현손익 자동 계산: 매도 시점까지의 평균단가(원화 원가) 기반 */
+function avgCostKRW(ticker, asOfDate, excludeId){
+  let qty=0,cost=0;
+  [...TRADES_CACHE].filter(t=>t.ticker===ticker && t.date<=asOfDate && String(t.id)!==String(excludeId))
+    .sort((a,b)=>a.date.localeCompare(b.date)||((+a.id||0)-(+b.id||0)))
+    .forEach(t=>{
+      if(t.type==='buy'){qty+=+t.qty;cost+=+t.amount_krw;}
+      else if(t.type==='sell'){const avg=qty>0?cost/qty:0;cost-=avg*(+t.qty);qty-=+t.qty;}
+    });
+  return qty>0?cost/qty:null;
+}
+function calcRealizedAuto(){
+  if(document.getElementById('f_type').value!=='sell')return;
+  const tk=document.getElementById('f_ticker').value;
+  const d=document.getElementById('f_date').value||new Date().toISOString().slice(0,10);
+  const id=document.getElementById('tradeId').value;
+  const avg=avgCostKRW(tk,d,id);
+  if(avg==null)return;
+  const q=numv('f_qty'), amt=numv('f_amount')||Math.round(q*numv('f_price')*numv('f_fx'));
+  const realized=Math.round(amt - avg*q);
+  document.getElementById('f_realized').value=realized.toLocaleString('ko-KR');
 }
 function onTickerChange(){
   const tkU=document.getElementById('f_ticker').value;
@@ -837,6 +864,10 @@ async function submitTrade(){
        price:numv('f_price'),fx:numv('f_fx'),
        amount_krw:amount,
        realized:ty==='sell'?numv('f_realized'):0,account:'기본'};
+  if(ty==='sell' && !t.realized){
+    const avg=avgCostKRW(t.ticker,t.date,id);
+    if(avg!=null) t.realized=Math.round(t.amount_krw - avg*t.qty);
+  }
   if(id)t.id=isNaN(+id)?id:+id;
   if(!t.date){flash('날짜를 입력하세요');return;}
   if(cash){if(!amount){flash('금액을 입력하세요');return;}}
@@ -871,17 +902,18 @@ async function renderTrades(){
 
 /* ===================== 수익분석 ===================== */
 async function renderProfit(){
-  const ts=await getTrades();
+  const ts=await getTrades(); TRADES_CACHE=ts;
   const last={QQQ:CUR.qqq,QLD:CUR.qld,TQQQ:CUR.tqqq,SCHD:schdPx(CUR)};
   const fxNow=FXNOW;
   const H={}; ['QQQ','QLD','TQQQ','SCHD'].forEach(k=>H[k]={qty:0,cost:0}); // cost in KRW of remaining (avg)
   let totalRealized=0, totalDividend=0, cash=0, netDeposits=0;
+  const DIV={QQQ:0,QLD:0,TQQQ:0,SCHD:0};
   // process chronologically
   [...ts].sort((a,b)=>a.date.localeCompare(b.date)).forEach(t=>{
-    const k=t.ticker; if(!H[k])H[k]={qty:0,cost:0};
+    const k=t.ticker; if(!H[k]&&t.type!=='deposit'&&t.type!=='withdrawal')H[k]={qty:0,cost:0};
     if(t.type==='buy'){H[k].qty+=+t.qty;H[k].cost+=+t.amount_krw;cash-=+t.amount_krw;}
     else if(t.type==='sell'){const avg=H[k].qty>0?H[k].cost/H[k].qty:0;H[k].cost-=avg*(+t.qty);H[k].qty-=+t.qty;totalRealized+=(+t.realized||0);cash+=+t.amount_krw;}
-    else if(t.type==='div'){totalDividend+=+t.amount_krw;cash+=+t.amount_krw;}
+    else if(t.type==='div'){totalDividend+=+t.amount_krw;cash+=+t.amount_krw;if(DIV[k]!=null)DIV[k]+=+t.amount_krw;}
     else if(t.type==='deposit'){cash+=+t.amount_krw;netDeposits+=+t.amount_krw;}
     else if(t.type==='withdrawal'){cash-=+t.amount_krw;netDeposits-=+t.amount_krw;}
   });
@@ -908,8 +940,9 @@ async function renderProfit(){
     <td class="mono">${won(r.cost)}${usdSub(r.cost)}</td>
     <td class="mono">${won(r.val)}${usdSub(r.val)}</td>
     <td class="mono ${r.pl>=0?'up':'down'}">${won(r.pl)}${usdSub(r.pl)}</td>
+    <td class="mono ${DIV[r.k]>0?'up':'muted'}">${DIV[r.k]>0?won(DIV[r.k]):'—'}</td>
     <td class="mono ${r.pl>=0?'up':'down'}">${pct(r.ret)}</td></tr>`).join('')
-    :'<tr><td colspan="8" class="muted" style="text-align:center;padding:24px">보유 종목이 없습니다.</td></tr>';
+    :'<tr><td colspan="9" class="muted" style="text-align:center;padding:24px">보유 종목이 없습니다.</td></tr>';
   const totalAssets=curVal+cash;                 // 총자산 = 주식 평가액 + 현금
   const evalPL=curVal-invested;                  // 평가손익 = 주식 평가금액 − 매수원금
   const evalRet=invested>0?evalPL/invested:null;
@@ -920,11 +953,28 @@ async function renderProfit(){
   const cards=[
     ['총자산 (현금포함)', totalAssets, '','amt'],
     ['원금 (매수원금)', invested, '','amt'],
-    ['평가금액', curVal, '','amt'],
+    ['현금', cash, '','amt'],
     ['실현손익', totalRealized, totalRealized>=0?'up':'down','amt'],
     ['금일손익', todayPL, todayPL>=0?'up':'down','amt'],
     ['평가손익', evalPL, evalPL>=0?'up':'down','amtpct'],
   ];
+  // 누적 기준 수익현황 (가장 아래 섹션)
+  const accPL=totalAssets-netDeposits;                 // 계좌 전체 손익(실현+배당+평가 포함)
+  const accRet=netDeposits>0?accPL/netDeposits:null;
+  const cumCards=[
+    ['총자산', totalAssets, '','amt',null],
+    ['누적원금 (입금누계)', netDeposits, '','amt',null],
+    ['평가금액', curVal, '','amt',null],
+    ['실현손익', totalRealized, totalRealized>=0?'up':'down','amt',null],
+    ['배당금', totalDividend, totalDividend>0?'up':'','amt',null],
+    ['평가손익', accPL, accPL>=0?'up':'down','amtpct',accRet],
+  ];
+  const cumEl=document.getElementById('cumSummary');
+  if(cumEl) cumEl.innerHTML=cumCards.map(([l,v,c,kind,ret])=>{
+    const cardCls=c==='up'?'green':c==='down'?'red':'blue';
+    const amtPct=(kind==='amtpct'&&ret!=null)?`<span class="card-pct ${c}">(${pct(ret)})</span>`:'';
+    return `<div class="card card-hov ${cardCls}"><div class="label">${l}</div><div class="card-val"><div class="card-amt"><span class="big-num ${c}">${won(v)}</span>${amtPct}</div>${usdSub(v)}</div></div>`;
+  }).join('');
   document.getElementById('profitSummary').innerHTML=cards.map(([l,v,c,kind])=>{
     const cardCls=c==='up'?'green':c==='down'?'red':'blue';
     const amtPct=(kind==='amtpct'&&evalRet!=null)?`<span class="card-pct ${c}">(${pct(evalRet)})</span>`:'';
