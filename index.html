@@ -69,7 +69,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rg
 .state-sub{font-size:12px;color:var(--muted);max-width:94%;line-height:1.45}
 .gauge-row{display:flex;gap:6px;margin-top:6px}
 .gpip{flex:1;height:7px;border-radius:4px;background:var(--surface2);border:1px solid var(--border)}
-.reco-box{display:flex;flex-direction:column;gap:10px;justify-content:center}
+.reco-box{display:flex;flex-direction:column;gap:10px;justify-content:center;align-items:center;text-align:center}
 .reco-ticker{font-family:'Bebas Neue';font-size:22px;letter-spacing:.8px;line-height:1}
 .pill{display:inline-block;font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--border)}
 .pill.buy{color:var(--accent);border-color:rgba(82,186,136,.4);background:rgba(82,186,136,.1)}
@@ -382,15 +382,24 @@ if (CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && window.supabase) {
   DEMO = false;
 }
 // 데모 모드 인메모리 저장소
-let memTrades = [];
-let memSettings = { id:1, cadence:'매월', contribution_amount:500000, base_currency:'KRW' };
-let memMonthly = [
-  {ym:'2026-02', principal:222589364, eval_amount:149618133, cash:2000000},
-  {ym:'2026-03', principal:431117483, eval_amount:312702425, cash:3000000},
-  {ym:'2026-04', principal:430789809, eval_amount:437188216, cash:2500000},
-  {ym:'2026-05', principal:429589809, eval_amount:582462729, cash:2800000},
-  {ym:'2026-06', principal:430089809, eval_amount:486244642, cash:5000000},
+let memTrades = [
+  {id:1,date:'2025-12-01',ticker:'CASH',type:'deposit',qty:0,price:0,fx:1,amount_krw:5000000,realized:0,account:'기본'},
+  {id:2,date:'2025-12-02',ticker:'TQQQ',type:'buy',qty:50,price:65,fx:1380,amount_krw:4485000,realized:0,account:'기본'},
+  {id:3,date:'2026-01-02',ticker:'CASH',type:'deposit',qty:0,price:0,fx:1,amount_krw:5000000,realized:0,account:'기본'},
+  {id:4,date:'2026-01-03',ticker:'TQQQ',type:'buy',qty:48,price:68,fx:1380,amount_krw:4504320,realized:0,account:'기본'},
+  {id:5,date:'2026-02-03',ticker:'CASH',type:'deposit',qty:0,price:0,fx:1,amount_krw:5000000,realized:0,account:'기본'},
+  {id:6,date:'2026-02-04',ticker:'QLD',type:'buy',qty:60,price:54,fx:1380,amount_krw:4471200,realized:0,account:'기본'},
+  {id:7,date:'2026-03-03',ticker:'CASH',type:'deposit',qty:0,price:0,fx:1,amount_krw:5000000,realized:0,account:'기본'},
+  {id:8,date:'2026-03-04',ticker:'TQQQ',type:'buy',qty:55,price:60,fx:1380,amount_krw:4554000,realized:0,account:'기본'},
+  {id:9,date:'2026-04-02',ticker:'CASH',type:'deposit',qty:0,price:0,fx:1,amount_krw:5000000,realized:0,account:'기본'},
+  {id:10,date:'2026-04-03',ticker:'TQQQ',type:'buy',qty:52,price:64,fx:1380,amount_krw:4592640,realized:0,account:'기본'},
+  {id:11,date:'2026-05-04',ticker:'CASH',type:'deposit',qty:0,price:0,fx:1,amount_krw:5000000,realized:0,account:'기본'},
+  {id:12,date:'2026-05-05',ticker:'TQQQ',type:'buy',qty:50,price:66,fx:1380,amount_krw:4554000,realized:0,account:'기본'},
+  {id:13,date:'2026-06-02',ticker:'CASH',type:'deposit',qty:0,price:0,fx:1,amount_krw:5000000,realized:0,account:'기본'},
+  {id:14,date:'2026-06-03',ticker:'TQQQ',type:'buy',qty:48,price:70,fx:1380,amount_krw:4636800,realized:0,account:'기본'},
 ];
+let memSettings = { id:1, cadence:'매월', contribution_amount:500000, base_currency:'KRW' };
+let memMonthly = [];   // 거래내역에서 자동 계산되어 채워짐
 
 /* ===================== 데이터 레이어 ===================== */
 async function getMarketData(){
@@ -434,6 +443,34 @@ async function saveMonthly(r){
 async function removeMonthly(ym){
   if(DEMO){memMonthly=memMonthly.filter(x=>x.ym!==ym);return;}
   await sb.from('monthly').delete().eq('ym',ym);
+}
+/* 거래내역+시세로 월별(원금·평가금액·현금) 자동 산출 */
+function autoMonthlyRows(ts){
+  if(!SERIES.length||!ts.length) return [];
+  const lastDate=SERIES[SERIES.length-1].date;
+  const sorted=[...ts].sort((a,b)=>a.date.localeCompare(b.date));
+  let [y,m]=sorted[0].date.slice(0,7).split('-').map(Number);
+  const [ly,lm]=lastDate.slice(0,7).split('-').map(Number);
+  const yms=[]; while(y<ly||(y===ly&&m<=lm)){ yms.push(`${y}-${String(m).padStart(2,'0')}`); m++; if(m>12){m=1;y++;} if(yms.length>60)break; }
+  const priceAsOf=ym=>{ const cut=ym+'-31'; let row=null; for(const r of SERIES){ if(r.date<=cut)row=r; else break; } return row||SERIES[0]; };
+  return yms.map(ym=>{
+    const cut=ym+'-31'; const H={QQQ:0,QLD:0,TQQQ:0}; let dep=0,cash=0;
+    ts.filter(t=>t.date<=cut).forEach(t=>{const k=t.ticker;
+      if(t.type==='buy'){if(H[k]!=null)H[k]+=+t.qty;cash-=+t.amount_krw;}
+      else if(t.type==='sell'){if(H[k]!=null)H[k]-=+t.qty;cash+=+t.amount_krw;}
+      else if(t.type==='div'){cash+=+t.amount_krw;}
+      else if(t.type==='deposit'){dep+=+t.amount_krw;cash+=+t.amount_krw;}
+      else if(t.type==='withdrawal'){dep-=+t.amount_krw;cash-=+t.amount_krw;}});
+    const pr=priceAsOf(ym), fx=pr.fx?+pr.fx:FXNOW;
+    const stock=H.QQQ*pr.qqq*fx+H.QLD*pr.qld*fx+H.TQQQ*pr.tqqq*fx;
+    return {ym, principal:Math.round(dep), eval_amount:Math.round(stock), cash:Math.round(cash), manual:false};
+  });
+}
+async function syncAutoMonthly(){
+  const auto=autoMonthlyRows(await getTrades());
+  if(!auto.length) return;
+  const manualSet=new Set((await getMonthly()).filter(r=>r.manual).map(r=>r.ym));
+  for(const r of auto){ if(!manualSet.has(r.ym)) await saveMonthly(r); }  // 수기 편집한 달은 보존
 }
 
 /* ===================== 전략 엔진 (backtest4.py 동일 로직) ===================== */
@@ -487,14 +524,15 @@ function computeSeries(md){
 }
 
 /* ===================== 전역 상태 ===================== */
-let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null;
-const APP_VERSION='2.3';
+let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0;
+const APP_VERSION='2.4';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
 const pct = n => (n>=0?'+':'')+ (n*100).toFixed(1)+'%';
-const ALLOC_COLORS={TQQQ:'#ff5aa0',QLD:'#ff7064',QQQ:'#ffab46'};
-const ALLOC_GRAD={TQQQ:'linear-gradient(180deg,rgba(255,150,202,.92),rgba(255,92,162,.82))',QLD:'linear-gradient(180deg,rgba(255,172,132,.92),rgba(255,114,100,.82))',QQQ:'linear-gradient(180deg,rgba(255,216,120,.92),rgba(255,170,68,.82))'};
+const ALLOC_COLORS={TQQQ:'#ff5aa0',QLD:'#ff7064',QQQ:'#ffab46',CASH:'#7d86a6'};
+const ALLOC_GRAD={TQQQ:'linear-gradient(180deg,rgba(255,150,202,.92),rgba(255,92,162,.82))',QLD:'linear-gradient(180deg,rgba(255,172,132,.92),rgba(255,114,100,.82))',QQQ:'linear-gradient(180deg,rgba(255,216,120,.92),rgba(255,170,68,.82))',CASH:'linear-gradient(180deg,rgba(150,160,190,.78),rgba(108,116,148,.68))'};
+const ALLOC_DISP={TQQQ:'TQQQ',QLD:'QLD',QQQ:'QQQ',CASH:'현금'};
 
 /* ===================== 초기화 ===================== */
 async function init(){
@@ -511,6 +549,7 @@ async function init(){
   onCadenceChange();
   await renderTrades();
   await renderProfit();
+  await syncAutoMonthly();
   await renderMonthly();
 }
 
@@ -552,22 +591,29 @@ function renderIndicators(r){
 }
 
 function allocBar(title,arr,emptyMsg,faded){
-  const segs=[['TQQQ',arr[0]],['QLD',arr[1]],['QQQ',arr[2]]];
-  const total=(arr[0]||0)+(arr[1]||0)+(arr[2]||0);
+  const segs=[['TQQQ',arr[0]],['QLD',arr[1]],['QQQ',arr[2]],['CASH',arr[3]]];
+  const total=(arr[0]||0)+(arr[1]||0)+(arr[2]||0)+(arr[3]||0);
   const inner = total<=0.0001
     ? `<div class="abar-empty">${emptyMsg||'—'}</div>`
-    : segs.filter(([,v])=>v>0.0001).map(([n,v])=>`<div style="width:${v*100}%;background:${ALLOC_GRAD[n]}"><span class="abar-seg-t">${v>=0.1?n:''}</span><span class="abar-seg-p">${v>=0.07?Math.round(v*100)+'%':''}</span></div>`).join('');
+    : segs.filter(([,v])=>v>0.0001).map(([n,v])=>`<div style="width:${v*100}%;background:${ALLOC_GRAD[n]}"><span class="abar-seg-t">${v>=0.1?ALLOC_DISP[n]:''}</span><span class="abar-seg-p">${v>=0.07?Math.round(v*100)+'%':''}</span></div>`).join('');
   return `<div class="abar-row"><div class="abar-label">${title}</div><div class="abar${faded?' faded':''}">${inner}</div></div>`;
 }
 function renderAllocBars(reg){
   const t=TARGET[reg];                       // [TQQQ,QLD,QQQ] 목표
-  const cur=CUR_ALLOC;                        // {TQQQ,QLD,QQQ} 현재 or null
-  const curArr = cur?[cur.TQQQ,cur.QLD,cur.QQQ]:[0,0,0];
+  // 현재 비중: 총자산(주식+현금) 기준 → 현금 비중 포함
+  const stockVal = CUR_PORT?CUR_PORT.val:null;
+  const stockTot = CUR_PORT?CUR_PORT.total:0;
+  const cashV = CUR_CASH>0?CUR_CASH:0;
+  const totalA = stockTot + cashV;
+  const hasCur = totalA>0.0001;
+  const curArr = hasCur
+    ? [ (stockVal?stockVal.TQQQ:0)/totalA, (stockVal?stockVal.QLD:0)/totalA, (stockVal?stockVal.QQQ:0)/totalA, cashV/totalA ]
+    : [0,0,0,0];
   const el=document.getElementById('allocBars');
   const TK=['TQQQ','QLD','QQQ'];
   // 목표 달성에 필요한 매수/매도 주수 (현재 총액 기준 리밸런싱)
   function sharesFor(i){
-    if(!CUR_PORT||!CUR) return null;
+    if(!CUR_PORT||!CUR||CUR_PORT.total<=0) return null;
     const k=TK[i];
     const targetVal=t[i]*CUR_PORT.total;
     const deltaVal=targetVal-(CUR_PORT.val[k]||0);   // +면 매수 필요, -면 매도
@@ -590,7 +636,7 @@ function renderAllocBars(reg){
     }).join('')
   + `</div><div class="alloc-bars">`
   + allocBar('목표 비중 · '+REG_NAME[reg].split('(')[0], t, null, false)        // 목표 먼저
-  + allocBar('현재 비중'+(cur?'':' (보유 없음)'), curArr, '보유 종목이 없습니다', true)  // 현재 나중
+  + allocBar('현재 비중'+(hasCur?'':' (보유 없음)'), curArr, '보유 종목이 없습니다', true)  // 현재 나중
   + `</div></div>`;
 }
 
@@ -644,7 +690,7 @@ async function renderMonthly(){
     const pl=total-(+r.principal);
     const ret=(+r.principal)>0?pl/(+r.principal):null;
     const c=pl>=0?'up':'down';
-    return `<tr><td class="tkr">${r.ym}</td>
+    return `<tr><td class="tkr">${r.ym}${r.manual?' <span class="muted" style="font-size:10px;font-family:Inter">수기</span>':''}</td>
       <td class="mono">${won(+r.principal)}</td>
       <td class="mono">${won(+r.eval_amount)}</td>
       <td class="mono">${won(total)}</td>
@@ -671,7 +717,7 @@ async function editMonthly(ym){
 async function submitMonthly(){
   const ym=document.getElementById('m_ym').value;
   if(!ym){flash('년월을 선택하세요');return;}
-  await saveMonthly({ym, principal:numv('m_principal'), eval_amount:numv('m_eval'), cash:numv('m_cash')});
+  await saveMonthly({ym, principal:numv('m_principal'), eval_amount:numv('m_eval'), cash:numv('m_cash'), manual:true});
   closeModal('monthlyModal'); await renderMonthly();
 }
 async function delMonthly(ym){ if(!confirm(ym+' 데이터를 삭제하시겠습니까?'))return; await removeMonthly(ym); await renderMonthly(); }
@@ -756,9 +802,9 @@ async function submitTrade(){
   else if(!t.qty){flash('날짜와 수량을 입력하세요');return;}
   await saveTrade(t);
   closeModal('tradeModal');
-  await renderTrades();await renderProfit();
+  await renderTrades();await renderProfit();await syncAutoMonthly();await renderMonthly();
 }
-async function delTrade(id){ if(!confirm('삭제하시겠습니까?'))return; await removeTrade(isNaN(+id)?id:+id); await renderTrades();await renderProfit(); }
+async function delTrade(id){ if(!confirm('삭제하시겠습니까?'))return; await removeTrade(isNaN(+id)?id:+id); await renderTrades();await renderProfit();await syncAutoMonthly();await renderMonthly(); }
 async function editTrade(id){
   const ts=await getTrades();const t=ts.find(x=>String(x.id)===String(id));if(!t)return;
   openTrade(t.id);
@@ -807,11 +853,12 @@ async function renderProfit(){
     return {k,qty:h.qty,avgUSD,price:last[k],val,cost:h.cost,pl,ret:pl/h.cost};
   }).filter(Boolean);
   // 현재 비중(평가금액 기준) + 절대 평가액/총액 → 막대·목표달성 주수 계산에 사용
+  CUR_CASH = cash>0?cash:0;
   if(curVal>0){
     const v={QQQ:0,QLD:0,TQQQ:0}; rows.forEach(r=>v[r.k]=r.val);
     CUR_ALLOC={TQQQ:v.TQQQ/curVal,QLD:v.QLD/curVal,QQQ:v.QQQ/curVal};
     CUR_PORT={total:curVal, val:v};
-  } else { CUR_ALLOC=null; CUR_PORT=null; }
+  } else { CUR_ALLOC=null; CUR_PORT={total:0, val:{QQQ:0,QLD:0,TQQQ:0}}; }
   if(CUR) renderAllocBars(CUR.regime);
   const hb=document.getElementById('holdBody');
   hb.innerHTML=rows.length?rows.map(r=>`<tr><td class="tkr">${r.k}</td><td class="mono">${(+r.qty).toLocaleString('ko-KR',{maximumFractionDigits:0})}</td>
