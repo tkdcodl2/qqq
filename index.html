@@ -29,13 +29,13 @@ a{color:inherit;text-decoration:none}
 /* header */
 header{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(14,16,24,.82);border-bottom:1px solid var(--border)}
 .hbar{max-width:1240px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:18px}
-.logo{font-family:'Bebas Neue';font-size:28px;letter-spacing:3px;color:var(--accent);text-shadow:0 0 18px rgba(82,186,136,.45)}
+.logo{font-family:'Bebas Neue';font-size:24px;letter-spacing:2.5px;color:var(--accent);text-shadow:0 0 18px rgba(82,186,136,.45)}
 .logo span{color:var(--text)}
 .logo small{display:block;font-family:'Inter';font-size:9px;letter-spacing:2px;color:var(--muted);margin-top:-4px}
 .hspace{flex:1}
 .mode-pill{font-size:11px;padding:5px 10px;border-radius:20px;border:1px solid var(--border);color:var(--muted);background:var(--surface2)}
 .mode-pill.live{color:var(--accent);border-color:rgba(82,186,136,.4)}
-.btn-strategy{font-family:'Bebas Neue';letter-spacing:2px;font-size:16px;padding:8px 18px;border-radius:8px;border:1px solid rgba(82,186,136,.45);
+.btn-strategy{font-family:'Bebas Neue';letter-spacing:2px;font-size:14px;padding:7px 16px;border-radius:8px;border:1px solid rgba(82,186,136,.45);
   background:linear-gradient(180deg,rgba(82,186,136,.18),rgba(82,186,136,.06));color:var(--accent);cursor:pointer;transition:.18s}
 .btn-strategy:hover{background:rgba(82,186,136,.28);box-shadow:0 0 18px rgba(82,186,136,.3)}
 
@@ -46,7 +46,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rg
 .tab-btn.active{background:var(--accent);color:#0c0e14;border-color:var(--accent)}
 
 /* cards */
-.card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;overflow:hidden;transition:.18s}
+.card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;overflow:hidden;transition:.18s}
 .card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);opacity:.0}
 .card.green::before{background:linear-gradient(90deg,var(--accent),transparent);opacity:1}
 .card.blue::before{background:linear-gradient(90deg,var(--accent2),transparent);opacity:1}
@@ -54,30 +54,30 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rg
 .card.gold::before{background:linear-gradient(90deg,var(--gold),transparent);opacity:1}
 .card-hov:hover{transform:translateY(-2px);border-color:#2e3550}
 .grid{display:grid;gap:16px}
-.section-title{font-family:'Bebas Neue';letter-spacing:2px;font-size:20px;color:var(--text);margin:6px 0 12px;display:flex;align-items:center;gap:10px}
+.section-title{font-family:'Bebas Neue';letter-spacing:1.5px;font-size:15px;color:var(--text);margin:4px 0 10px;display:flex;align-items:center;gap:8px}
 .section-title .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
 .muted{color:var(--muted)}
 .label{font-size:11px;letter-spacing:.5px;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
-.big-num{font-family:'Bebas Neue';font-size:30px;line-height:1;letter-spacing:1px}
+.big-num{font-family:'Bebas Neue';font-size:22px;line-height:1;letter-spacing:.5px}
 .sub-usd{font-size:10px;color:var(--muted);font-weight:400;margin-top:2px;letter-spacing:.3px}
 .mono{font-variant-numeric:tabular-nums}
 
 /* state hero */
 .hero{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
-.state-box{display:flex;flex-direction:column;justify-content:center;gap:8px;min-height:140px}
-.state-name{font-family:'Bebas Neue';font-size:34px;letter-spacing:1.5px;line-height:1}
-.state-sub{font-size:13px;color:var(--muted);max-width:92%;line-height:1.5}
+.state-box{display:flex;flex-direction:column;justify-content:center;gap:6px;min-height:104px}
+.state-name{font-family:'Bebas Neue';font-size:24px;letter-spacing:1px;line-height:1}
+.state-sub{font-size:12px;color:var(--muted);max-width:94%;line-height:1.45}
 .gauge-row{display:flex;gap:6px;margin-top:6px}
 .gpip{flex:1;height:7px;border-radius:4px;background:var(--surface2);border:1px solid var(--border)}
 .reco-box{display:flex;flex-direction:column;gap:10px;justify-content:center}
-.reco-ticker{font-family:'Bebas Neue';font-size:42px;letter-spacing:1.5px;line-height:.95}
+.reco-ticker{font-family:'Bebas Neue';font-size:27px;letter-spacing:1px;line-height:.95}
 .pill{display:inline-block;font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;border:1px solid var(--border)}
 .pill.buy{color:var(--accent);border-color:rgba(82,186,136,.4);background:rgba(82,186,136,.1)}
 
 /* indicator grid */
 .ind-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.ind{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px}
-.ind .v{font-family:'Bebas Neue';font-size:22px;letter-spacing:1px;margin-top:2px}
+.ind{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 12px}
+.ind .v{font-family:'Bebas Neue';font-size:18px;letter-spacing:.5px;margin-top:1px}
 .up{color:var(--accent)} .down{color:var(--red)} .neutral{color:var(--gold)}
 
 /* allocation bars (현재 vs 목표) */
@@ -91,7 +91,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rg
 .dotc{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px}
 .appver{text-align:center;color:var(--muted);font-size:11px;letter-spacing:.5px;padding:28px 0 12px}
 
-.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 
 /* table */
 table{width:100%;border-collapse:collapse;font-size:13px}
@@ -150,7 +150,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   .mobile-tabbar button{flex:1;background:none;border:none;color:var(--muted);font-size:10px;padding:8px 2px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
   .mobile-tabbar button.active{color:var(--accent)}
   .mobile-tabbar .ic{font-size:17px}
-  .big-num{font-size:26px}.state-name{font-size:28px}.reco-ticker{font-size:36px}
+  .big-num{font-size:20px}.state-name{font-size:22px}.reco-ticker{font-size:26px}
 }
 </style>
 </head>
@@ -421,7 +421,7 @@ function computeSeries(md){
 
 /* ===================== 전역 상태 ===================== */
 let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null;
-const APP_VERSION='1.0';
+const APP_VERSION='1.1';
 const FX=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FX).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
