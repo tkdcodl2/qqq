@@ -332,10 +332,9 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         <tr><td class="tkr" style="color:#00b300">저점</td><td>DD −26% 이하 <b>또는</b> (DD −20% 이하 + 이격 −12% 이하). 발생 시 저점 사이클 시작</td><td class="mono">TQQQ 80 · QLD 20</td><td class="tkr">TQQQ</td></tr>
         <tr><td class="tkr" style="color:#66dd66">반등</td><td>저점 사이클 진행 중(DD가 −4% 회복 전까지 유지) <b>또는</b> DD −15% 이하 + 20일 모멘텀 +4% 이상 + 200일선 회복</td><td class="mono">TQQQ 55 · QLD 30 · QQQ 10 · SCHD 5</td><td class="tkr">TQQQ</td></tr>
         <tr><td class="tkr" style="color:#3d89c9">저점·방어</td><td><b>가짜 반등 차단:</b> 저점 사이클 중 트레일 고점 대비 <b>−8%</b> 이탈 시. 신저점 대비 <b>+10%</b> 추력이 나오면 공격 재진입</td><td class="mono">SCHD 75 · QQQ 25</td><td class="tkr">SCHD</td></tr>
-        <tr><td class="tkr" style="color:#ffffff">평상</td><td>아래 어느 조건에도 해당 없음</td><td class="mono">QQQ 45 · QLD 30 · SCHD 15 · TQQQ 10</td><td class="tkr">QQQ</td></tr>
-        <tr><td class="tkr" style="color:#ffd24d">과열·추세지속</td><td>이격 +7% 이상이지만 <b>40거래일 신고가의 99% 이내</b>(신고가 행진 중)</td><td class="mono">TQQQ 30 · QLD 30 · QQQ 30 · SCHD 10</td><td class="tkr">TQQQ</td></tr>
-        <tr><td class="tkr" style="color:#ff9933">과열</td><td>이격 <b>+7% 이상</b> + 신고가 행진 멈춤</td><td class="mono">QQQ 55 · SCHD 25 · QLD 20</td><td class="tkr">QQQ</td></tr>
-        <tr><td class="tkr" style="color:#ff2222">고점</td><td>이격 <b>+13% 이상</b> + 신고가권(DD −3% 이내)</td><td class="mono">SCHD 60 · QQQ 35 · QLD 5</td><td class="tkr">SCHD</td></tr>
+        <tr><td class="tkr" style="color:#ffffff">평상</td><td>아래 어느 조건에도 해당 없음 (신고가 행진 중이면 이격과 무관하게 평상 — 구 과열·추세지속 통합)</td><td class="mono">TQQQ 30 · QLD 30 · QQQ 30 · SCHD 10</td><td class="tkr">TQQQ</td></tr>
+        <tr><td class="tkr" style="color:#ff9933">과열</td><td>이격 <b>+7% 이상</b> + 40거래일 신고가(의 97%) 행진이 <b>10거래일 이상</b> 멈춤</td><td class="mono">QQQ 55 · SCHD 25 · QLD 20</td><td class="tkr">QQQ</td></tr>
+        <tr><td class="tkr" style="color:#ff2222">고점</td><td>이격 <b>+16% 이상</b> + 신고가권(DD −3% 이내)</td><td class="mono">SCHD 60 · QQQ 35 · QLD 5</td><td class="tkr">SCHD</td></tr>
       </tbody>
     </table>
     <p class="note" style="margin:8px 0 0"><b>실행 — 단계가 바뀐 날 즉시 리밸런싱.</b> 시뮬레이션 결과 리밸런싱 주기는 "단계 변경 시 즉시"가 최선이었습니다(연 40.3% > 매주 40.0% > 매월 38.4% > 분기 37.5%). 매일 단계만 확인하고, 단계가 바뀐 날에만 보유 전체를 새 단계의 목표 비중으로 맞춥니다. 신규 적립금은 항상 현재 단계의 목표 비중대로(부족한 종목 우선) 매수하며, 대시보드의 "+N주 매수/매도"가 목표 비중과 현재 보유의 차이를 주수로 환산한 값입니다. <b>트레일링 스탑(저점·방어)도 단계 변경으로 취급</b>되어 발동·해제일에 즉시 리밸런싱합니다.</p>
@@ -349,7 +348,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         <tr><td>TQQQ 단독</td><td class="mono">$2,998,078</td><td class="mono">+1,420%</td><td class="mono down">-78.0%</td><td class="mono">52.7%</td></tr>
       </tbody>
     </table>
-    <p class="note" style="margin-top:10px"><b>위기 검증(트레일링 스탑 포함, FRED 실데이터):</b> 금융위기 2007.10–2010.12는 기존 −4.0%(MDD −85.5%)에서 <b>+36.5%(MDD −60.2%)</b>로 개선되어 통과. 닷컴버블 2000.1–2003.12는 −65.9%(MDD −96.4%)에서 −48.8%(MDD −84.2%)로 전멸은 면하지만 여전히 큰 손실 — 2000년형 −83% 붕괴는 본 전략으로 방어 불가합니다. 2019–2026 구간은 스탑 비용으로 IRR이 33.4%까지 내려갔으나, <b>과열·추세지속 게이트</b>(대세상승에서 TQQQ 30% 유지)로 <b>IRR 40.1%(MDD −63.4%, 최종 $1,654,000)</b>를 회복 — 위기 구간 성적에는 영향 없음(닷컴·금융위기 수치 동일). 검증 구간은 <b>2020 코로나 폭락·2022 약세장·2025 4월 급락·2026 3월 조정</b>을 포함합니다. 리밸런싱 주기 비교: 단계 변경 시 40.3% > 매주 40.0% > 매월 38.4% > 분기 37.5% — 단계 전환에 늦게 반응할수록 수익이 깎입니다. 적립은 일 $50 ≈ 주 $250 ≈ 월 $1,000 모두 IRR이 사실상 같으며, 자주 넣을수록 최종금액이 약간 커집니다. ※시뮬레이션 한계: 주간 종가 기반(본 대시보드는 일간 적용)이고, QLD·TQQQ·SCHD는 지수에서 합성(레버리지 배율·변동성 잠식·금융비용·보수 반영)했으며, 2024.4–2026.2 지수는 주요 변곡점 앵커 기반 근사치입니다. 강세장 편향 구간(2019–2026)에 최적화된 결과이므로 장기 약세장에서는 성과가 다를 수 있습니다.</p>
+    <p class="note" style="margin-top:10px"><b>위기 검증(트레일링 스탑 포함, FRED 실데이터):</b> 금융위기 2007.10–2010.12는 기존 −4.0%(MDD −85.5%)에서 <b>+36.5%(MDD −60.2%)</b>로 개선되어 통과. 닷컴버블 2000.1–2003.12는 −65.9%(MDD −96.4%)에서 −48.8%(MDD −84.2%)로 전멸은 면하지만 여전히 큰 손실 — 2000년형 −83% 붕괴는 본 전략으로 방어 불가합니다. v4.3: 추세지속을 평상에 통합(평상=TQQQ30/QLD30/QQQ30/SCHD10), 고점 기준 +13%→+16%, 과열 진입에 2주 확인 추가 → <b>2019–2026 IRR 43.2%(MDD −69%)</b>, 리밸런싱 연 13.5→8.8회. 2010–2019 신규 검증(그 시점 신규 시작): <b>IRR 28.4% / MDD −35.2%</b>. 위기 성적 유지(닷컴 −17.9%/−85%, 금융위기 +12.0%/−60%). 검증 구간은 <b>2020 코로나 폭락·2022 약세장·2025 4월 급락·2026 3월 조정</b>을 포함합니다. 리밸런싱 주기 비교: 단계 변경 시 40.3% > 매주 40.0% > 매월 38.4% > 분기 37.5% — 단계 전환에 늦게 반응할수록 수익이 깎입니다. 적립은 일 $50 ≈ 주 $250 ≈ 월 $1,000 모두 IRR이 사실상 같으며, 자주 넣을수록 최종금액이 약간 커집니다. ※시뮬레이션 한계: 주간 종가 기반(본 대시보드는 일간 적용)이고, QLD·TQQQ·SCHD는 지수에서 합성(레버리지 배율·변동성 잠식·금융비용·보수 반영)했으며, 2024.4–2026.2 지수는 주요 변곡점 앵커 기반 근사치입니다. 강세장 편향 구간(2019–2026)에 최적화된 결과이므로 장기 약세장에서는 성과가 다를 수 있습니다.</p>
 
     <div class="disclaim">⚠️ 본 자료는 과거 데이터 기반 시뮬레이션이며 투자 조언이 아닙니다. 과거 성과가 미래를 보장하지 않으며, 레버리지 ETF는 변동성 끌림(decay)과 -90% 이상의 실제 손실 위험이 있고, 본 전략의 MDD -58%는 실전에서 견디기 매우 어려운 수준입니다. 모든 투자 책임은 본인에게 있습니다.</div>
   </div>
@@ -516,20 +515,19 @@ async function syncAutoMonthly(){
 }
 
 /* ===================== 전략 엔진 (5단계 레짐 — 2019–2026 시뮬레이션 최적화) ===================== */
-const REG_NAME={0:'저점',1:'반등',2:'평상',3:'과열',4:'고점',5:'저점·방어',6:'과열·추세지속'};
-const REG_BUY ={0:'TQQQ',1:'TQQQ',2:'QQQ',3:'QQQ',4:'SCHD',5:'SCHD',6:'TQQQ'};
-const TARGET  ={0:[0.80,0.20,0.00,0.00],1:[0.55,0.30,0.10,0.05],2:[0.10,0.30,0.45,0.15],3:[0.00,0.20,0.55,0.25],4:[0.00,0.05,0.35,0.60],5:[0.00,0.00,0.25,0.75],6:[0.30,0.30,0.30,0.10]}; // [TQQQ,QLD,QQQ,SCHD]
+const REG_NAME={0:'저점',1:'반등',2:'평상',3:'과열',4:'고점',5:'저점·방어'};
+const REG_BUY ={0:'TQQQ',1:'TQQQ',2:'TQQQ',3:'QQQ',4:'SCHD',5:'SCHD'};
+const TARGET  ={0:[0.80,0.20,0.00,0.00],1:[0.55,0.30,0.10,0.05],2:[0.30,0.30,0.30,0.10],3:[0.00,0.20,0.55,0.25],4:[0.00,0.05,0.35,0.60],5:[0.00,0.00,0.25,0.75]}; // [TQQQ,QLD,QQQ,SCHD]
 const REG_SUB={
   0:'고점대비 −26% 이상(또는 −20% + 이격 −12%) 폭락 확인. 가장 공격적으로 TQQQ 80%를 채우는 구간입니다.',
   1:'저점 발생 후 낙폭이 −4%까지 회복될 때까지 공격 비중을 유지하며 반등 전체를 끝까지 탑니다. (낙폭 −15% + 20일 모멘텀 +4% + 200일선 회복 시에도 진입)',
-  2:'추세 정상 구간. QQQ 중심에 레버리지를 절제해 섞어 적립합니다.',
+  2:'평상(추세 유지). 신고가 행진 중이거나 이격이 낮은 모든 구간 — 대세상승에서 TQQQ 30%로 상승을 끝까지 탑니다(구 과열·추세지속 통합).',
   3:'200일선 대비 +7% 이상 이격. 레버리지(TQQQ)를 비우고 SCHD 방어 비중을 늘립니다.',
-  4:'이격 +13% 이상 & 신고가권. 자산의 60%를 SCHD로 대피시켜 고점 거품 손실을 줄입니다.',
-  5:'가짜 반등 판정(저점 사이클 중 트레일 고점 대비 −8% 하락). QQQ25/SCHD75로 후퇴해 추가 하락을 차단하고, 신저점 대비 +10% 추력이 나오면 공격 모드로 재진입합니다.',
-  6:'이격은 과열권이지만 40거래일 신고가 행진이 이어지는 대세상승 구간. 추세가 살아있는 동안 TQQQ 30%를 유지해 상승을 끝까지 탑니다. 신고가 행진이 멈추면 과열 비중으로 전환됩니다.'
+  4:'이격 +16% 이상 & 신고가권. 자산의 60%를 SCHD로 대피시켜 고점 거품 손실을 줄입니다.',
+  5:'가짜 반등 판정(저점 사이클 중 트레일 고점 대비 −8% 하락). QQQ25/SCHD75로 후퇴해 추가 하락을 차단하고, 신저점 대비 +10% 추력이 나오면 공격 모드로 재진입합니다.'
 };
-const REG_COLOR={0:'green',1:'green',2:'',3:'gold',4:'red',5:'blue',6:'gold'};
-const REG_LINE={0:'#00b300',1:'#66dd66',2:'#ffffff',3:'#ff9933',4:'#ff2222',5:'#3d89c9',6:'#ffd24d'};  // 저점=진한초록·반등=초록·평상=흰색·과열=주황·고점=빨강
+const REG_COLOR={0:'green',1:'green',2:'',3:'gold',4:'red',5:'blue'};
+const REG_LINE={0:'#00b300',1:'#66dd66',2:'#ffffff',3:'#ff9933',4:'#ff2222',5:'#3d89c9'};  // 저점=진한초록·반등=초록·평상=흰색·과열=주황·고점=빨강
 
 function sma(arr,n,i){ if(i<n-1)return NaN; let s=0; for(let k=i-n+1;k<=i;k++)s+=arr[k]; return s/n; }
 function computeSeries(md){
@@ -550,9 +548,11 @@ function computeSeries(md){
     g/=14; l/=14;
     out[i].rsi = l===0 ? 100 : 100-100/(1+g/l);
   }
-  // 20일 모멘텀 (시뮬레이션의 4주 모멘텀에 대응) + 40거래일 최고가(8주 신고가 행진 판정용)
+  // 20일 모멘텀 + 40거래일 최고가 + 신고가 행진 이탈 일수(offDays: 최고가의 97% 미만 연속일)
+  let _off=0;
   for(let i=0;i<out.length;i++){ out[i].mom20 = i>=20 ? q[i]/q[i-20]-1 : 0;
-    let h=0; for(let k=Math.max(0,i-39);k<=i;k++) h=Math.max(h,q[k]); out[i].hi40=h; }
+    let h=0; for(let k=Math.max(0,i-39);k<=i;k++) h=Math.max(h,q[k]); out[i].hi40=h;
+    _off = q[i]>=h*0.97 ? 0 : _off+1; out[i].offDays=_off; }
   // 5단계 레짐 판정 + 저점 엔게이지 + 트레일링 스탑(가짜 반등 차단)
   // 저점 발생→공격 모드. 진입 후 최고가 대비 −8% 이탈 시 방어 모드(regime 5),
   // 신저점 대비 +10% 추력 시 공격 재진입. 낙폭 −4% 회복 시 사이클 종료.
@@ -572,8 +572,8 @@ function computeSeries(md){
     o.reLine=(engaged&&emode==='D')?elow*1.10:NaN;
     if(engaged) o.regime = emode==='D'?5:(bottom?0:1);
     else if(o.dd<=-0.15 && o.mom20>=0.04 && o.qqq>=o.sma200) o.regime=1;  // 자생적 추세 반등
-    else if(o.ext200>=0.13 && o.dd>=-0.03) o.regime=4;
-    else if(o.ext200>=0.07) o.regime = (o.qqq>=o.hi40*0.99)?6:3;  // 신고가 행진 중이면 추세지속
+    else if(o.ext200>=0.16 && o.dd>=-0.03) o.regime=4;
+    else if(o.ext200>=0.07 && o.offDays>=10) o.regime=3;  // 신고가 행진이 10거래일 이상 멈췄을 때만 과열
     else o.regime=2;
   }
   return out;
@@ -582,7 +582,7 @@ function computeSeries(md){
 /* ===================== 전역 상태 ===================== */
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
-const APP_VERSION='4.2';
+const APP_VERSION='4.3';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
@@ -621,7 +621,7 @@ function renderDashboard(){
   document.getElementById('stateName').textContent=REG_NAME[reg];
   // gauge: 공격적(저점)일수록 많이 채움 — 저점4 반등3 평상2 과열1 고점0
   const gr=document.getElementById('gaugeRow'); gr.innerHTML='';
-  const aggr={0:4,1:3,2:2,3:1,4:0,5:1,6:3}[reg];
+  const aggr={0:4,1:3,2:3,3:1,4:0,5:1}[reg];
   for(let k=0;k<5;k++){const p=document.createElement('div');p.className='gpip';
     p.style.background = k<=aggr ? 'var(--accent)':'var(--surface2)';
     gr.appendChild(p);}
@@ -729,6 +729,12 @@ function renderPriceChart(){
     if(prev!==null) g.addColorStop(1,prev);
     return g;
   }
+  if(window.Chart&&Chart.Tooltip&&Chart.Tooltip.positioners&&!Chart.Tooltip.positioners.priceLine){
+    Chart.Tooltip.positioners.priceLine=function(items,evtPos){
+      const it=(items||[]).find(i=>i.datasetIndex===0)||(items&&items[0]);
+      return it?{x:it.element.x,y:it.element.y}:evtPos;
+    };
+  }
   priceChart=new Chart(ctx,{type:'line',data:{labels:s.map(o=>o.date),datasets:[
     {label:'QQQ',data:s.map(o=>o.qqq),borderColor:regimeGradient,borderWidth:2.6,tension:.15,
      // 저점·고점 동그라미 강조
@@ -742,7 +748,7 @@ function renderPriceChart(){
   ]},options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
     plugins:{legend:{labels:{color:'#6b7494',boxWidth:12,font:{size:11}}},
       zoom:{zoom:{drag:{enabled:true,backgroundColor:'rgba(82,186,136,.18)',borderColor:'rgba(82,186,136,.55)',borderWidth:1},mode:'x'},limits:{x:{minRange:10}}},
-      tooltip:{callbacks:{afterTitle:items=>{const i=items[0].dataIndex;return '단계: '+REG_NAME[s[i].regime];}}}},
+      tooltip:{position:'priceLine',callbacks:{afterTitle:items=>{const i=items[0].dataIndex;return '단계: '+REG_NAME[s[i].regime];}}}},
     scales:{x:{ticks:{color:'#6b7494',maxTicksLimit:6,font:{size:10}},grid:{color:'rgba(255,255,255,.03)'}},
             y:{ticks:{color:'#6b7494',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}}}}});
   ctx.ondblclick=()=>{ if(priceChart&&priceChart.resetZoom) priceChart.resetZoom(); };
@@ -1068,7 +1074,7 @@ async function renderProfit(){
 
 /* ===================== 전략 모달 ===================== */
 function renderModalRegimes(){
-  const order=[0,1,5,2,6,3,4];  // 저점→반등→저점·방어→평상→과열·추세지속→과열→고점
+  const order=[0,1,5,2,3,4];  // 저점→반등→저점·방어→평상→과열→고점
   document.getElementById('modalRegimes').innerHTML=order.map(reg=>{
     const t=TARGET[reg];const segs=[['TQQQ',t[0]],['QLD',t[1]],['QQQ',t[2]],['SCHD',t[3]]].filter(x=>x[1]>0);
     const rc=REG_LINE[reg];
