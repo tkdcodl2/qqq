@@ -331,7 +331,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       <tbody>
         <tr><td class="tkr" style="color:#00b300">저점·반등</td><td>DD −26% 이하 또는 (DD −20% + 이격 −12%) 발생 → DD −4% 회복 <b>또는</b> 200일선 위 130거래일(정상화)까지 유지</td><td class="mono">TQQQ 80 · QLD 20</td><td class="tkr">TQQQ</td></tr>
         <tr><td class="tkr" style="color:#3d89c9">저점·방어</td><td>사이클 중 트레일 고점 −8% 이탈(가짜 반등). 신저점 +10% 추력 시 공격 재진입</td><td class="mono">SCHD 75 · QQQ 25</td><td class="tkr">SCHD</td></tr>
-        <tr><td class="tkr" style="color:#8a93a8">하락</td><td>추세 OFF — 200일선 아래(저점 미확인). 200일선 +1% 돌파 + 50일선 확인 시 해제</td><td class="mono">QQQ 100</td><td class="tkr">QQQ</td></tr>
+        <tr><td class="tkr" style="color:#8a93a8">하락</td><td>200일선 아래(추세 OFF) <b>또는</b> 52주 최고가 대비 <b>−10%</b> + 50일선 이탈(조기 감지). 회복: 50일선 회복 + 20일 모멘텀 양전 (또는 200일선 +1% 재돌파)</td><td class="mono">QQQ 100</td><td class="tkr">QQQ</td></tr>
         <tr><td class="tkr" style="color:#ffffff">정상</td><td>추세 ON 기본 (신고가 행진 중이면 이격 무관)</td><td class="mono">TQQQ 80 · QLD 20</td><td class="tkr">TQQQ</td></tr>
         <tr><td class="tkr" style="color:#ff9933">과열</td><td>추세 ON + 이격 <b>+10% 이상</b> + 신고가 행진 10거래일 이상 멈춤</td><td class="mono">QLD 50 · TQQQ 30 · SCHD 20</td><td class="tkr">QLD</td></tr>
         <tr><td class="tkr" style="color:#ff2222">고점</td><td>이격 <b>+16% 이상</b> + 신고가권(DD −3% 이내)</td><td class="mono">SCHD 100</td><td class="tkr">SCHD</td></tr>
@@ -343,14 +343,15 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     <table>
       <thead><tr><th>전략</th><th>최종평가</th><th>누적수익률</th><th>MDD</th><th>IRR(연)</th></tr></thead>
       <tbody>
-        <tr><td class="tkr up">★ v5.0 하이브리드</td><td class="mono">$6,849,741</td><td class="mono">+3,373%</td><td class="mono down">-72.6%</td><td class="mono up">71.7%</td></tr>
+        <tr><td class="tkr up">★ v5.1 (하락 조기감지)</td><td class="mono">$7,615,811</td><td class="mono">+3,762%</td><td class="mono down">-72.6%</td><td class="mono up">74.3%</td></tr>
+        <tr><td>v5.0 하이브리드</td><td class="mono">$6,849,741</td><td class="mono">+3,373%</td><td class="mono down">-72.6%</td><td class="mono">71.7%</td></tr>
         <tr><td>최초 6단계(원전략, 주간 근사)</td><td class="mono">$2,301,646</td><td class="mono">+1,067%</td><td class="mono neutral">-55.0%</td><td class="mono">47.0%</td></tr>
         <tr><td>직전 v4.4 (5단계)</td><td class="mono">$1,896,954</td><td class="mono">+862%</td><td class="mono down">-69.5%</td><td class="mono">42.9%</td></tr>
         <tr><td>QQQ 단독</td><td class="mono">$701,840</td><td class="mono">+256%</td><td class="mono">-32.2%</td><td class="mono">23.2%</td></tr>
         <tr><td>TQQQ 단독</td><td class="mono">$2,998,078</td><td class="mono">+1,420%</td><td class="mono down">-78.0%</td><td class="mono">52.7%</td></tr>
       </tbody>
     </table>
-    <p class="note" style="margin-top:10px"><b>구간별(연속, IRR/MDD):</b> 2010–2019 32.2%/−42.0%, 금융위기 13.2%/−69.4%, 닷컴 −17.7%/−86.8%, 전체 2000–2026 30.3%/−86.8%(최종 $161M). 리밸런싱 연 4.5회(전체 기준), 저점·반등↔정상 전환은 보유가 같아 매매 0회. ⚠️ 19–26 IRR 71.7%는 2022년 회피+저점 재진입이 이 표본에서 유난히 깨끗하게 맞아떨어진 결과로 과최적화 위험이 있으며, 닷컴급 붕괴(−83%)에서는 저점 신호 후 추가 하락으로 여전히 MDD −87%를 맞습니다(생존만 가능). 주간 데이터 근사·합성 ETF·2024.4–2026.2 근사 구간 한계는 동일합니다.</p>
+    <p class="note" style="margin-top:10px"><b>구간별(연속, IRR/MDD):</b> 2010–2019 32.5%/−42.0%, 금융위기 13.9%/−69.4%, 닷컴 −19.6%/−85.6%, 전체 2000–2026 30.8%/−85.6%(최종 $179M). 리밸런싱 연 4.7회(전체 기준), 저점·반등↔정상 전환은 보유가 같아 매매 0회. 하락 조기감지는 19–26 +2.6%p·전체 +0.5%p 개선, 닷컴 −1.9%p 악화(휩쏘 비용)의 트레이드오프. ⚠️ 19–26 IRR 71.7%는 2022년 회피+저점 재진입이 이 표본에서 유난히 깨끗하게 맞아떨어진 결과로 과최적화 위험이 있으며, 닷컴급 붕괴(−83%)에서는 저점 신호 후 추가 하락으로 여전히 MDD −87%를 맞습니다(생존만 가능). 주간 데이터 근사·합성 ETF·2024.4–2026.2 근사 구간 한계는 동일합니다.</p>
 
     <div class="disclaim">⚠️ 본 자료는 과거 데이터 기반 시뮬레이션이며 투자 조언이 아닙니다. 과거 성과가 미래를 보장하지 않으며, 레버리지 ETF는 변동성 끌림(decay)과 -90% 이상의 실제 손실 위험이 있고, 본 전략의 MDD -58%는 실전에서 견디기 매우 어려운 수준입니다. 모든 투자 책임은 본인에게 있습니다.</div>
   </div>
@@ -526,7 +527,7 @@ const REG_SUB={
   3:'추세 ON이지만 이격 +10% 이상 & 신고가 행진 10거래일 이상 멈춤. 같은 노출을 잠식이 적은 QLD 중심으로 바꾸고 SCHD 20%를 채웁니다.',
   4:'이격 +16% 이상 & 신고가권. 전량 SCHD로 대피하는 최종 방어선입니다.',
   5:'저점 사이클 중 가짜 반등 판정(트레일 고점 −8% 이탈). QQQ25/SCHD75로 후퇴, 신저점 +10% 추력 시 공격 재진입.',
-  6:'추세 OFF(200일선 아래, 저점 미확인). 레버리지를 전량 비우고 QQQ 100%로 하락을 통과합니다. 재진입은 200일선 +1% 돌파 + 50일선 확인.'
+  6:'하락: ①추세 OFF(200일선 아래) 또는 ②조기 감지(52주 최고가 −10% & 50일선 이탈). 레버리지 전량을 비우고 QQQ 100%로 통과합니다. 회복은 ①200일선 +1% 돌파 ②50일선 회복+20일 모멘텀 양전.'
 };
 const REG_COLOR={0:'green',2:'green',3:'gold',4:'red',5:'blue',6:'blue'};
 const REG_LINE={0:'#00b300',2:'#ffffff',3:'#ff9933',4:'#ff2222',5:'#3d89c9',6:'#8a93a8'};  // 저점=진한초록·반등=초록·평상=흰색·과열=주황·고점=빨강
@@ -550,11 +551,12 @@ function computeSeries(md){
     g/=14; l/=14;
     out[i].rsi = l===0 ? 100 : 100-100/(1+g/l);
   }
-  // 20일 모멘텀 + 40거래일 최고가 + 신고가 행진 이탈 일수(offDays: 최고가의 97% 미만 연속일)
+  // 20일 모멘텀 + 40거래일 최고가 + 신고가 행진 이탈 일수 + 52주(252거래일) 최고가 낙폭
   let _off=0;
   for(let i=0;i<out.length;i++){ out[i].mom20 = i>=20 ? q[i]/q[i-20]-1 : 0;
     let h=0; for(let k=Math.max(0,i-39);k<=i;k++) h=Math.max(h,q[k]); out[i].hi40=h;
-    _off = q[i]>=h*0.97 ? 0 : _off+1; out[i].offDays=_off; }
+    _off = q[i]>=h*0.97 ? 0 : _off+1; out[i].offDays=_off;
+    let h52=0; for(let k=Math.max(0,i-251);k<=i;k++) h52=Math.max(h52,q[k]); out[i].ddr=q[i]/h52-1; }
   // 추세 마스터 스위치(원전략 복원): 200일선 아래→OFF, +1% 돌파+50일선 99% 이상→ON
   let cur=1;
   for(const o of out){
@@ -564,7 +566,7 @@ function computeSeries(md){
     o.up=cur;
   }
   // 저점 사이클(엔게이지) + 트레일링 스탑 + 정상화 종료
-  let engaged=false,emode='A',trail=0,elow=1e18,above=0;
+  let engaged=false,emode='A',trail=0,elow=1e18,above=0,downF=false;
   for(const o of out){
     if(isNaN(o.sma200)){o.regime=2;o.engaged=false;o.emode='';continue;}
     above = o.qqq>=o.sma200 ? above+1 : 0;   // 200일선 위 연속 일수
@@ -576,11 +578,14 @@ function computeSeries(md){
       else if(o.qqq>=elow*1.10){emode='A';trail=o.qqq;}
       if(o.dd>-0.04 || above>=130) engaged=false;   // 회복(-4%) 또는 정상화(200일선 위 6개월)로 사이클 종료
     }
-    o.engaged=engaged; o.emode=engaged?emode:'';
+    if(engaged) downF=false;
+    else if(!downF){ if(o.ddr<=-0.10 && o.qqq<o.sma50) downF=true; }       // 조기 하락 감지: 52주 고점 −10% & 50일선 이탈
+    else if(o.qqq>=o.sma50 && o.mom20>0) downF=false;                      // 회복: 50일선 회복 + 20일 모멘텀 양전
+    o.engaged=engaged; o.emode=engaged?emode:''; o.downF=downF;
     o.stopLine=(engaged&&emode==='A')?trail*0.92:NaN;
     o.reLine=(engaged&&emode==='D')?elow*1.10:NaN;
     if(engaged) o.regime = emode==='D'?5:0;
-    else if(o.up===0) o.regime=6;                              // 추세 OFF: 레버리지 차단
+    else if(o.up===0 || downF) o.regime=6;                     // 추세 OFF 또는 조기 하락 감지: 레버리지 차단
     else if(o.ext200>=0.16 && o.dd>=-0.03) o.regime=4;
     else if(o.ext200>=0.10 && o.offDays>=10) o.regime=3;
     else o.regime=2;
@@ -591,7 +596,7 @@ function computeSeries(md){
 /* ===================== 전역 상태 ===================== */
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
-const APP_VERSION='5.0';
+const APP_VERSION='5.1';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
