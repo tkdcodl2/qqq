@@ -431,7 +431,7 @@ details.sandbox .stage-edit{background:var(--surface)}
 <div class="modal-overlay" id="strategyModal">
   <div class="modal">
     <span class="close" onclick="closeModal('strategyModal')">&times;</span>
-    <h2>심플 래더 전략 (v7.3)</h2>
+    <h2>심플 래더 전략 (v7.4)</h2>
     <p class="note" style="margin-bottom:16px"><b>철학: 평소엔 기계적으로 TQQQ 100% 적립.</b> 고점과 저점은 못 맞추니 — <b>천장 신호가 켜진 주마다 10%p씩만</b> SCHD로 미리 덜어내고, 추세가 확실히 깨졌을 때만 전량 피신, 회복이 확인되면 <b>매주 10%p씩 분할 재진입</b>합니다. 판단은 일주일에 한 번, 동작도 한 번뿐입니다.</p>
 
     <div class="section-title" style="font-size:16px"><span class="dot"></span>5가지 상태</div>
@@ -445,7 +445,7 @@ details.sandbox .stage-edit{background:var(--surface)}
         <tr><td class="tkr" style="color:#ff2222">광기 방어</td><td>200일선 이격 <b>+25%</b> & 고점권(−3% 이내)</td><td class="mono">즉시 전량 SCHD. 해제: 고점 −3% 회복 → 복귀 시작 / −8% 낙폭 후 +7% 추력 → 전량 재진입</td></tr>
         <tr><td class="tkr" style="color:#e35454">급락</td><td>50일 고점 대비 <b>−8% ~ −30%</b> (코로나·관세형 급락)</td><td class="mono">낙폭에 비례해 TQQQ 상한을 매주 하향 (−30%에서 0%) — 급락 한 달이면 주 단위 4번에 나눠 피신</td></tr>
         <tr><td class="tkr" style="color:#3d89c9">추세 이탈</td><td>200일선 아래 <b>20거래일(≈4주) 연속</b></td><td class="mono">전량 SCHD</td></tr>
-        <tr><td class="tkr" style="color:#46d68c">복귀</td><td>위 신호가 모두 꺼짐. 이탈 후엔 ①200일선 <b>+1%</b> 재돌파(50일선 동반) <b>또는</b> ②저점 <b>+15%</b> 추력 & 50일선 위 (V반등 캡처)</td><td class="mono">매주 TQQQ +10%p (100%까지)</td></tr>
+        <tr><td class="tkr" style="color:#46d68c">복귀</td><td>위 신호가 모두 꺼짐. 이탈 후엔 ①200일선 <b>+1%</b> 재돌파(50일선 동반) <b>또는</b> ②저점 <b>+15%</b> 추력 & 50일선 위 (V반등 캡처 — 즉시 <b>30%</b> 점프, 재이탈은 20일 새로 카운트)</td><td class="mono">매주 TQQQ +10%p (100%까지)</td></tr>
       </tbody>
     </table>
     <p class="note" style="margin:8px 0 0"><b>실행.</b> 매주 적립일에 대시보드의 목표 TQQQ 비중을 확인하고, 신규 적립금은 목표 비중대로 매수합니다. 목표가 지난주와 달라졌으면(최대 10%p) 보유분도 한 번 맞춥니다. 대시보드의 "+N주 매수/매도"가 그 차이를 주수로 환산한 값입니다. 매매는 많아야 주 1회, 대부분 전체 자산의 10%만 움직입니다.</p>
@@ -690,7 +690,7 @@ function synthesizeMissing(md){
 
 /* v7.0: 심플 래더 — 파라미터 7개가 전부입니다 */
 const DEFAULT_STRAT={
-  params:{rsiHi:70, matDays:260, matATH:98, maniaExt:25, confirmDays:20, stepOut:10, stepIn:10, dipStart:8, dipFull:30, exitThrust:15},
+  params:{rsiHi:70, matDays:260, matATH:98, maniaExt:25, confirmDays:20, stepOut:10, stepIn:10, dipStart:8, dipFull:30, exitThrust:15, thrustJump:30},
   ex:{}   // 단계 끄기: {3:1 과열, 4:1 광기, 5:1 급락, 6:1 이탈} — 전략 모달 체크박스로 토글
 };
 const PARAM_DEF=[
@@ -704,6 +704,7 @@ const PARAM_DEF=[
   ['dipStart','급락 거버너 시작','%','50일 고점 대비 −X%부터 TQQQ 상한을 매주 단계적으로 낮춤 (기본 8, 0=끔)'],
   ['dipFull','급락 거버너 전량','%','50일 고점 대비 −X%에서 TQQQ 상한 0%(전량 SCHD). 낙폭이 줄면 상한도 풀려 복귀 드리프트가 재개 (기본 30)'],
   ['exitThrust','이탈 회복 ② 추력','%','이탈 후 저점 대비 +X% 반등 & 50일선 위면 200일선 회복을 기다리지 않고 복귀 시작 — V반등 캡처 (기본 15, 0=끔)'],
+  ['thrustJump','추력 점프','%','추력 복귀 순간 TQQQ 비중을 한 번에 X%까지 끌어올림(이후 매주 복귀 드리프트). 클수록 V반등을 빨리 먹지만 가짜 반등(베어랠리)에 물리는 폭도 커짐 (기본 30, 0=드리프트만)'],
 ];
 let STRAT=JSON.parse(JSON.stringify(DEFAULT_STRAT));
 const tgtOf=r=>{ const w=(r&&r.w!=null)?r.w:1; return [w,0,0,1-w]; };   // [TQQQ,QLD,QQQ,SCHD]
@@ -713,7 +714,7 @@ const REG_SUB={
   3:'주간 RSI 70 이상 또는 성숙 천장(200일선 위 1년+ & 전고점 98% 이내). 고점을 못 맞추는 대신 매주 10%p씩 미리 덜어냅니다. 신호가 꺼지면 즉시 복귀 시작.',
   4:'200일선 이격 +25% 광기(1999말·2020.8형). 전량 SCHD로 피신. 고점 −3% 회복 시 정상 복귀, −8% 낙폭 후 +7% 추력이면 전량 재진입(V반등 캡처).',
   5:'우상향 중 갑작스러운 급락(2020.3 코로나·2025.4 관세형). 50일 고점 대비 −8%부터 낙폭에 비례해 TQQQ 상한을 매주 끌어내려 −30%에서 전량 SCHD. 낙폭이 줄면 상한이 풀려 자동 복귀합니다.',
-  6:'200일선 아래 20거래일 연속 = 추세 붕괴 확정. 전량 SCHD로 통과합니다. 복귀는 ①200일선 +1% 재돌파(50일선 동반) 또는 ②이탈 후 저점 +15% 추력 & 50일선 위(V반등 캡처) — 둘 중 빠른 쪽에서 매주 10%p씩 분할 재진입합니다.'
+  6:'200일선 아래 20거래일 연속 = 추세 붕괴 확정. 전량 SCHD로 통과합니다. 복귀는 ①200일선 +1% 재돌파(50일선 동반) 또는 ②이탈 후 저점 +15% 추력 & 50일선 위(V반등 캡처 — 즉시 TQQQ 30%로 점프 후 드리프트, 재이탈 판정은 20거래일 새로 카운트) — 둘 중 빠른 쪽.'
 };
 const REG_COLOR={2:'green',1:'green',3:'gold',4:'red',5:'red',6:'blue'};
 const REG_LINE={2:'#ffffff',1:'#46d68c',3:'#ff9933',4:'#ff2222',5:'#e35454',6:'#3d89c9'};  // 적립=흰색·복귀=초록·과열=주황·광기=빨강·급락=적색·이탈=파랑
@@ -757,8 +758,11 @@ function computeSeries(md,P,EX){
       if(on && !EX[6] && p.below>=P.confirmDays){ on=false; eLow=pc; }                  // 추세 붕괴 확정
       else if(!on){
         eLow=Math.min(eLow,pc);
-        if((pc>p.sma200*1.01 && p.sma50>=p.sma200*0.99)                                   // 회복 ①: 200일선 +1% & 50일선 동반
-         ||(P.exitThrust>0 && pc>=eLow*(1+P.exitThrust/100) && pc>p.sma50)) on=true;      // 회복 ②: 저점 +추력% & 50일선 위 (V반등)
+        if(pc>p.sma200*1.01 && p.sma50>=p.sma200*0.99) on=true;                           // 회복 ①: 200일선 +1% & 50일선 동반
+        else if(P.exitThrust>0 && pc>=eLow*(1+P.exitThrust/100) && pc>p.sma50){           // 회복 ②: 저점 +추력% & 50일선 위 (V반등)
+          on=true; below=0;                                                               // 재이탈 카운터 리셋 — 200일선 아래 20일을 새로 세야 다시 이탈
+          if(P.thrustJump>0) cur=Math.max(cur, P.thrustJump/100);                         // 추력 점프: 즉시 X%까지
+        }
       }
       if(sticky||!on){ cur=0; }
       else {
@@ -784,7 +788,7 @@ function computeSeries(md,P,EX){
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
 let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null;
-const APP_VERSION='7.3';
+const APP_VERSION='7.4';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
