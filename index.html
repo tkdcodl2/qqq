@@ -189,9 +189,24 @@ details.sandbox .stage-edit{background:var(--surface)}
   #btChartRow{grid-template-columns:1fr !important}
   #setupGrid{grid-template-columns:1fr !important}
 }
+.tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:0 4px}
 @media(max-width:560px){
   .tabs{display:none}
-  .mobile-tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:60;background:rgba(20,23,32,.96);backdrop-filter:blur(12px);border-top:1px solid var(--border);padding:6px}
+  .wrap{padding-left:12px;padding-right:12px;padding-bottom:calc(86px + env(safe-area-inset-bottom))}
+  .hbar{padding-left:12px;padding-right:12px}
+  .btn-strategy{padding:8px 12px;font-size:12.5px}
+  .logo{font-size:22px}
+  .modal-overlay{padding:16px 8px}
+  .modal{padding:18px 14px}
+  .modal h2{font-size:25px}
+  .pgrid{grid-template-columns:1fr}
+  .range-pills{flex-wrap:wrap;justify-content:flex-end}
+  .modal table{font-size:11.5px}
+  thead th,tbody td{padding:8px 8px}
+  .ind-grid{gap:8px}
+  .summary-grid{gap:8px}
+  .card{padding:14px}
+  .mobile-tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:60;background:rgba(20,23,32,.96);backdrop-filter:blur(12px);border-top:1px solid var(--border);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
   .mobile-tabbar button{flex:1;background:none;border:none;color:var(--muted);font-size:10px;padding:8px 2px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
   .mobile-tabbar button.active{color:var(--accent)}
   .mobile-tabbar .ic{font-size:17px}
@@ -347,8 +362,8 @@ details.sandbox .stage-edit{background:var(--surface)}
       <div class="field" style="margin-bottom:12px"><label>비교 지수 (동일 적립 — 중복 선택 가능)</label>
         <div style="display:flex;gap:14px;flex-wrap:wrap;padding:4px 0">
           <label class="wcell"><input type="checkbox" id="bt_bm_QQQ" checked style="width:16px;height:16px"><span style="color:#3fa7e0">QQQ</span></label>
-          <label class="wcell"><input type="checkbox" id="bt_bm_QLD" style="width:16px;height:16px"><span style="color:#f5a623">QLD</span></label>
-          <label class="wcell"><input type="checkbox" id="bt_bm_TQQQ" style="width:16px;height:16px"><span style="color:#e35454">TQQQ</span></label>
+          <label class="wcell"><input type="checkbox" id="bt_bm_QLD" checked style="width:16px;height:16px"><span style="color:#f5a623">QLD</span></label>
+          <label class="wcell"><input type="checkbox" id="bt_bm_TQQQ" checked style="width:16px;height:16px"><span style="color:#e35454">TQQQ</span></label>
           <label class="wcell"><input type="checkbox" id="bt_bm_SCHD" style="width:16px;height:16px"><span style="color:#8a93a8">SCHD</span></label>
         </div>
       </div>
@@ -438,7 +453,7 @@ details.sandbox .stage-edit{background:var(--surface)}
     <div id="modalRegimes"></div>
 
     <div class="section-title" style="font-size:16px;margin-top:18px"><span class="dot"></span>규칙 — 매주 마지막 거래일 종가로 딱 4가지만 봅니다</div>
-    <table style="font-size:12.5px">
+    <div class="tbl-scroll"><table style="font-size:12.5px;min-width:520px">
       <thead><tr><th>신호</th><th>조건 (QQQ 기준)</th><th>동작</th></tr></thead>
       <tbody>
         <tr><td class="tkr" style="color:#ff9933">과열 트림</td><td>주간 RSI(14) ≥ <b>70</b> <b>또는</b> 성숙 천장(200일선 위 <b>1년+</b> & 전고점 <b>98%</b> 이내)</td><td class="mono">매주 TQQQ −10%p → SCHD</td></tr>
@@ -447,11 +462,11 @@ details.sandbox .stage-edit{background:var(--surface)}
         <tr><td class="tkr" style="color:#3d89c9">추세 이탈</td><td>200일선 아래 <b>20거래일(≈4주) 연속</b></td><td class="mono">전량 SCHD</td></tr>
         <tr><td class="tkr" style="color:#46d68c">복귀</td><td>위 신호가 모두 꺼짐. 이탈 후엔 ①200일선 <b>+1%</b> 재돌파(50일선 동반) <b>또는</b> ②저점 <b>+15%</b> 추력 & 50일선 위 (V반등 캡처, 차트 ▲ 표시)</td><td class="mono">추력 복귀는 매주 <b>+20%p</b> 가속, 그 외 매주 +10%p (100%까지)</td></tr>
       </tbody>
-    </table>
+    </table></div>
     <p class="note" style="margin:8px 0 0"><b>실행.</b> 매주 적립일에 대시보드의 목표 TQQQ 비중을 확인하고, 신규 적립금은 목표 비중대로 매수합니다. 목표가 지난주와 달라졌으면(최대 10%p) 보유분도 한 번 맞춥니다. 대시보드의 "+N주 매수/매도"가 그 차이를 주수로 환산한 값입니다. 매매는 많아야 주 1회, 대부분 전체 자산의 10%만 움직입니다.</p>
 
     <div class="section-title" style="font-size:16px;margin-top:18px"><span class="dot"></span>시뮬레이션 결과 (1999–2026 주간 근사, $100,000 + 매주 $250, 수수료 0.05%)</div>
-    <table>
+    <div class="tbl-scroll"><table style="min-width:520px">
       <thead><tr><th>구간</th><th>심플 래더 (IRR/MDD)</th><th>구 6단계 F안</th><th>TQQQ 단독</th></tr></thead>
       <tbody>
         <tr><td>닷컴 붕괴 00–03</td><td class="mono up">+9.1% / −55%</td><td class="mono">−15.8% / −80%</td><td class="mono down">−31% / −98.6%</td></tr>
@@ -461,7 +476,7 @@ details.sandbox .stage-edit{background:var(--surface)}
         <tr><td>2019–2026</td><td class="mono">+52.1% / −31%</td><td class="mono up">+66.8% / −43%</td><td class="mono">+51.9% / −78%</td></tr>
         <tr><td><b>전체 2000–2026</b></td><td class="mono up"><b>+30.4% / −63% ($164.9M)</b></td><td class="mono">+27.2% / −80% ($88.0M)</td><td class="mono">+25.9% / −98.6% ($68.3M)</td></tr>
       </tbody>
-    </table>
+    </table></div>
     <p class="note" style="margin-top:10px">⚠️ 위 수치는 <b>주간 근사 데이터 + in-sample 파라미터</b> 기준입니다(확인 4주/RSI 70/10%p는 그리드 탐색 결과 — 주변 설정도 IRR 25~34%로 견고하지만 표본 의존성이 있습니다). 성숙 천장은 "강할 때 파는" 신호라 95~99년식 수년 폭주장에선 상승분을 일부 놓칠 수 있습니다. 닷컴 +9.1%는 광기 탈출 + 폭락 중 SCHD 적립 + 분할 재진입의 합작이며, 그래도 MDD −55%는 실전에서 견디기 매우 어려운 수준입니다. 인앱 백테스트(실데이터 일봉)로 직접 재확인하세요.</p>
 
     <div class="disclaim">⚠️ 본 자료는 과거 데이터 기반 시뮬레이션이며 투자 조언이 아닙니다. 과거 성과가 미래를 보장하지 않으며, 레버리지 ETF는 변동성 끌림(decay)과 -90% 이상의 실제 손실 위험이 있고, 본 전략의 MDD -58%는 실전에서 견디기 매우 어려운 수준입니다. 모든 투자 책임은 본인에게 있습니다.</div>
@@ -789,7 +804,7 @@ function computeSeries(md,P,EX){
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
 let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null;
-const APP_VERSION='7.5';
+const APP_VERSION='7.6';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
