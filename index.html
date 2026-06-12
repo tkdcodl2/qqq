@@ -187,6 +187,7 @@ details.sandbox .stage-edit{background:var(--surface)}
   .row3{grid-template-columns:1fr}
   #chartRow{grid-template-columns:1fr !important}
   #btChartRow{grid-template-columns:1fr !important}
+  #setupGrid{grid-template-columns:1fr !important}
 }
 @media(max-width:560px){
   .tabs{display:none}
@@ -195,6 +196,16 @@ details.sandbox .stage-edit{background:var(--surface)}
   .mobile-tabbar button.active{color:var(--accent)}
   .mobile-tabbar .ic{font-size:17px}
   .big-num{font-size:20px}.state-name{font-size:18px}.reco-ticker{font-size:21px}
+  /* 매매이력: 테이블 → 카드형 스택 */
+  #tradeTable thead{display:none}
+  #tradeTable,#tradeTable tbody,#tradeTable tr,#tradeTable td{display:block;width:100%}
+  #tradeTable tr{border-bottom:1px solid var(--border);padding:10px 14px}
+  #tradeTable tr:hover{background:none}
+  #tradeTable td{display:flex;justify-content:space-between;align-items:center;border:none;padding:3px 0;text-align:right;gap:12px}
+  #tradeTable td::before{content:attr(data-l);color:var(--muted);font-size:11px;letter-spacing:.4px;font-weight:600;text-transform:uppercase;white-space:nowrap}
+  #tradeTable td.t-actions{justify-content:flex-end;gap:4px;padding-top:8px}
+  #tradeTable td.t-actions .icon-btn{border:1px solid var(--border);border-radius:7px;padding:6px 12px}
+  #tradeTable td.t-empty{justify-content:center}
 }
 </style>
 </head>
@@ -283,7 +294,7 @@ details.sandbox .stage-edit{background:var(--surface)}
   <!-- ===== SETUP ===== -->
   <section id="tab-setup" class="hidden">
     <div class="section-title"><span class="dot"></span>적립 설정</div>
-    <div class="grid" style="grid-template-columns:1fr 1fr;gap:16px">
+    <div class="grid" id="setupGrid" style="grid-template-columns:1fr 1fr;gap:16px">
       <div class="card">
         <div class="field">
           <label>적립 주기</label>
@@ -318,7 +329,7 @@ details.sandbox .stage-edit{background:var(--surface)}
       <button class="btn primary" onclick="openTrade()">+ 매매 입력</button>
     </div>
     <div class="card" style="margin-top:14px;padding:0;overflow-x:auto">
-      <table>
+      <table id="tradeTable">
         <thead><tr><th>날짜</th><th>종목</th><th>구분</th><th>수량</th><th>단가</th><th>금액(원)</th><th>실현손익</th><th></th></tr></thead>
         <tbody id="tradeBody"><tr><td colspan="8" class="muted" style="text-align:center;padding:30px">매매 내역이 없습니다.</td></tr></tbody>
       </table>
@@ -372,7 +383,7 @@ details.sandbox .stage-edit{background:var(--surface)}
       <div class="card" style="margin-top:16px">
         <div class="section-title"><span class="dot"></span>월별 데이터</div>
         <div style="overflow:auto;max-height:480px">
-          <table class="nowrap-table"><thead><tr><th>년월</th><th>단계(월말)</th><th>평가금액</th><th>TQQQ</th><th>QLD</th><th>QQQ</th><th>SCHD</th><th>누적수익률</th></tr></thead>
+          <table class="nowrap-table"><thead><tr><th>년월</th><th>단계(월말)</th><th>평가금액</th><th>TQQQ</th><th>QLD</th><th>QQQ</th><th>SCHD</th><th>누적수익률</th><th>지수 누적 (QQQ 동일적립)</th></tr></thead>
           <tbody id="btMonthlyBody"></tbody></table>
         </div>
       </div>
@@ -751,7 +762,7 @@ function computeSeries(md,P){
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
 let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null;
-const APP_VERSION='6.2';
+const APP_VERSION='6.3';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
@@ -1130,15 +1141,15 @@ async function editTrade(id){
 const TYPE_LABEL={buy:['매수','buy'],sell:['매도','sell'],div:['배당','div'],deposit:['입금','dep'],withdrawal:['출금','wd']};
 async function renderTrades(){
   const ts=await getTrades();const b=document.getElementById('tradeBody');
-  if(!ts.length){b.innerHTML='<tr><td colspan="8" class="muted" style="text-align:center;padding:30px">매매 내역이 없습니다. “+ 매매 입력”으로 추가하세요.</td></tr>';return;}
+  if(!ts.length){b.innerHTML='<tr><td colspan="8" class="muted t-empty" style="text-align:center;padding:30px">매매 내역이 없습니다. “+ 매매 입력”으로 추가하세요.</td></tr>';return;}
   b.innerHTML=ts.map(t=>{const[lab,cls]=TYPE_LABEL[t.type]||['?',''];
     const cash=(t.type==='deposit'||t.type==='withdrawal');
-    return `<tr><td class="mono">${t.date}</td><td class="tkr">${cash?'—':t.ticker}</td>
-    <td style="text-align:right"><span class="type-badge ${cls}">${lab}</span></td>
-    <td class="mono">${cash?'—':(+t.qty).toLocaleString('ko-KR',{maximumFractionDigits:1})}</td><td class="mono">${cash?'—':'$'+(+t.price).toFixed(2)}</td>
-    <td class="mono">${won(t.amount_krw)}</td>
-    <td class="mono ${(t.realized||0)>0?'up':(t.realized||0)<0?'down':''}">${t.realized?won(t.realized):'—'}</td>
-    <td><button class="icon-btn" onclick="editTrade('${t.id}')">수정</button><button class="icon-btn" onclick="delTrade('${t.id}')">삭제</button></td></tr>`;}).join('');
+    return `<tr><td class="mono" data-l="날짜">${t.date}</td><td class="tkr" data-l="종목">${cash?'—':t.ticker}</td>
+    <td style="text-align:right" data-l="구분"><span class="type-badge ${cls}">${lab}</span></td>
+    <td class="mono" data-l="수량">${cash?'—':(+t.qty).toLocaleString('ko-KR',{maximumFractionDigits:1})}</td><td class="mono" data-l="단가">${cash?'—':'$'+(+t.price).toFixed(2)}</td>
+    <td class="mono" data-l="금액(원)">${won(t.amount_krw)}</td>
+    <td class="mono ${(t.realized||0)>0?'up':(t.realized||0)<0?'down':''}" data-l="실현손익">${t.realized?won(t.realized):'—'}</td>
+    <td class="t-actions"><button class="icon-btn" onclick="editTrade('${t.id}')">수정</button><button class="icon-btn" onclick="delTrade('${t.id}')">삭제</button></td></tr>`;}).join('');
 }
 
 /* ===================== 수익분석 ===================== */
@@ -1374,15 +1385,17 @@ function runBacktest(){
   let i1=-1; for(let i=SER.length-1;i>=0;i--){ if(SER[i].date<=ed){i1=i;break;} }
   if(i0<0||i1<0||i1-i0<20){flash('기간 내 데이터가 부족합니다 (데이터: '+SER[0].date+' ~ '+SER[SER.length-1].date+')');return;}
   const warns=[];
+  if(sd<SER[0].date) warns.push('⚠️ 요청 시작일('+sd+')보다 데이터가 늦게 시작해 실제 백테스트는 '+SER[i0].date+'부터입니다. (TQQQ 2010-02 상장 — 그 이전 실데이터는 야후에 존재하지 않음)');
   if(i0<200) warns.push('⚠️ 시작일 이전 데이터가 '+i0+'거래일뿐이라 초기 단계 판정(200일선·52주 고점)이 부정확할 수 있습니다.');
   const px=r=>[+r.tqqq, +r.qld, +r.qqq, schdPx(r)];
-  let schdMiss=0, sh=[0,0,0,0], invested=0, rebals=0, peak=0, mdd=0;
+  let schdMiss=0, sh=[0,0,0,0], invested=0, rebals=0, peak=0, mdd=0, bsh=0;   // bsh: QQQ 동일적립 벤치마크 주수
   const days=[], months={};
   const t0=new Date(SER[i0].date+'T00:00:00Z').getTime();
   const yrs=d=>(new Date(d+'T00:00:00Z').getTime()-t0)/31557600000;
   const flows=[];
   let lastReg=null, lastWk=null, lastYm=null;
-  const buyAll=(amt,t,p)=>{ for(let k=0;k<4;k++){ const a=amt*t[k]; if(a>0&&p[k]>0&&isFinite(p[k])) sh[k]+=a*(1-fee)/p[k]; } };
+  const buyAll=(amt,t,p)=>{ for(let k=0;k<4;k++){ const a=amt*t[k]; if(a>0&&p[k]>0&&isFinite(p[k])) sh[k]+=a*(1-fee)/p[k]; }
+    if(p[2]>0&&isFinite(p[2])) bsh+=amt*(1-fee)/p[2]; };           // 같은 현금흐름으로 QQQ 매수(벤치마크)
   for(let i=i0;i<=i1;i++){
     const r=SER[i], p=px(r), t=TT[r.regime];
     if(r.schd==null||isNaN(+r.schd)) schdMiss++;
@@ -1406,30 +1419,35 @@ function runBacktest(){
       }
     }
     const val=sh.reduce((a,q,k)=>a+q*p[k],0);
+    const bench=bsh*p[2];
     peak=Math.max(peak,val); if(peak>0) mdd=Math.min(mdd,val/peak-1);
-    days.push({date:r.date,val,invested,regime:r.regime});
-    months[r.date.slice(0,7)]={ym:r.date.slice(0,7),regime:r.regime,val,invested,vals:sh.map((q,k)=>q*p[k])};
+    days.push({date:r.date,val,invested,bench,regime:r.regime});
+    months[r.date.slice(0,7)]={ym:r.date.slice(0,7),regime:r.regime,val,invested,bench,vals:sh.map((q,k)=>q*p[k])};
   }
   const last=days[days.length-1];
   flows.push({t:yrs(last.date),v:last.val});
   const irr=xirr(flows);
   if(schdMiss>0) warns.push('⚠️ 기간 중 '+schdMiss+'일은 SCHD 시세가 없어 고정가($'+SCHD_FALLBACK+', 수익률 0%·현금성)로 처리했습니다 (SCHD 2011-10 상장).');
   warns.push('⚠️ 일봉 종가 기준 근사 시뮬레이션입니다. 배당·세금·슬리피지·환율 미반영이며, 과거 성과는 미래 수익을 보장하지 않습니다. 투자 조언이 아닙니다.');
-  BT_RES={i0,i1,s:SER.slice(i0,i1+1),strat:JSON.parse(JSON.stringify(S)),days,months:Object.values(months),irr,mdd,rebals,invested:last.invested,final:last.val,warns};
+  BT_RES={i0,i1,s:SER.slice(i0,i1+1),strat:JSON.parse(JSON.stringify(S)),days,months:Object.values(months),irr,mdd,rebals,invested:last.invested,final:last.val,bench:last.bench,warns};
   renderBtResults();
 }
 function renderBtResults(){
   const R=BT_RES; if(!R) return;
   document.getElementById('btResults').classList.remove('hidden');
   const ret=R.invested>0?R.final/R.invested-1:0;
-  const years=Math.max(1e-9,R.days.length/252);
+  const years=Math.max(1e-9,(new Date(R.days[R.days.length-1].date)-new Date(R.days[0].date))/31557600000);
+  const cagr=R.invested>0&&R.final>0?Math.pow(R.final/R.invested,1/years)-1:null;
+  const bret=R.invested>0?R.bench/R.invested-1:0;
   const cards=[
     ['투자원금', fmtUSD(R.invested), '', '초기 + 적립 합계'],
     ['최종 평가금액', fmtUSD(R.final), R.final>=R.invested?'up':'down', R.days[0].date+' ~ '+R.days[R.days.length-1].date],
     ['누적수익률', pct(ret), ret>=0?'up':'down',''],
-    ['IRR (연환산)', R.irr==null?'—':((R.irr>=0?'+':'')+(R.irr*100).toFixed(1)+'%'), (R.irr||0)>=0?'up':'down','현금흐름 기준 XIRR'],
+    ['연평균 수익률', cagr==null?'—':pct(cagr), (cagr||0)>=0?'up':'down','(최종/원금)^(1/'+years.toFixed(1)+'년) − 적립 시점 미반영 단순 연환산'],
+    ['IRR (연환산)', R.irr==null?'—':((R.irr>=0?'+':'')+(R.irr*100).toFixed(1)+'%'), (R.irr||0)>=0?'up':'down','현금흐름 기준 XIRR — 적립식의 정확한 연수익률'],
     ['MDD', (R.mdd*100).toFixed(1)+'%', 'down', '일별 평가금액 기준'],
     ['리밸런싱', R.rebals+'회', '', (R.rebals/years).toFixed(1)+'회/년 (단계 전환 시)'],
+    ['QQQ 동일적립 (지수)', fmtUSD(R.bench), R.final>=R.bench?'':'down', '같은 현금흐름으로 QQQ만 샀을 때 — 누적 '+pct(bret)],
   ];
   document.getElementById('btSummary').innerHTML=cards.map(([l,v,c,sub])=>
     `<div class="card card-hov ${c==='up'?'green':c==='down'?'red':'blue'}"><div class="label">${l}</div><div class="big-num ${c}">${v}</div><div class="muted" style="font-size:10.5px;margin-top:3px">${sub}</div></div>`).join('');
@@ -1445,6 +1463,7 @@ function renderBtResults(){
   grad.addColorStop(0,'rgba(82,186,136,.30)'); grad.addColorStop(1,'rgba(82,186,136,0)');
   btAssetC=new Chart(ac,{type:'line',data:{labels:R.days.map(x=>x.date),datasets:[
     {label:'평가금액',data:R.days.map(x=>x.val),borderColor:'#52ba88',backgroundColor:grad,borderWidth:2,pointRadius:0,tension:.1,fill:true},
+    {label:'QQQ 동일적립',data:R.days.map(x=>x.bench),borderColor:'#8a93a8',borderWidth:1.4,pointRadius:0,tension:.1,fill:false},
     {label:'투자원금',data:R.days.map(x=>x.invested),borderColor:'#3d89c9',borderWidth:1.6,pointRadius:0,tension:.1,fill:false,borderDash:[5,4]}
   ]},options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
     plugins:{legend:{labels:{color:'#6b7494',boxWidth:12,font:{size:11}}},
@@ -1454,12 +1473,14 @@ function renderBtResults(){
   // 월별 테이블
   document.getElementById('btMonthlyBody').innerHTML=R.months.map(m=>{
     const cum=m.invested>0?m.val/m.invested-1:0;
+    const bcum=m.invested>0?m.bench/m.invested-1:0;
     const cell=v=>{ const w=m.val>0?v/m.val:0; return v>0.5?fmtUSD(v)+' <span class="muted">('+Math.round(w*100)+'%)</span>':'—'; };
     return `<tr><td class="tkr">${m.ym}</td>
       <td><span class="chip" style="font-size:12px;color:${REG_LINE[m.regime]};background:${REG_LINE[m.regime]}26">${REG_NAME[m.regime]}</span></td>
       <td class="mono">${fmtUSD(m.val)}</td>
       <td class="mono">${cell(m.vals[0])}</td><td class="mono">${cell(m.vals[1])}</td><td class="mono">${cell(m.vals[2])}</td><td class="mono">${cell(m.vals[3])}</td>
-      <td class="mono ${cum>=0?'up':'down'}">${pct(cum)}</td></tr>`;
+      <td class="mono ${cum>=0?'up':'down'}">${pct(cum)}</td>
+      <td class="mono ${cum>=bcum?'muted':'neutral'}">${pct(bcum)}</td></tr>`;
   }).join('');
   document.getElementById('btWarn').innerHTML=R.warns.join('<br>');
   document.getElementById('btResults').scrollIntoView({behavior:'smooth',block:'start'});
