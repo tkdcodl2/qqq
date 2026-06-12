@@ -161,6 +161,16 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 .disclaim{font-size:11px;color:var(--muted);line-height:1.6;border-top:1px solid var(--border);margin-top:18px;padding-top:14px}
 .hidden{display:none!important}
 
+/* v6.1: 전략 설정·백테스트 */
+.stage-edit{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+.stage-edit .chip{flex:0 0 92px;text-align:center}
+.wcell{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700}
+.wcell input{width:64px;padding:6px 8px;font-size:13px;text-align:right}
+.wsum{margin-left:auto;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 14px}
+.bt-mini-label{flex:0 0 86px;font-size:11.5px;font-weight:700}
+@media(max-width:760px){.pgrid{grid-template-columns:1fr 1fr}.stage-edit .chip{flex-basis:100%}}
+
 /* mobile */
 .mobile-tabbar{display:none}
 @media(max-width:860px){
@@ -169,6 +179,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   .summary-grid{grid-template-columns:repeat(2,1fr)}
   .row3{grid-template-columns:1fr}
   #chartRow{grid-template-columns:1fr !important}
+  #btChartRow{grid-template-columns:1fr !important}
 }
 @media(max-width:560px){
   .tabs{display:none}
@@ -185,6 +196,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   <div class="hbar">
     <div class="logo">Adaptive<span> DCA</span></div>
     <div class="hspace"></div>
+    <button class="btn-strategy" onclick="openSettings()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>설정</button>
     <button class="btn-strategy" onclick="openStrategy()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><polyline points="7 14 11 10 14 13 20 6"/></svg>전략</button>
   </div>
 </header>
@@ -194,6 +206,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     <button class="tab-btn active" data-tab="dash" onclick="switchTab('dash')">대시보드</button>
     <button class="tab-btn" data-tab="trades" onclick="switchTab('trades')">매매이력</button>
     <button class="tab-btn" data-tab="setup" onclick="switchTab('setup')">적립설정</button>
+    <button class="tab-btn" data-tab="bt" onclick="switchTab('bt')">백테스트</button>
   </div>
 
   <!-- ===== DASHBOARD ===== -->
@@ -218,7 +231,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       <div class="card">
         <div class="section-title" style="flex-wrap:wrap"><span class="dot"></span>QQQ 가격 · 200일선 <span class="muted" style="font-family:Inter;font-size:10.5px;letter-spacing:0;font-weight:500;margin-left:6px">드래그: 확대 · 더블클릭: 원래대로</span>
           <span class="range-pills" id="rangePills" style="margin-left:auto">
-            <button onclick="setChartRange(126,this)">6M</button><button class="on" onclick="setChartRange(260,this)">1Y</button><button onclick="setChartRange(520,this)">2Y</button><button onclick="setChartRange(780,this)">3Y</button><button onclick="setChartRange(0,this)">전체</button>
+            <button onclick="setChartRange(126,this)">6M</button><button class="on" onclick="setChartRange(260,this)">1Y</button><button onclick="setChartRange(520,this)">2Y</button><button onclick="setChartRange(780,this)">3Y</button><button onclick="setChartRange(1300,this)">5Y</button><button onclick="setChartRange(2600,this)">10Y</button><button onclick="setChartRange(0,this)">전체</button>
           </span></div>
         <div style="height:300px"><canvas id="priceChart"></canvas></div>
       </div>
@@ -305,6 +318,54 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     </div>
   </section>
 
+  <!-- ===== BACKTEST ===== -->
+  <section id="tab-bt" class="hidden">
+    <div class="card">
+      <div class="section-title"><span class="dot"></span>백테스트 설정</div>
+      <p class="note" style="margin-bottom:12px">Supabase market_data의 일봉으로 <b>현재 전략 설정(단계 판정 파라미터·단계별 비중)</b>을 시뮬레이션합니다. 달러($) 기준이며 환율 효과·배당·세금은 제외한 근사치입니다. 단계 판정에 200일선이 필요하므로 시작일 이전에 최소 200거래일의 데이터가 있어야 정확합니다.</p>
+      <div class="row3">
+        <div class="field"><label>시작일</label><input id="bt_start" type="date"></div>
+        <div class="field"><label>종료일</label><input id="bt_end" type="date"></div>
+        <div class="field"><label>거래비용 (%)</label><input id="bt_fee" type="number" step="0.01" value="0.05"></div>
+      </div>
+      <div class="row3">
+        <div class="field"><label>초기 투자금 ($)</label><input id="bt_init" type="number" value="100000"></div>
+        <div class="field"><label>적립금 ($)</label><input id="bt_contrib" type="number" value="250"></div>
+        <div class="field"><label>적립 주기</label><select id="bt_cad"><option value="weekly">매주</option><option value="monthly">매월</option><option value="daily">매일</option></select></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn primary" onclick="runBacktest()">백테스트 실행</button>
+        <button class="btn ghost" onclick="openSettings()">전략 설정 (비중·파라미터)</button>
+        <span class="muted" id="btDataInfo" style="font-size:12px"></span>
+      </div>
+      <div id="btStratSummary" style="margin-top:16px"></div>
+    </div>
+    <div id="btResults" class="hidden">
+      <div class="summary-grid" id="btSummary" style="margin-top:16px"></div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:16px;gap:16px" id="btChartRow">
+        <div class="card"><div class="section-title"><span class="dot"></span>기간 단계 차트 (QQQ) <span class="muted" style="font-family:Inter;font-size:10.5px;letter-spacing:0;margin-left:8px">드래그 확대 · 더블클릭 초기화</span></div><div style="height:300px"><canvas id="btPriceChart"></canvas></div></div>
+        <div class="card"><div class="section-title"><span class="dot"></span>평가금액 추이 ($)</div><div style="height:300px"><canvas id="btAssetChart"></canvas></div></div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="section-title"><span class="dot"></span>월별 데이터</div>
+        <div style="overflow:auto;max-height:480px">
+          <table class="nowrap-table"><thead><tr><th>년월</th><th>단계(월말)</th><th>평가금액</th><th>TQQQ</th><th>QLD</th><th>QQQ</th><th>SCHD</th><th>누적수익률</th></tr></thead>
+          <tbody id="btMonthlyBody"></tbody></table>
+        </div>
+      </div>
+      <p class="note" style="margin-top:10px" id="btWarn"></p>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="section-title"><span class="dot"></span>데이터 적재 가이드 (Supabase)</div>
+      <div class="note">
+        ① <b>일봉 백필(1회, 필수)</b>: 본인 PC에서 <span class="mono">scripts/backfill-market-data.mjs</span> 상단의 <span class="mono">RANGE</span>를 <span class="mono">"max"</span>로 바꾼 뒤 아래처럼 실행하면 TQQQ 상장(2010-02)부터 전 기간 일봉이 market_data 테이블에 저장됩니다.<br>
+        <span class="mono">SUPABASE_URL="https://xxxx.supabase.co" SERVICE_KEY="service_role키" node backfill-market-data.mjs</span><br><br>
+        ② <b>전략 설정 동기화(선택)</b>: Supabase SQL Editor에서 <span class="mono">alter table settings add column if not exists strategy jsonb;</span> 를 실행하면 설정(비중·파라미터)이 기기 간 동기화됩니다. 컬럼이 없으면 이 브라우저(localStorage)에만 저장됩니다.<br><br>
+        ③ <b>데이터 한계</b>: TQQQ 2010-02 / SCHD 2011-10 상장 이전은 실데이터가 없습니다. SCHD 시세 누락 구간은 고정가(수익률 0%, 현금성)로 처리되며 결과에 경고로 표시됩니다. 닷컴·금융위기(1999–2010) 검증은 합성 데이터 시뮬레이터(sim2.py/sim3.py)를 사용하세요. 앱은 market_data를 최신부터 최대 12,000행까지 로드합니다.
+      </div>
+    </div>
+  </section>
+
   <div class="appver">Adaptive DCA &nbsp;·&nbsp; <span id="appVer"></span></div>
 </div>
 
@@ -312,9 +373,28 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   <button class="active" data-tab="dash" onclick="switchTab('dash')"><span class="ic">◎</span>대시보드</button>
   <button data-tab="trades" onclick="switchTab('trades')"><span class="ic">≣</span>매매이력</button>
   <button data-tab="setup" onclick="switchTab('setup')"><span class="ic">⚙</span>적립설정</button>
+  <button data-tab="bt" onclick="switchTab('bt')"><span class="ic">⏱</span>백테스트</button>
 </div>
 
 <!-- ===== STRATEGY MODAL ===== -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal" style="max-width:880px">
+    <span class="close" onclick="closeModal('settingsModal')">×</span>
+    <h2>전략 설정</h2>
+    <p class="note">단계별 목표 비중과 판정 파라미터를 조정합니다. <b>저장하면 대시보드의 단계 판정·목표 비중과 백테스트에 즉시 적용</b>됩니다. 기본값은 v6.0 정교 모드입니다. 과거 데이터에 맞춘 과도한 미세조정은 과최적화 위험이 있습니다.</p>
+    <div class="section-title" style="margin-top:16px"><span class="dot"></span>단계별 종목 비중 (%) — 합계 100 필수</div>
+    <div id="wEditor"></div>
+    <div class="section-title" style="margin-top:18px"><span class="dot"></span>판정 파라미터</div>
+    <div id="pEditor" class="pgrid"></div>
+    <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
+      <button class="btn primary" style="flex:1;min-width:160px" onclick="saveStrategyUI()">저장 후 적용</button>
+      <button class="btn ghost" onclick="resetStrategyUI()">기본값(v6.0) 복원</button>
+      <button class="btn ghost" onclick="closeModal('settingsModal')">취소</button>
+    </div>
+    <p class="note" id="stratSaveNote" style="margin-top:10px"></p>
+  </div>
+</div>
+
 <div class="modal-overlay" id="strategyModal">
   <div class="modal">
     <span class="close" onclick="closeModal('strategyModal')">&times;</span>
@@ -450,10 +530,17 @@ function sanitizeRows(rows){
 }
 async function getMarketData(){
   if (DEMO) return DEMO_MARKET.map(r=>({date:r.d,qqq:r.q,qld:r.l,tqqq:r.t}));
-  // 최신부터 최대 1500행(약 6년) → 다시 날짜순 정렬 (Supabase 기본 1000행 한도 회피)
-  const {data,error}=await sb.from('market_data').select('*').order('date',{ascending:false}).range(0,1499);
-  if(error||!data||!data.length){console.warn('market_data 비어있음→데모 사용');return DEMO_MARKET.map(r=>({date:r.d,qqq:r.q,qld:r.l,tqqq:r.t}));}
-  return sanitizeRows(data.reverse());
+  // 최신부터 1,000행씩 최대 12페이지(약 47년) 페이지네이션 → 다시 날짜순 정렬
+  // (Supabase REST는 요청당 최대 1,000행이므로 range(0,1499)는 조용히 잘립니다)
+  let rows=[];
+  for(let p=0;p<12;p++){
+    const {data,error}=await sb.from('market_data').select('*').order('date',{ascending:false}).range(p*1000,p*1000+999);
+    if(error){console.warn('market_data 조회 오류',error);break;}
+    rows=rows.concat(data||[]);
+    if(!data||data.length<1000) break;
+  }
+  if(!rows.length){console.warn('market_data 비어있음→데모 사용');return DEMO_MARKET.map(r=>({date:r.d,qqq:r.q,qld:r.l,tqqq:r.t}));}
+  return sanitizeRows(rows.reverse());
 }
 async function getTrades(){
   if(DEMO) return [...memTrades].sort((a,b)=>b.date.localeCompare(a.date));
@@ -523,7 +610,37 @@ async function syncAutoMonthly(){
 /* ===================== 전략 엔진 (5단계 레짐 — 2019–2026 시뮬레이션 최적화) ===================== */
 const REG_NAME={0:'저점·반등',2:'정상',3:'과열',4:'고점',5:'저점·방어',6:'하락'};
 const REG_BUY ={0:'TQQQ',2:'TQQQ',3:'QLD',4:'SCHD',5:'SCHD',6:'QQQ'};
-const TARGET  ={0:[0.90,0.10,0.00,0.00],2:[0.80,0.20,0.00,0.00],3:[0.30,0.50,0.00,0.20],4:[0.00,0.00,0.00,1.00],5:[0.00,0.00,0.25,0.75],6:[0.00,0.00,1.00,0.00]}; // [TQQQ,QLD,QQQ,SCHD]
+/* v6.1: 단계 비중·판정 파라미터를 사용자가 조정 가능 (기본값 = v6.0 정교 모드) */
+const DEFAULT_STRAT={
+  weights:{0:[90,10,0,0],2:[80,20,0,0],3:[30,50,0,20],4:[0,0,0,100],5:[0,0,25,75],6:[0,0,100,0]},  // [TQQQ,QLD,QQQ,SCHD] %
+  params:{botDD:26,botDD2:20,botExt:12,recDD:4,normDays:130,trailStop:8,reentry:10,
+          ovExt:10,ovDays:10,maniaExt:25,matDays:260,matDDR:4,stkRecover:3,stkDrop:8,stkThrust:7,
+          downDDR:10,trendOn:1,trendBand:1}
+};
+const PARAM_DEF=[
+  ['botDD','저점 진입 낙폭','%','ATH 대비 −X% 도달 시 저점 사이클 진입 (기본 26)'],
+  ['botDD2','저점 보조 낙폭','%','보조 조건: ATH 대비 −X% 이면서… (기본 20)'],
+  ['botExt','저점 보조 이격','%','…200일선 이격 −X% 동시 충족 (기본 12)'],
+  ['recDD','사이클 종료·회복','%','ATH −X% 안쪽으로 회복 시 사이클 종료 (기본 4)'],
+  ['normDays','사이클 종료·정상화','거래일','200일선 위 연속 X일이면 종료 (기본 130 ≈ 6개월)'],
+  ['trailStop','트레일링 스탑','%','사이클 고점 −X% 이탈 시 방어 전환 (기본 8)'],
+  ['reentry','재진입 추력','%','신저점 +X% 반등 시 공격 복귀 (기본 10)'],
+  ['ovExt','과열 이격','%','200일선 이격 +X% 이상 (기본 10)'],
+  ['ovDays','과열 신고가 멈춤','거래일','40일 최고가 97% 미만이 X일 지속 (기본 10)'],
+  ['maniaExt','고점·광기 이격','%','이격 +X% 도달 시 끈적 고점 발동 (기본 25)'],
+  ['matDays','고점·성숙분배 기간','거래일','200일선 위 연속 X일 이상 (기본 260 ≈ 1년)'],
+  ['matDDR','고점·성숙분배 낙폭','%','52주 고점 −X% 꺾임 & 50일선 하향 이탈 (기본 4)'],
+  ['stkRecover','고점 해제·회복','%','고점 −X% 이내 회복 시 즉시 정상 복귀 (기본 3)'],
+  ['stkDrop','고점 해제·낙폭','%','고점 −X% 낙폭 후… (기본 8)'],
+  ['stkThrust','고점 해제·추력','%','…저점 +X% 추력 시 저점 사이클 진입 (기본 7)'],
+  ['downDDR','하락 조기감지 낙폭','%','52주 고점 −X% & 50일선 이탈 시 하락 단계 (기본 10)'],
+  ['trendOn','추세 ON 돌파','%','200일선 +X% 상향 돌파 시 ON (기본 1)'],
+  ['trendBand','추세 ON 50일선 허용','%','50일선이 200일선 −X% 이상이어야 ON (기본 1)'],
+];
+let STRAT=JSON.parse(JSON.stringify(DEFAULT_STRAT));
+let TARGET={};
+function rebuildTarget(){ TARGET={}; for(const k in STRAT.weights) TARGET[k]=STRAT.weights[k].map(v=>v/100); }
+rebuildTarget();
 const REG_SUB={
   0:'폭락 확인(DD −26% 또는 −20%+이격−12%) 후 회복까지의 최대 공격 구간(TQQQ 90%). 트레일링 스탑(저점·방어)이 보호하므로 가장 과감하게 갑니다.',
   2:'추세 ON(200일선 위) 기본 구간. 원전략의 핵심대로 TQQQ 80%를 길게 보유해 수익을 극대화합니다.',
@@ -536,7 +653,8 @@ const REG_COLOR={0:'green',2:'green',3:'gold',4:'red',5:'blue',6:'blue'};
 const REG_LINE={0:'#00b300',2:'#ffffff',3:'#ff9933',4:'#ff2222',5:'#3d89c9',6:'#8a93a8'};  // 저점=진한초록·반등=초록·평상=흰색·과열=주황·고점=빨강
 
 function sma(arr,n,i){ if(i<n-1)return NaN; let s=0; for(let k=i-n+1;k<=i;k++)s+=arr[k]; return s/n; }
-function computeSeries(md){
+function computeSeries(md,P){
+  P=P||STRAT.params;
   const q=md.map(r=>r.qqq);
   const out=md.map((r,i)=>({...r,i}));
   // sma50, sma200
@@ -561,12 +679,12 @@ function computeSeries(md){
     _off = q[i]>=h*0.97 ? 0 : _off+1; out[i].offDays=_off;
     out[i].s50down = i>=10 && !isNaN(out[i].sma50) && !isNaN(out[i-10].sma50) ? out[i].sma50<out[i-10].sma50 : false;
     let h52=0; for(let k=Math.max(0,i-251);k<=i;k++) h52=Math.max(h52,q[k]); out[i].ddr=q[i]/h52-1; }
-  // 추세 마스터 스위치(원전략 복원): 200일선 아래→OFF, +1% 돌파+50일선 99% 이상→ON
+  // 추세 마스터 스위치(원전략 복원): 200일선 아래→OFF, +trendOn% 돌파+50일선 (100−trendBand)% 이상→ON
   let cur=1;
   for(const o of out){
     if(isNaN(o.sma200)){o.up=1;continue;}
     if(cur===1 && o.qqq<o.sma200) cur=0;
-    else if(cur===0 && o.qqq>o.sma200*1.01 && o.sma50>=o.sma200*0.99) cur=1;
+    else if(cur===0 && o.qqq>o.sma200*(1+P.trendOn/100) && o.sma50>=o.sma200*(1-P.trendBand/100)) cur=1;
     o.up=cur;
   }
   // 저점 사이클(엔게이지) + 트레일링 스탑 + 정상화 종료
@@ -574,33 +692,33 @@ function computeSeries(md){
   for(const o of out){
     if(isNaN(o.sma200)){o.regime=2;o.engaged=false;o.emode='';continue;}
     above = o.qqq>=o.sma200 ? above+1 : 0;   // 200일선 위 연속 일수
-    const bottom = o.dd<=-0.26 || (o.dd<=-0.20 && o.ext200<=-0.12);
+    const bottom = o.dd<=-P.botDD/100 || (o.dd<=-P.botDD2/100 && o.ext200<=-P.botExt/100);
     let enterCyc = bottom && !engaged;
     if(sticky && !engaged){                              // 끈적 고점(이격 +25% 광기): 유지 중
       tPeak=Math.max(tPeak,o.qqq); tLow=Math.min(tLow,o.qqq);
-      if(o.qqq>=tPeak*0.97) sticky=false;                // 고점 −3% 이내 회복 -> 즉시 정상 복귀(V반등 캡처)
-      else if(tLow<=tPeak*0.92 && o.qqq>=tLow*1.07){sticky=false; enterCyc=true;}  // -8% 낙폭 후 +7% 추력 -> 사이클 진입(반등 캡처)
+      if(o.qqq>=tPeak*(1-P.stkRecover/100)) sticky=false;                // 고점 −stkRecover% 이내 회복 -> 즉시 정상 복귀(V반등 캡처)
+      else if(tLow<=tPeak*(1-P.stkDrop/100) && o.qqq>=tLow*(1+P.stkThrust/100)){sticky=false; enterCyc=true;}  // -stkDrop% 낙폭 후 +stkThrust% 추력 -> 사이클 진입(반등 캡처)
     }
     if(enterCyc && !engaged){engaged=true;emode='A';trail=o.qqq;elow=o.qqq;}
     if(engaged){
       elow=Math.min(elow,o.qqq);
-      if(emode==='A'){trail=Math.max(trail,o.qqq); if(o.qqq<trail*0.92){emode='D';elow=o.qqq;}}
-      else if(o.qqq>=elow*1.10){emode='A';trail=o.qqq;}
-      if(o.dd>-0.04 || above>=130) engaged=false;   // 회복(-4%) 또는 정상화(200일선 위 6개월)로 사이클 종료
+      if(emode==='A'){trail=Math.max(trail,o.qqq); if(o.qqq<trail*(1-P.trailStop/100)){emode='D';elow=o.qqq;}}
+      else if(o.qqq>=elow*(1+P.reentry/100)){emode='A';trail=o.qqq;}
+      if(o.dd>-P.recDD/100 || above>=P.normDays) engaged=false;   // 회복(−recDD%) 또는 정상화(200일선 위 normDays일)로 사이클 종료
     }
     if(engaged){downF=false; sticky=false;}
-    else if(!downF){ if(o.ddr<=-0.10 && o.qqq<o.sma50 && !sticky) downF=true; }   // 조기 하락 감지: 52주 고점 −10% & 50일선 이탈
-    if(!engaged && !sticky && o.ext200>=0.25 && o.dd>=-0.03){sticky=true;tPeak=o.qqq;tLow=o.qqq;}  // 광기 고점(이격 +25%)
-    else if(!engaged && !sticky && !downF && above>=260 && o.ddr<=-0.04 && o.qqq<o.sma50 && o.s50down){
-      sticky=true;tPeak=o.qqq/(1+o.ddr);tLow=o.qqq;}  // 성숙 분배 고점: 200일선 위 1년+ & 52주고점 −4% 꺾임 & 50일선 하향 이탈
+    else if(!downF){ if(o.ddr<=-P.downDDR/100 && o.qqq<o.sma50 && !sticky) downF=true; }   // 조기 하락 감지: 52주 고점 −downDDR% & 50일선 이탈
+    if(!engaged && !sticky && o.ext200>=P.maniaExt/100 && o.dd>=-0.03){sticky=true;tPeak=o.qqq;tLow=o.qqq;}  // 광기 고점(이격 +maniaExt%)
+    else if(!engaged && !sticky && !downF && above>=P.matDays && o.ddr<=-P.matDDR/100 && o.qqq<o.sma50 && o.s50down){
+      sticky=true;tPeak=o.qqq/(1+o.ddr);tLow=o.qqq;}  // 성숙 분배 고점: 200일선 위 matDays일+ & 52주고점 −matDDR% 꺾임 & 50일선 하향 이탈
     else if(o.qqq>=o.sma50 && o.mom20>0) downF=false;                      // 회복: 50일선 회복 + 20일 모멘텀 양전
     o.engaged=engaged; o.emode=engaged?emode:''; o.downF=downF;
-    o.stopLine=(engaged&&emode==='A')?trail*0.92:NaN;
-    o.reLine=(engaged&&emode==='D')?elow*1.10:NaN;
+    o.stopLine=(engaged&&emode==='A')?trail*(1-P.trailStop/100):NaN;
+    o.reLine=(engaged&&emode==='D')?elow*(1+P.reentry/100):NaN;
     if(engaged) o.regime = emode==='D'?5:0;
     else if(sticky) o.regime=4;                                // 끈적 고점: 해제 신호까지 SCHD100 유지
     else if(o.up===0 || downF) o.regime=6;                     // 추세 OFF 또는 조기 하락 감지: 레버리지 차단
-    else if(o.ext200>=0.10 && o.offDays>=10) o.regime=3;
+    else if(o.ext200>=P.ovExt/100 && o.offDays>=P.ovDays) o.regime=3;
     else o.regime=2;
   }
   return out;
@@ -608,8 +726,9 @@ function computeSeries(md){
 
 /* ===================== 전역 상태 ===================== */
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
-let SERIES=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
-const APP_VERSION='6.0';
+let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
+let btPriceC=null, btAssetC=null, BT_RES=null;
+const APP_VERSION='6.1';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
@@ -623,16 +742,19 @@ const schdPx=row=>(row&&row.schd!=null&&!isNaN(+row.schd))?+row.schd:SCHD_FALLBA
 /* ===================== 초기화 ===================== */
 async function init(){
   document.getElementById('appVer').textContent='v'+APP_VERSION;
-  const md = await getMarketData();
-  SERIES = computeSeries(md);
+  RAW_MD = await getMarketData();
+  SETTINGS = await getSettings();
+  loadStrategy(SETTINGS);                 // 사용자 전략 설정(비중·파라미터) 적용 후 단계 계산
+  SERIES = computeSeries(RAW_MD);
   CUR = SERIES[SERIES.length-1];
   FXNOW = (CUR && CUR.fx) ? +CUR.fx : 1380;
-  SETTINGS = await getSettings();
   document.getElementById('cadenceSel').value = SETTINGS.cadence;
   document.getElementById('contribInput').value = SETTINGS.contribution_amount;
   renderDashboard();
   renderModalRegimes();
   onCadenceChange();
+  initBtDefaults();
+  btRenderStratSummary();
   await renderTrades();
   await renderProfit();
   await syncAutoMonthly();
@@ -663,16 +785,17 @@ function renderDashboard(){
 function indCard(label,val,cls,sub){return `<div class="ind"><div class="label">${label}</div><div class="v ${cls}">${val}</div><div class="muted" style="font-size:11px;margin-top:2px">${sub||''}</div></div>`;}
 function renderIndicators(r){
   const g=document.getElementById('indGrid');
+  const P=STRAT.params;
   const ext=r.ext200, dd=r.dd, mom=r.mom20||0;
   const above = r.qqq>=r.sma200;
   g.innerHTML =
     indCard('QQQ 종가','$'+r.qqq.toFixed(2),'', r.date)
   + indCard('200일선','$'+r.sma200.toFixed(2), above?'up':'down', above?'가격이 위':'가격이 아래')
-  + indCard('200일선 이격','('+(ext>=0?'+':'')+(ext*100).toFixed(1)+'%)', ext>=0.16?'down':(ext>=0.10?'neutral':'up'), ext>=0.16?'고점 기준(+16%) 초과':(ext>=0.10?'과열 기준(+10%) 초과':'정상범위'))
-  + indCard('고점대비 낙폭', (dd*100).toFixed(1)+'%', dd<=-0.20?'down':(dd<=-0.08?'neutral':'up'), dd<=-0.26?'저점 기준(−26%) 도달':'ATH $'+r.ath.toFixed(0))
+  + indCard('200일선 이격','('+(ext>=0?'+':'')+(ext*100).toFixed(1)+'%)', ext>=P.maniaExt/100?'down':(ext>=P.ovExt/100?'neutral':'up'), ext>=P.maniaExt/100?'고점·광기 기준(+'+P.maniaExt+'%) 초과':(ext>=P.ovExt/100?'과열 기준(+'+P.ovExt+'%) 초과':'정상범위'))
+  + indCard('고점대비 낙폭', (dd*100).toFixed(1)+'%', dd<=-P.botDD2/100?'down':(dd<=-0.08?'neutral':'up'), dd<=-P.botDD/100?'저점 기준(−'+P.botDD+'%) 도달':'ATH $'+r.ath.toFixed(0))
   + indCard('추세 스위치', r.up===1?'ON':'OFF', r.up===1?'up':'down', r.up===1?'레버리지 허용 (200일선 위)':'레버리지 차단 (200일선 아래)')
   + indCard('저점 사이클', r.engaged?(r.emode==='D'?'방어 모드':'공격 진행'):'비활성', r.engaged?(r.emode==='D'?'neutral':'up'):'',
-      r.engaged?(r.emode==='D'?'재진입 라인 $'+r.reLine.toFixed(2)+' (신저점 +10%)':'스탑 라인 $'+r.stopLine.toFixed(2)+' (트레일 −8%)'):'저점 발생 시 자동 시작')
+      r.engaged?(r.emode==='D'?'재진입 라인 $'+r.reLine.toFixed(2)+' (신저점 +'+P.reentry+'%)':'스탑 라인 $'+r.stopLine.toFixed(2)+' (트레일 −'+P.trailStop+'%)'):'저점 발생 시 자동 시작')
   + indCard('RSI(14)', r.rsi.toFixed(0), r.rsi>80?'neutral':(r.rsi<45?'down':'up'), '참고 지표 (판정 미사용)')
   + indCard('현재 단계', REG_NAME[r.regime], REG_COLOR[r.regime]==='red'?'down':REG_COLOR[r.regime]==='gold'?'neutral':'up', '매수 1순위: '+REG_BUY[r.regime]);
 }
@@ -733,6 +856,11 @@ function renderPriceChart(){
   const N=Math.min(CHART_RANGE||SERIES.length,SERIES.length); const s=SERIES.slice(-N);
   const ctx=document.getElementById('priceChart');
   if(priceChart)priceChart.destroy();
+  priceChart=buildRegimeChart(ctx,s);
+  ctx.ondblclick=()=>{ if(priceChart&&priceChart.resetZoom) priceChart.resetZoom(); };
+}
+/* 단계 그라데이션 가격 차트 (대시보드·백테스트 공용) */
+function buildRegimeChart(ctx,s){
   const n=s.length;
   function regimeGradient(c){
     const chart=c.chart, area=chart.chartArea, xs=chart.scales&&chart.scales.x;
@@ -762,7 +890,7 @@ function renderPriceChart(){
       return it?{x:it.element.x,y:it.element.y}:evtPos;
     };
   }
-  priceChart=new Chart(ctx,{type:'line',data:{labels:s.map(o=>o.date),datasets:[
+  return new Chart(ctx,{type:'line',data:{labels:s.map(o=>o.date),datasets:[
     {label:'QQQ',data:s.map(o=>o.qqq),borderColor:regimeGradient,borderWidth:2.6,tension:.15,
      // 저점·고점 동그라미 강조
      pointRadius:c=>{const r=s[c.dataIndex]&&s[c.dataIndex].regime;return (r===0||r===4)?3:0;},
@@ -779,7 +907,6 @@ function renderPriceChart(){
       tooltip:{position:'priceLine',callbacks:{afterTitle:items=>{const i=items[0].dataIndex;return '단계: '+REG_NAME[s[i].regime];}}}},
     scales:{x:{ticks:{color:'#6b7494',maxTicksLimit:6,font:{size:10}},grid:{color:'rgba(255,255,255,.03)'}},
             y:{ticks:{color:'#6b7494',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}}}}});
-  ctx.ondblclick=()=>{ if(priceChart&&priceChart.resetZoom) priceChart.resetZoom(); };
 }
 
 /* 월별 수익 현황: Supabase 'monthly' 데이터 기반 표 + 차트 */
@@ -1100,6 +1227,205 @@ async function renderProfit(){
   }).join('');
 }
 
+/* ===================== 전략 설정 (v6.1) ===================== */
+function renderStratEditor(){
+  const order=[0,5,6,2,3,4], TK=['TQQQ','QLD','QQQ','SCHD'];
+  document.getElementById('wEditor').innerHTML=order.map(reg=>{
+    const w=STRAT.weights[reg];
+    return `<div class="stage-edit"><span class="chip" style="color:${REG_LINE[reg]};background:${REG_LINE[reg]}2e">${REG_NAME[reg]}</span>`
+      + TK.map((k,i)=>`<label class="wcell"><span style="color:${ALLOC_COLORS[k]}">${k}</span><input type="number" min="0" max="100" step="5" id="w_${reg}_${i}" value="${w[i]}" oninput="wSum(${reg})"></label>`).join('')
+      + `<span class="wsum" id="wsum_${reg}">100%</span></div>`;
+  }).join('');
+  order.forEach(wSum);
+  document.getElementById('pEditor').innerHTML=PARAM_DEF.map(([k,lab,unit,hint])=>
+    `<div class="field" style="margin-bottom:6px"><label>${lab} <span class="muted">(${unit})</span></label>
+     <input type="number" step="any" id="p_${k}" value="${STRAT.params[k]}">
+     <div class="muted" style="font-size:10.5px;margin-top:3px;line-height:1.4">${hint}</div></div>`).join('');
+}
+function wSum(reg){
+  let s=0; for(let i=0;i<4;i++) s+=(+document.getElementById(`w_${reg}_${i}`).value||0);
+  const el=document.getElementById('wsum_'+reg);
+  el.textContent=(Math.round(s*10)/10)+'%';
+  el.className='wsum '+(Math.abs(s-100)<0.01?'up':'down');
+  return s;
+}
+function openSettings(){
+  renderStratEditor();
+  document.getElementById('stratSaveNote').textContent='';
+  document.getElementById('settingsModal').classList.add('open');
+}
+async function saveStrategyUI(){
+  const order=[0,5,6,2,3,4];
+  for(const reg of order){ if(Math.abs(wSum(reg)-100)>0.01){ flash(REG_NAME[reg]+' 단계 비중 합이 100%가 아닙니다'); return; } }
+  const w={}; order.forEach(reg=>{ w[reg]=[0,1,2,3].map(i=>+document.getElementById(`w_${reg}_${i}`).value||0); });
+  const p={}; PARAM_DEF.forEach(([k])=>{ const v=parseFloat(document.getElementById('p_'+k).value); p[k]=isNaN(v)?DEFAULT_STRAT.params[k]:v; });
+  STRAT={weights:w,params:p};
+  await persistStrategy();
+  applyStrategy();
+  closeModal('settingsModal');
+  flash('전략 설정이 적용되었습니다');
+}
+function resetStrategyUI(){
+  STRAT=JSON.parse(JSON.stringify(DEFAULT_STRAT));
+  renderStratEditor();
+  document.getElementById('stratSaveNote').textContent='기본값(v6.0 정교 모드)으로 되돌렸습니다. “저장 후 적용”을 눌러 확정하세요.';
+}
+async function persistStrategy(){
+  try{ localStorage.setItem('adca_strategy', JSON.stringify(STRAT)); }catch(e){}
+  if(DEMO) return;
+  const {error}=await sb.from('settings').upsert({id:1,strategy:STRAT});
+  if(error){ console.warn('strategy 저장 실패',error); flash('Supabase 저장 실패 — 이 브라우저에만 저장됨 (settings 테이블에 strategy jsonb 컬럼을 추가하세요)'); }
+}
+function loadStrategy(settings){
+  let s=null;
+  if(settings && settings.strategy) s=settings.strategy;
+  if(!s){ try{ s=JSON.parse(localStorage.getItem('adca_strategy')||'null'); }catch(e){} }
+  if(s && s.weights && s.params)
+    STRAT={weights:Object.assign({},DEFAULT_STRAT.weights,s.weights), params:Object.assign({},DEFAULT_STRAT.params,s.params)};
+  rebuildTarget();
+}
+function applyStrategy(){
+  rebuildTarget();
+  if(!RAW_MD.length){ btRenderStratSummary(); return; }   // 데이터 로드 전 저장 시 가드
+  SERIES=computeSeries(RAW_MD);
+  CUR=SERIES[SERIES.length-1];
+  renderDashboard();
+  renderModalRegimes();
+  btRenderStratSummary();
+  renderProfit();                       // 목표달성 매수/매도 주수 재계산
+}
+
+/* ===================== 백테스트 (v6.1) ===================== */
+const fmtUSD=n=>'$'+Math.round(n).toLocaleString('en-US');
+function xirr(flows){                    // flows: [{t:연 단위 경과, v:금액(투자 음수/최종 양수)}]
+  const f=r=>flows.reduce((s,c)=>s+c.v/Math.pow(1+r,c.t),0);
+  let lo=-0.95, hi=9, flo=f(lo), fhi=f(hi);
+  if(!isFinite(flo)||!isFinite(fhi)||flo*fhi>0) return null;
+  for(let k=0;k<100;k++){ const m=(lo+hi)/2, fm=f(m); if(flo*fm<=0){hi=m;fhi=fm;} else {lo=m;flo=fm;} }
+  return (lo+hi)/2;
+}
+function wkKey(d){ const dt=new Date(d+'T00:00:00Z'); const off=(dt.getUTCDay()+6)%7; dt.setUTCDate(dt.getUTCDate()-off); return dt.toISOString().slice(0,10); }
+function initBtDefaults(){
+  if(!SERIES.length) return;
+  const s=document.getElementById('bt_start'), e=document.getElementById('bt_end');
+  if(s&&!s.value) s.value=(SERIES[Math.min(200,SERIES.length-1)]||SERIES[0]).date;
+  if(e&&!e.value) e.value=SERIES[SERIES.length-1].date;
+  const info=document.getElementById('btDataInfo');
+  if(info) info.textContent='데이터: '+SERIES[0].date+' ~ '+SERIES[SERIES.length-1].date+' ('+SERIES.length.toLocaleString()+'거래일)';
+}
+function btRenderStratSummary(){
+  const el=document.getElementById('btStratSummary'); if(!el) return;
+  const order=[0,5,6,2,3,4];
+  el.innerHTML='<div class="abar-label">현재 전략 비중 — “전략 설정”에서 변경</div>'+order.map(reg=>{
+    const t=TARGET[reg], segs=[['TQQQ',t[0]],['QLD',t[1]],['QQQ',t[2]],['SCHD',t[3]]].filter(x=>x[1]>0);
+    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span class="bt-mini-label" style="color:${REG_LINE[reg]}">${REG_NAME[reg]}</span>`
+      + `<div class="abar" style="flex:1;height:14px">${segs.map(([n,v])=>`<div title="${n} ${Math.round(v*100)}%" style="width:${v*100}%;background:${ALLOC_GRAD[n]}"><span class="abar-seg-p" style="font-size:9.5px">${v>=0.12?Math.round(v*100)+'%':''}</span></div>`).join('')}</div></div>`;
+  }).join('');
+}
+function runBacktest(){
+  if(!SERIES.length){flash('시세 데이터가 없습니다');return;}
+  const sd=document.getElementById('bt_start').value, ed=document.getElementById('bt_end').value;
+  const init0=+document.getElementById('bt_init').value||0;
+  const contrib=+document.getElementById('bt_contrib').value||0;
+  const cad=document.getElementById('bt_cad').value;
+  const fee=(+document.getElementById('bt_fee').value||0)/100;
+  if(!sd||!ed||sd>=ed){flash('기간을 확인하세요');return;}
+  if(init0<=0&&contrib<=0){flash('초기 투자금 또는 적립금을 입력하세요');return;}
+  const i0=SERIES.findIndex(r=>r.date>=sd);
+  let i1=-1; for(let i=SERIES.length-1;i>=0;i--){ if(SERIES[i].date<=ed){i1=i;break;} }
+  if(i0<0||i1<0||i1-i0<20){flash('기간 내 데이터가 부족합니다 (데이터: '+SERIES[0].date+' ~ '+SERIES[SERIES.length-1].date+')');return;}
+  const warns=[];
+  if(i0<200) warns.push('⚠️ 시작일 이전 데이터가 '+i0+'거래일뿐이라 초기 단계 판정(200일선·52주 고점)이 부정확할 수 있습니다.');
+  const px=r=>[+r.tqqq, +r.qld, +r.qqq, schdPx(r)];
+  let schdMiss=0, sh=[0,0,0,0], invested=0, rebals=0, peak=0, mdd=0;
+  const days=[], months={};
+  const t0=new Date(SERIES[i0].date+'T00:00:00Z').getTime();
+  const yrs=d=>(new Date(d+'T00:00:00Z').getTime()-t0)/31557600000;
+  const flows=[];
+  let lastReg=null, lastWk=null, lastYm=null;
+  const buyAll=(amt,t,p)=>{ for(let k=0;k<4;k++){ const a=amt*t[k]; if(a>0&&p[k]>0&&isFinite(p[k])) sh[k]+=a*(1-fee)/p[k]; } };
+  for(let i=i0;i<=i1;i++){
+    const r=SERIES[i], p=px(r), t=TARGET[r.regime];
+    if(r.schd==null||isNaN(+r.schd)) schdMiss++;
+    if(i===i0){
+      if(init0>0){ invested+=init0; flows.push({t:yrs(r.date),v:-init0}); buyAll(init0,t,p); rebals++; }
+      lastReg=r.regime; lastWk=wkKey(r.date); lastYm=r.date.slice(0,7);
+    } else {
+      const ym=r.date.slice(0,7), wk=wkKey(r.date);
+      const due = cad==='daily' || (cad==='weekly'&&wk!==lastWk) || (cad==='monthly'&&ym!==lastYm);
+      if(due&&contrib>0){ invested+=contrib; flows.push({t:yrs(r.date),v:-contrib}); buyAll(contrib,t,p); }
+      lastWk=wk; lastYm=ym;
+      if(r.regime!==lastReg){                       // 단계 전환 → 전량 목표 비중 리밸런싱
+        const vals=sh.map((q,k)=>q*p[k]); const tot=vals.reduce((a,b)=>a+b,0);
+        if(tot>0){
+          let traded=0; for(let k=0;k<4;k++) traded+=Math.abs(t[k]*tot-vals[k]);
+          const net=tot-traded*fee;
+          sh=t.map((w,k)=> p[k]>0&&isFinite(p[k]) ? net*w/p[k] : 0);
+          rebals++;
+        }
+        lastReg=r.regime;
+      }
+    }
+    const val=sh.reduce((a,q,k)=>a+q*p[k],0);
+    peak=Math.max(peak,val); if(peak>0) mdd=Math.min(mdd,val/peak-1);
+    days.push({date:r.date,val,invested,regime:r.regime});
+    months[r.date.slice(0,7)]={ym:r.date.slice(0,7),regime:r.regime,val,invested,vals:sh.map((q,k)=>q*p[k])};
+  }
+  const last=days[days.length-1];
+  flows.push({t:yrs(last.date),v:last.val});
+  const irr=xirr(flows);
+  if(schdMiss>0) warns.push('⚠️ 기간 중 '+schdMiss+'일은 SCHD 시세가 없어 고정가($'+SCHD_FALLBACK+', 수익률 0%·현금성)로 처리했습니다 (SCHD 2011-10 상장).');
+  warns.push('⚠️ 일봉 종가 기준 근사 시뮬레이션입니다. 배당·세금·슬리피지·환율 미반영이며, 과거 성과는 미래 수익을 보장하지 않습니다. 투자 조언이 아닙니다.');
+  BT_RES={i0,i1,days,months:Object.values(months),irr,mdd,rebals,invested:last.invested,final:last.val,warns};
+  renderBtResults();
+}
+function renderBtResults(){
+  const R=BT_RES; if(!R) return;
+  document.getElementById('btResults').classList.remove('hidden');
+  const ret=R.invested>0?R.final/R.invested-1:0;
+  const years=Math.max(1e-9,R.days.length/252);
+  const cards=[
+    ['투자원금', fmtUSD(R.invested), '', '초기 + 적립 합계'],
+    ['최종 평가금액', fmtUSD(R.final), R.final>=R.invested?'up':'down', R.days[0].date+' ~ '+R.days[R.days.length-1].date],
+    ['누적수익률', pct(ret), ret>=0?'up':'down',''],
+    ['IRR (연환산)', R.irr==null?'—':((R.irr>=0?'+':'')+(R.irr*100).toFixed(1)+'%'), (R.irr||0)>=0?'up':'down','현금흐름 기준 XIRR'],
+    ['MDD', (R.mdd*100).toFixed(1)+'%', 'down', '일별 평가금액 기준'],
+    ['리밸런싱', R.rebals+'회', '', (R.rebals/years).toFixed(1)+'회/년 (단계 전환 시)'],
+  ];
+  document.getElementById('btSummary').innerHTML=cards.map(([l,v,c,sub])=>
+    `<div class="card card-hov ${c==='up'?'green':c==='down'?'red':'blue'}"><div class="label">${l}</div><div class="big-num ${c}">${v}</div><div class="muted" style="font-size:10.5px;margin-top:3px">${sub}</div></div>`).join('');
+  // 기간 단계 차트 (메인과 동일 렌더링)
+  const pc=document.getElementById('btPriceChart');
+  if(btPriceC)btPriceC.destroy();
+  btPriceC=buildRegimeChart(pc, SERIES.slice(R.i0,R.i1+1));
+  pc.ondblclick=()=>{ if(btPriceC&&btPriceC.resetZoom) btPriceC.resetZoom(); };
+  // 평가금액 추이
+  const ac=document.getElementById('btAssetChart');
+  if(btAssetC)btAssetC.destroy();
+  const g=ac.getContext('2d'); const grad=g.createLinearGradient(0,0,0,300);
+  grad.addColorStop(0,'rgba(82,186,136,.30)'); grad.addColorStop(1,'rgba(82,186,136,0)');
+  btAssetC=new Chart(ac,{type:'line',data:{labels:R.days.map(x=>x.date),datasets:[
+    {label:'평가금액',data:R.days.map(x=>x.val),borderColor:'#52ba88',backgroundColor:grad,borderWidth:2,pointRadius:0,tension:.1,fill:true},
+    {label:'투자원금',data:R.days.map(x=>x.invested),borderColor:'#3d89c9',borderWidth:1.6,pointRadius:0,tension:.1,fill:false,borderDash:[5,4]}
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
+    plugins:{legend:{labels:{color:'#6b7494',boxWidth:12,font:{size:11}}},
+      tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmtUSD(c.parsed.y)}}},
+    scales:{x:{ticks:{color:'#6b7494',maxTicksLimit:8,font:{size:10}},grid:{color:'rgba(255,255,255,.03)'}},
+            y:{ticks:{color:'#6b7494',font:{size:10},callback:v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':'$'+Math.round(v/1e3)+'K'},grid:{color:'rgba(255,255,255,.04)'}}}}});
+  // 월별 테이블
+  document.getElementById('btMonthlyBody').innerHTML=R.months.map(m=>{
+    const cum=m.invested>0?m.val/m.invested-1:0;
+    const cell=v=>{ const w=m.val>0?v/m.val:0; return v>0.5?fmtUSD(v)+' <span class="muted">('+Math.round(w*100)+'%)</span>':'—'; };
+    return `<tr><td class="tkr">${m.ym}</td>
+      <td><span class="chip" style="font-size:12px;color:${REG_LINE[m.regime]};background:${REG_LINE[m.regime]}26">${REG_NAME[m.regime]}</span></td>
+      <td class="mono">${fmtUSD(m.val)}</td>
+      <td class="mono">${cell(m.vals[0])}</td><td class="mono">${cell(m.vals[1])}</td><td class="mono">${cell(m.vals[2])}</td><td class="mono">${cell(m.vals[3])}</td>
+      <td class="mono ${cum>=0?'up':'down'}">${pct(cum)}</td></tr>`;
+  }).join('');
+  document.getElementById('btWarn').innerHTML=R.warns.join('<br>');
+  document.getElementById('btResults').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
 /* ===================== 전략 모달 ===================== */
 function renderModalRegimes(){
   const order=[0,5,6,2,3,4];  // 저점·반등→저점·방어→하락→정상→과열→고점
@@ -1123,7 +1449,7 @@ document.getElementById('tradeModal').addEventListener('keydown',e=>{
 
 /* ===================== 탭 / 기타 ===================== */
 function switchTab(t){
-  ['dash','setup','trades'].forEach(x=>document.getElementById('tab-'+x).classList.toggle('hidden',x!==t));
+  ['dash','setup','trades','bt'].forEach(x=>document.getElementById('tab-'+x).classList.toggle('hidden',x!==t));
   document.querySelectorAll('.tab-btn,[data-tab]').forEach(b=>{if(b.dataset.tab)b.classList.toggle('active',b.dataset.tab===t);});
 }
 function flash(msg){
