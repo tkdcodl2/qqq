@@ -196,16 +196,9 @@ details.sandbox .stage-edit{background:var(--surface)}
   .mobile-tabbar button.active{color:var(--accent)}
   .mobile-tabbar .ic{font-size:17px}
   .big-num{font-size:20px}.state-name{font-size:18px}.reco-ticker{font-size:21px}
-  /* 매매이력: 테이블 → 카드형 스택 */
-  #tradeTable thead{display:none}
-  #tradeTable,#tradeTable tbody,#tradeTable tr,#tradeTable td{display:block;width:100%}
-  #tradeTable tr{border-bottom:1px solid var(--border);padding:10px 14px}
-  #tradeTable tr:hover{background:none}
-  #tradeTable td{display:flex;justify-content:space-between;align-items:center;border:none;padding:3px 0;text-align:right;gap:12px}
-  #tradeTable td::before{content:attr(data-l);color:var(--muted);font-size:11px;letter-spacing:.4px;font-weight:600;text-transform:uppercase;white-space:nowrap}
-  #tradeTable td.t-actions{justify-content:flex-end;gap:4px;padding-top:8px}
-  #tradeTable td.t-actions .icon-btn{border:1px solid var(--border);border-radius:7px;padding:6px 12px}
-  #tradeTable td.t-empty{justify-content:center}
+  /* 매매이력: 컴팩트 가로 스크롤 테이블 (사용자 선호) */
+  #tradeTable{min-width:620px}
+  #tradeTable td,#tradeTable th{padding:8px 8px;font-size:12px;white-space:nowrap}
 }
 </style>
 </head>
@@ -383,7 +376,7 @@ details.sandbox .stage-edit{background:var(--surface)}
       <div class="card" style="margin-top:16px">
         <div class="section-title"><span class="dot"></span>월별 데이터</div>
         <div style="overflow:auto;max-height:480px">
-          <table class="nowrap-table"><thead><tr><th>년월</th><th>단계(월말)</th><th>평가금액</th><th>TQQQ</th><th>QLD</th><th>QQQ</th><th>SCHD</th><th>누적수익률</th><th>지수 누적 (QQQ 동일적립)</th></tr></thead>
+          <table class="nowrap-table"><thead><tr><th>년월</th><th>단계(월말)</th><th>평가금액</th><th>TQQQ</th><th>QLD</th><th>QQQ</th><th>SCHD</th><th>누적수익률</th><th>지수 누적 (QQQ 동일적립)</th><th>QQQ 변동성 (월, 연환산)</th></tr></thead>
           <tbody id="btMonthlyBody"></tbody></table>
         </div>
       </div>
@@ -395,7 +388,7 @@ details.sandbox .stage-edit{background:var(--surface)}
         ① <b>일봉 백필(1회, 필수) — 모바일 추천 방법</b>: Supabase 대시보드 → <b>SQL Editor</b> → 패키지의 <span class="mono">backfill.sql</span> 전체를 붙여넣고 <b>Run</b>. DB가 직접 야후에서 전 기간(TQQQ 상장 2010-02~) 일봉을 받아 market_data에 저장합니다. 사전에 Database → Extensions에서 <b>http</b> 확장을 Enable 하세요. 끝나면 행 수·기간이 표시됩니다.<br>
         예비 수단: ⓐ GitHub 앱 → Actions → backfill-market-data → Run workflow (사전에 저장소 Secrets에 SUPABASE_URL/SERVICE_KEY 등록) ⓑ 엣지 펑션 v4 배포 후 <span class="mono">…/fetch-market-data?range=max</span> 호출 ⓒ PC에서 node로 backfill-market-data.mjs 실행.<br><br>
         ② <b>전략 설정 동기화(선택)</b>: Supabase SQL Editor에서 <span class="mono">alter table settings add column if not exists strategy jsonb;</span> 실행 → 설정(비중·파라미터)이 기기 간 동기화됩니다. 컬럼이 없으면 이 브라우저(localStorage)에만 저장됩니다.<br><br>
-        ③ <b>데이터 한계</b>: TQQQ 2010-02 / SCHD 2011-10 상장 이전은 실데이터가 없습니다. SCHD 시세 누락 구간은 고정가(수익률 0%, 현금성)로 처리되며 결과에 경고로 표시됩니다. 닷컴·금융위기(1999–2010) 검증은 합성 데이터 시뮬레이터(sim2.py/sim3.py)를 사용하세요. 앱은 market_data를 최신부터 최대 12,000행까지 로드합니다.
+        ③ <b>데이터 한계</b>: QLD 2006-06 / TQQQ 2010-02 / SCHD 2011-10 상장 이전은 실데이터가 없어 <b>합성 근사</b>로 채웁니다(QQQ 일복리 레버리지·비용 모델 + SCHD 분기앵커 보간). 1999~까지 백테스트하려면 backfill.sql(v2 — QQQ만 있는 날도 행 생성)을 다시 실행하세요. 합성 구간이 포함되면 결과에 경고가 표시됩니다. 앱은 market_data를 최신부터 최대 12,000행까지 로드합니다.
       </div>
     </div>
   </section>
@@ -644,12 +637,60 @@ async function syncAutoMonthly(){
 /* ===================== 전략 엔진 (5단계 레짐 — 2019–2026 시뮬레이션 최적화) ===================== */
 const REG_NAME={0:'저점·반등',2:'정상',3:'과열',4:'고점',5:'저점·방어',6:'하락'};
 const REG_BUY ={0:'TQQQ',2:'TQQQ',3:'QLD',4:'SCHD',5:'SCHD',6:'QQQ'};
+/* ===================== 합성 근사 (v6.4): TQQQ/QLD/SCHD 상장 이전 구간 채움 ===================== */
+/* QLD(2006-06)·TQQQ(2010-02)·SCHD(2011-10) 상장 이전을 QQQ 일별 수익률에서 역방향 합성.
+   레버리지 일복리(일별이라 변동성 잠식 자동 반영) − 보수 0.95%/년 − 금융비용 (L−1)(FFR+0.4%)/년.
+   SCHD는 배당가치 분기 앵커(시뮬레이터와 동일) 기하 보간 후 첫 실측가에 접합.
+   합성 행은 r.synth=true — 백테스트 결과에 근사 경고 표시. */
+const FFR_Y={1999:5.0,2000:6.2,2001:3.9,2002:1.7,2003:1.1,2004:1.35,2005:3.2,2006:5.0,2007:5.0,2008:1.9,2009:0.16,2010:0.18,
+             2011:0.1,2012:0.14,2013:0.11,2014:0.09,2015:0.13,2016:0.4,2017:1.0,
+             2018:2.0,2019:2.2,2020:0.4,2021:0.08,2022:1.7,2023:5.1,2024:5.1,2025:4.3,2026:3.7};
+const SCHD_ANCH=[['1999-03-05',96],['1999-12-31',100],['2000-03-31',98],['2000-06-30',102],['2000-09-29',106],['2000-12-29',110],
+ ['2001-03-30',108],['2001-06-29',114],['2001-09-28',104],['2001-12-28',116],['2002-03-28',120],['2002-06-28',110],
+ ['2002-10-04',95],['2002-12-27',106],['2003-03-28',102],['2003-06-27',117],['2003-09-26',123],['2003-12-31',132],
+ ['2004-06-25',140],['2004-12-31',152],['2005-06-24',156],['2005-12-30',160],['2006-06-30',174],['2006-12-29',188],
+ ['2007-06-29',200],['2007-12-28',192],['2008-03-28',180],['2008-06-27',172],['2008-09-26',160],['2008-11-21',135],
+ ['2008-12-31',144],['2009-03-06',124],['2009-06-26',145],['2009-09-25',158],['2009-12-31',166],['2010-06-25',175],
+ ['2010-12-31',192],['2011-06-24',200],['2011-09-30',180],['2011-12-30',206]];
+function synthesizeMissing(md){
+  if(!md.length) return md;
+  const ffr=d=>(FFR_Y[+d.slice(0,4)]??3.0)/100;
+  // 레버리지 역방향 합성: P[i-1]=P[i]/(1+L·r−비용/252)
+  for(const [col,L] of [['tqqq',3],['qld',2]]){
+    const fi=md.findIndex(r=>r[col]!=null&&!isNaN(+r[col]));
+    if(fi<=0) continue;
+    for(let i=fi-1;i>=0;i--){
+      const r=md[i+1].qqq/md[i].qqq-1;
+      const feeD=(0.0095+(L-1)*(ffr(md[i+1].date)+0.004))/252;
+      const g=1+L*r-feeD;
+      md[i][col]=g>0.01?+(md[i+1][col]/g).toFixed(4):md[i+1][col];
+      md[i].synth=true;
+    }
+  }
+  // SCHD: 분기 앵커 기하 보간 → 첫 실측가에 스케일 접합
+  const si=md.findIndex(r=>r.schd!=null&&!isNaN(+r.schd));
+  if(si>0){
+    const A=SCHD_ANCH.map(([d,v])=>[d,v]);
+    const interp=d=>{
+      if(d<=A[0][0]) return A[0][1];
+      for(let k=0;k<A.length-1;k++){
+        const [d0,v0]=A[k],[d1,v1]=A[k+1];
+        if(d<=d1){ const f=(new Date(d)-new Date(d0))/(new Date(d1)-new Date(d0)); return v0*Math.pow(v1/v0,f); }
+      }
+      return A[A.length-1][1];
+    };
+    const k=+md[si].schd/interp(md[si].date);
+    for(let i=0;i<si;i++){ md[i].schd=+(interp(md[i].date)*k).toFixed(4); md[i].synth=true; }
+  }
+  return md;
+}
+
 /* v6.1: 단계 비중·판정 파라미터를 사용자가 조정 가능 (기본값 = v6.0 정교 모드) */
 const DEFAULT_STRAT={
   weights:{0:[90,10,0,0],2:[80,20,0,0],3:[30,50,0,20],4:[0,0,0,100],5:[0,0,25,75],6:[0,0,100,0]},  // [TQQQ,QLD,QQQ,SCHD] %
   params:{botDD:26,botDD2:20,botExt:12,recDD:4,normDays:130,trailStop:8,reentry:10,
           ovExt:10,ovDays:10,maniaExt:25,matDays:260,matDDR:4,stkRecover:3,stkDrop:8,stkThrust:7,
-          downDDR:10,trendOn:1,trendBand:1}
+          downDDR:10,trendOn:1,trendBand:1,confirmEntry:0,bearGuard:0}
 };
 const PARAM_DEF=[
   ['botDD','저점 진입 낙폭','%','ATH 대비 −X% 도달 시 저점 사이클 진입 (기본 26)'],
@@ -670,6 +711,8 @@ const PARAM_DEF=[
   ['downDDR','하락 조기감지 낙폭','%','52주 고점 −X% & 50일선 이탈 시 하락 단계 (기본 10)'],
   ['trendOn','추세 ON 돌파','%','200일선 +X% 상향 돌파 시 ON (기본 1)'],
   ['trendBand','추세 ON 50일선 허용','%','50일선이 200일선 −X% 이상이어야 ON (기본 1)'],
+  ['confirmEntry','저점 진입 확인','0/1','1이면 저점 신호 시 방어로 진입, 저점 +재진입추력% 확인 후 공격 (기본 0=즉시 공격)'],
+  ['bearGuard','곰가드 (추세하락 공격금지)','거래일','200일선 아래 연속 ≥X일이면 사이클 공격 전환 금지·방어 유지. 0=끔 (v6.4 권장 40)'],
 ];
 let STRAT=JSON.parse(JSON.stringify(DEFAULT_STRAT));
 let TARGET={};
@@ -722,10 +765,12 @@ function computeSeries(md,P){
     o.up=cur;
   }
   // 저점 사이클(엔게이지) + 트레일링 스탑 + 정상화 종료
-  let engaged=false,emode='A',trail=0,elow=1e18,above=0,downF=false,sticky=false,tPeak=0,tLow=1e18;
+  let engaged=false,emode='A',trail=0,elow=1e18,above=0,below=0,downF=false,sticky=false,tPeak=0,tLow=1e18;
   for(const o of out){
     if(isNaN(o.sma200)){o.regime=2;o.engaged=false;o.emode='';continue;}
     above = o.qqq>=o.sma200 ? above+1 : 0;   // 200일선 위 연속 일수
+    below = o.qqq< o.sma200 ? below+1 : 0;   // 200일선 아래 연속 일수
+    const canA = P.bearGuard<=0 || below<P.bearGuard;   // 곰가드: 추세하락 장기화 시 공격 금지
     const bottom = o.dd<=-P.botDD/100 || (o.dd<=-P.botDD2/100 && o.ext200<=-P.botExt/100);
     let enterCyc = bottom && !engaged;
     if(sticky && !engaged){                              // 끈적 고점(이격 +25% 광기): 유지 중
@@ -733,12 +778,16 @@ function computeSeries(md,P){
       if(o.qqq>=tPeak*(1-P.stkRecover/100)) sticky=false;                // 고점 −stkRecover% 이내 회복 -> 즉시 정상 복귀(V반등 캡처)
       else if(tLow<=tPeak*(1-P.stkDrop/100) && o.qqq>=tLow*(1+P.stkThrust/100)){sticky=false; enterCyc=true;}  // -stkDrop% 낙폭 후 +stkThrust% 추력 -> 사이클 진입(반등 캡처)
     }
-    if(enterCyc && !engaged){engaged=true;emode='A';trail=o.qqq;elow=o.qqq;}
+    if(enterCyc && !engaged){
+      engaged=true; elow=o.qqq;
+      if(P.confirmEntry>0 || !canA){emode='D';}                   // 진입확인 또는 곰가드: 방어로 진입
+      else {emode='A';trail=o.qqq;}
+    }
     if(engaged){
       elow=Math.min(elow,o.qqq);
       if(emode==='A'){trail=Math.max(trail,o.qqq); if(o.qqq<trail*(1-P.trailStop/100)){emode='D';elow=o.qqq;}}
-      else if(o.qqq>=elow*(1+P.reentry/100)){emode='A';trail=o.qqq;}
-      if(o.dd>-P.recDD/100 || above>=P.normDays) engaged=false;   // 회복(−recDD%) 또는 정상화(200일선 위 normDays일)로 사이클 종료
+      else if(o.qqq>=elow*(1+P.reentry/100) && canA){emode='A';trail=o.qqq;}   // 곰가드 중엔 공격 재진입 금지
+      if(o.dd>=-P.recDD/100 || above>=P.normDays) engaged=false;  // 회복(−recDD%, 0=전고점) 또는 정상화(200일선 위 normDays일) 종료
     }
     if(engaged){downF=false; sticky=false;}
     else if(!downF){ if(o.ddr<=-P.downDDR/100 && o.qqq<o.sma50 && !sticky) downF=true; }   // 조기 하락 감지: 52주 고점 −downDDR% & 50일선 이탈
@@ -762,7 +811,7 @@ function computeSeries(md,P){
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
 let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null;
-const APP_VERSION='6.3';
+const APP_VERSION='6.4';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
@@ -776,7 +825,7 @@ const schdPx=row=>(row&&row.schd!=null&&!isNaN(+row.schd))?+row.schd:SCHD_FALLBA
 /* ===================== 초기화 ===================== */
 async function init(){
   document.getElementById('appVer').textContent='v'+APP_VERSION;
-  RAW_MD = await getMarketData();
+  RAW_MD = synthesizeMissing(await getMarketData());
   SETTINGS = await getSettings();
   loadStrategy(SETTINGS);                 // 사용자 전략 설정(비중·파라미터) 적용 후 단계 계산
   SERIES = computeSeries(RAW_MD);
@@ -1388,7 +1437,8 @@ function runBacktest(){
   if(sd<SER[0].date) warns.push('⚠️ 요청 시작일('+sd+')보다 데이터가 늦게 시작해 실제 백테스트는 '+SER[i0].date+'부터입니다. (TQQQ 2010-02 상장 — 그 이전 실데이터는 야후에 존재하지 않음)');
   if(i0<200) warns.push('⚠️ 시작일 이전 데이터가 '+i0+'거래일뿐이라 초기 단계 판정(200일선·52주 고점)이 부정확할 수 있습니다.');
   const px=r=>[+r.tqqq, +r.qld, +r.qqq, schdPx(r)];
-  let schdMiss=0, sh=[0,0,0,0], invested=0, rebals=0, peak=0, mdd=0, bsh=0;   // bsh: QQQ 동일적립 벤치마크 주수
+  let schdMiss=0, synthDays=0, sh=[0,0,0,0], invested=0, rebals=0, peak=0, mdd=0, bsh=0;   // bsh: QQQ 동일적립 벤치마크 주수
+  const volA={};   // 월별 QQQ 일수익률 집계 (변동성)
   const days=[], months={};
   const t0=new Date(SER[i0].date+'T00:00:00Z').getTime();
   const yrs=d=>(new Date(d+'T00:00:00Z').getTime()-t0)/31557600000;
@@ -1399,6 +1449,9 @@ function runBacktest(){
   for(let i=i0;i<=i1;i++){
     const r=SER[i], p=px(r), t=TT[r.regime];
     if(r.schd==null||isNaN(+r.schd)) schdMiss++;
+    if(r.synth) synthDays++;
+    if(i>i0){ const ym=r.date.slice(0,7), dr=r.qqq/SER[i-1].qqq-1;
+      const a=volA[ym]||(volA[ym]={n:0,s:0,s2:0}); a.n++; a.s+=dr; a.s2+=dr*dr; }
     if(i===i0){
       if(init0>0){ invested+=init0; flows.push({t:yrs(r.date),v:-init0}); buyAll(init0,t,p); rebals++; }
       lastReg=r.regime; lastWk=wkKey(r.date); lastYm=r.date.slice(0,7);
@@ -1427,6 +1480,9 @@ function runBacktest(){
   const last=days[days.length-1];
   flows.push({t:yrs(last.date),v:last.val});
   const irr=xirr(flows);
+  for(const ym in volA){ const a=volA[ym];
+    if(months[ym]) months[ym].vol = a.n>=2 ? Math.sqrt(Math.max(0,(a.s2-a.s*a.s/a.n)/(a.n-1))*252) : null; }
+  if(synthDays>0) warns.push('⚠️ 기간 중 '+synthDays.toLocaleString()+'거래일은 합성 근사 데이터입니다 (QLD 2006-06 / TQQQ 2010-02 / SCHD 2011-10 상장 이전 — 레버리지 일복리·비용 모델 + SCHD 분기앵커 보간). 해당 구간 결과는 근사치로만 보세요.');
   if(schdMiss>0) warns.push('⚠️ 기간 중 '+schdMiss+'일은 SCHD 시세가 없어 고정가($'+SCHD_FALLBACK+', 수익률 0%·현금성)로 처리했습니다 (SCHD 2011-10 상장).');
   warns.push('⚠️ 일봉 종가 기준 근사 시뮬레이션입니다. 배당·세금·슬리피지·환율 미반영이며, 과거 성과는 미래 수익을 보장하지 않습니다. 투자 조언이 아닙니다.');
   BT_RES={i0,i1,s:SER.slice(i0,i1+1),strat:JSON.parse(JSON.stringify(S)),days,months:Object.values(months),irr,mdd,rebals,invested:last.invested,final:last.val,bench:last.bench,warns};
@@ -1480,7 +1536,8 @@ function renderBtResults(){
       <td class="mono">${fmtUSD(m.val)}</td>
       <td class="mono">${cell(m.vals[0])}</td><td class="mono">${cell(m.vals[1])}</td><td class="mono">${cell(m.vals[2])}</td><td class="mono">${cell(m.vals[3])}</td>
       <td class="mono ${cum>=0?'up':'down'}">${pct(cum)}</td>
-      <td class="mono ${cum>=bcum?'muted':'neutral'}">${pct(bcum)}</td></tr>`;
+      <td class="mono ${cum>=bcum?'muted':'neutral'}">${pct(bcum)}</td>
+      <td class="mono ${m.vol!=null&&m.vol>=0.30?'down':m.vol!=null&&m.vol>=0.20?'neutral':'muted'}">${m.vol!=null?(m.vol*100).toFixed(0)+'%':'—'}</td></tr>`;
   }).join('');
   document.getElementById('btWarn').innerHTML=R.warns.join('<br>');
   document.getElementById('btResults').scrollIntoView({behavior:'smooth',block:'start'});
