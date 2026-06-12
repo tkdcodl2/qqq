@@ -190,6 +190,7 @@ details.sandbox .stage-edit{background:var(--surface)}
   #setupGrid{grid-template-columns:1fr !important}
 }
 .tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:0 4px}
+.tbl-scroll td.tkr,.tbl-scroll th:first-child{white-space:nowrap}
 @media(max-width:560px){
   .tabs{display:none}
   .wrap{padding-left:12px;padding-right:12px;padding-bottom:calc(86px + env(safe-area-inset-bottom))}
@@ -804,7 +805,7 @@ function computeSeries(md,P,EX){
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
 let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null;
-const APP_VERSION='7.6';
+const APP_VERSION='7.7';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
@@ -1274,9 +1275,20 @@ async function renderProfit(){
     ['평가금액', curVal, '','amt',null],
     ['실현손익', totalRealized, totalRealized>=0?'up':'down','amt',null],
     ['배당금', totalDividend, totalDividend>0?'up':'','amt',null],
-    ['평가손익', accPL, accPL>=0?'up':'down','amtpct',accRet],
+    ['총수익 (총자산−입금누계)', accPL, accPL>=0?'up':'down','amtpct',accRet],
   ];
   const cumEl=document.getElementById('cumSummary');
+  // 정합성: 총수익은 항상 실현+배당+평가손익과 같아야 함. 다르면 장부(매수 없는 매도·입금 누락 등) 불일치.
+  const expectPL=totalRealized+totalDividend+evalPL;
+  const ledgerGap=accPL-expectPL;
+  let warnEl=document.getElementById('cumWarn');
+  if(!warnEl&&cumEl){ warnEl=document.createElement('p'); warnEl.id='cumWarn'; warnEl.className='note'; warnEl.style.cssText='margin-top:10px'; cumEl.parentNode.insertBefore(warnEl,cumEl.nextSibling); }
+  if(warnEl){
+    if(Math.abs(ledgerGap)>1){
+      warnEl.innerHTML='⚠️ <b>기록 불일치 '+won(ledgerGap)+'</b> — 총수익(총자산−입금누계)이 실현손익+배당+평가손익('+won(expectPL)+')과 다릅니다. 매수 기록 없이 매도를 입력했거나, 입금(이체) 기록이 누락된 경우입니다. 매매이력에서 해당 거래의 짝(매수 또는 입금)을 추가하면 맞춰집니다.';
+      warnEl.style.color='var(--gold)';
+    } else { warnEl.textContent='✓ 기록 정합: 총수익 = 실현손익 + 배당 + 평가손익'; warnEl.style.color='var(--muted)'; }
+  }
   if(cumEl) cumEl.innerHTML=cumCards.map(([l,v,c,kind,ret])=>{
     const cardCls=c==='up'?'green':c==='down'?'red':'blue';
     const amtPct=(kind==='amtpct'&&ret!=null)?`<span class="card-pct ${c}">(${pct(ret)})</span>`:'';
