@@ -169,6 +169,13 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 .wsum{margin-left:auto;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
 .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 14px}
 .bt-mini-label{flex:0 0 86px;font-size:11.5px;font-weight:700}
+details.sandbox{margin-top:16px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);padding:0 14px}
+details.sandbox summary{cursor:pointer;padding:12px 0;font-weight:600;font-size:13px;color:var(--text);list-style:none;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+details.sandbox summary::-webkit-details-marker{display:none}
+details.sandbox summary::before{content:'▸';color:var(--accent)}
+details.sandbox[open] summary::before{content:'▾'}
+details.sandbox .inner{padding:4px 0 14px}
+details.sandbox .stage-edit{background:var(--surface)}
 @media(max-width:760px){.pgrid{grid-template-columns:1fr 1fr}.stage-edit .chip{flex-basis:100%}}
 
 /* mobile */
@@ -335,13 +342,29 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <button class="btn primary" onclick="runBacktest()">백테스트 실행</button>
-        <button class="btn ghost" onclick="openSettings()">전략 설정 (비중·파라미터)</button>
         <span class="muted" id="btDataInfo" style="font-size:12px"></span>
       </div>
-      <div id="btStratSummary" style="margin-top:16px"></div>
+      <details class="sandbox" id="btStratBox">
+        <summary>전략 샌드박스 — 단계별 비중 · 파라미터 (이 백테스트에만 사용)</summary>
+        <div class="inner">
+          <p class="note" style="margin-bottom:10px">여기서 바꾼 값은 <b>백테스트에만</b> 쓰이고 실제 전략(대시보드)에는 영향이 없습니다. 결과가 마음에 들면 결과 화면의 <b>“이 설정을 실제 전략에 적용”</b> 버튼으로 반영하세요.</p>
+          <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+            <button class="btn ghost" style="padding:8px 14px;font-size:13px" onclick="btLoadLive()">현재 실제 설정 불러오기</button>
+            <button class="btn ghost" style="padding:8px 14px;font-size:13px" onclick="btResetDefault()">초기화</button>
+          </div>
+          <div class="abar-label">단계별 종목 비중 (%) — 합계 100 필수</div>
+          <div id="wEditorBt"></div>
+          <div class="abar-label" style="margin-top:12px">판정 파라미터</div>
+          <div id="pEditorBt" class="pgrid"></div>
+        </div>
+      </details>
     </div>
     <div id="btResults" class="hidden">
       <div class="summary-grid" id="btSummary" style="margin-top:16px"></div>
+      <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center">
+        <button class="btn primary" onclick="applyBtStrategy()">이 설정을 실제 전략에 적용</button>
+        <span class="muted" style="font-size:12px">방금 실행한 백테스트의 비중·파라미터를 대시보드 전략으로 저장합니다.</span>
+      </div>
       <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:16px;gap:16px" id="btChartRow">
         <div class="card"><div class="section-title"><span class="dot"></span>기간 단계 차트 (QQQ) <span class="muted" style="font-family:Inter;font-size:10.5px;letter-spacing:0;margin-left:8px">드래그 확대 · 더블클릭 초기화</span></div><div style="height:300px"><canvas id="btPriceChart"></canvas></div></div>
         <div class="card"><div class="section-title"><span class="dot"></span>평가금액 추이 ($)</div><div style="height:300px"><canvas id="btAssetChart"></canvas></div></div>
@@ -358,9 +381,11 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     <div class="card" style="margin-top:16px">
       <div class="section-title"><span class="dot"></span>데이터 적재 가이드 (Supabase)</div>
       <div class="note">
-        ① <b>일봉 백필(1회, 필수)</b>: 본인 PC에서 <span class="mono">scripts/backfill-market-data.mjs</span> 상단의 <span class="mono">RANGE</span>를 <span class="mono">"max"</span>로 바꾼 뒤 아래처럼 실행하면 TQQQ 상장(2010-02)부터 전 기간 일봉이 market_data 테이블에 저장됩니다.<br>
-        <span class="mono">SUPABASE_URL="https://xxxx.supabase.co" SERVICE_KEY="service_role키" node backfill-market-data.mjs</span><br><br>
-        ② <b>전략 설정 동기화(선택)</b>: Supabase SQL Editor에서 <span class="mono">alter table settings add column if not exists strategy jsonb;</span> 를 실행하면 설정(비중·파라미터)이 기기 간 동기화됩니다. 컬럼이 없으면 이 브라우저(localStorage)에만 저장됩니다.<br><br>
+        ① <b>일봉 백필(1회, 필수) — 모바일 가능</b>: 엣지 펑션을 v4(백필 지원)로 업데이트한 뒤, Safari에서 아래 주소를 열면 TQQQ 상장(2010-02)부터 전 기간 일봉이 market_data에 저장됩니다.<br>
+        <span class="mono">…/functions/v1/fetch-market-data?range=max</span><br>
+        업데이트 방법: Supabase 대시보드 → Edge Functions → fetch-market-data → 코드 편집 → 패키지의 <span class="mono">supabase/functions/fetch-market-data/index.ts</span> 내용으로 교체 → Deploy. Safari에서 직접 호출하려면 함수 설정의 <b>Verify JWT를 꺼야</b> 합니다(끄면 누구나 호출 가능하지만 공개 시세 upsert만 수행하므로 위험은 낮음 — 원하면 백필 후 다시 켜세요).<br>
+        (PC가 있다면 기존 방법도 가능: <span class="mono">RANGE="max"</span>로 바꾼 backfill-market-data.mjs를 node로 실행)<br><br>
+        ② <b>전략 설정 동기화(선택)</b>: Supabase SQL Editor에서 <span class="mono">alter table settings add column if not exists strategy jsonb;</span> 실행 → 설정(비중·파라미터)이 기기 간 동기화됩니다. 컬럼이 없으면 이 브라우저(localStorage)에만 저장됩니다.<br><br>
         ③ <b>데이터 한계</b>: TQQQ 2010-02 / SCHD 2011-10 상장 이전은 실데이터가 없습니다. SCHD 시세 누락 구간은 고정가(수익률 0%, 현금성)로 처리되며 결과에 경고로 표시됩니다. 닷컴·금융위기(1999–2010) 검증은 합성 데이터 시뮬레이터(sim2.py/sim3.py)를 사용하세요. 앱은 market_data를 최신부터 최대 12,000행까지 로드합니다.
       </div>
     </div>
@@ -388,7 +413,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     <div id="pEditor" class="pgrid"></div>
     <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
       <button class="btn primary" style="flex:1;min-width:160px" onclick="saveStrategyUI()">저장 후 적용</button>
-      <button class="btn ghost" onclick="resetStrategyUI()">기본값(v6.0) 복원</button>
+      <button class="btn ghost" onclick="resetStrategyUI()">초기화</button>
       <button class="btn ghost" onclick="closeModal('settingsModal')">취소</button>
     </div>
     <p class="note" id="stratSaveNote" style="margin-top:10px"></p>
@@ -727,8 +752,8 @@ function computeSeries(md,P){
 /* ===================== 전역 상태 ===================== */
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
-let btPriceC=null, btAssetC=null, BT_RES=null;
-const APP_VERSION='6.1';
+let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null;
+const APP_VERSION='6.2';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
@@ -754,7 +779,7 @@ async function init(){
   renderModalRegimes();
   onCadenceChange();
   initBtDefaults();
-  btRenderStratSummary();
+  renderBtSandbox(STRAT);
   await renderTrades();
   await renderProfit();
   await syncAutoMonthly();
@@ -1228,26 +1253,37 @@ async function renderProfit(){
 }
 
 /* ===================== 전략 설정 (v6.1) ===================== */
-function renderStratEditor(){
+function renderStratEditorInto(pfx, wId, pId, S){
   const order=[0,5,6,2,3,4], TK=['TQQQ','QLD','QQQ','SCHD'];
-  document.getElementById('wEditor').innerHTML=order.map(reg=>{
-    const w=STRAT.weights[reg];
+  document.getElementById(wId).innerHTML=order.map(reg=>{
+    const w=S.weights[reg];
     return `<div class="stage-edit"><span class="chip" style="color:${REG_LINE[reg]};background:${REG_LINE[reg]}2e">${REG_NAME[reg]}</span>`
-      + TK.map((k,i)=>`<label class="wcell"><span style="color:${ALLOC_COLORS[k]}">${k}</span><input type="number" min="0" max="100" step="5" id="w_${reg}_${i}" value="${w[i]}" oninput="wSum(${reg})"></label>`).join('')
-      + `<span class="wsum" id="wsum_${reg}">100%</span></div>`;
+      + TK.map((k,i)=>`<label class="wcell"><span style="color:${ALLOC_COLORS[k]}">${k}</span><input type="number" min="0" max="100" step="5" id="w_${pfx}${reg}_${i}" value="${w[i]}" oninput="wSum('${pfx}',${reg})"></label>`).join('')
+      + `<span class="wsum" id="wsum_${pfx}${reg}">100%</span></div>`;
   }).join('');
-  order.forEach(wSum);
-  document.getElementById('pEditor').innerHTML=PARAM_DEF.map(([k,lab,unit,hint])=>
+  order.forEach(reg=>wSum(pfx,reg));
+  document.getElementById(pId).innerHTML=PARAM_DEF.map(([k,lab,unit,hint])=>
     `<div class="field" style="margin-bottom:6px"><label>${lab} <span class="muted">(${unit})</span></label>
-     <input type="number" step="any" id="p_${k}" value="${STRAT.params[k]}">
+     <input type="number" step="any" id="p_${pfx}${k}" value="${S.params[k]}">
      <div class="muted" style="font-size:10.5px;margin-top:3px;line-height:1.4">${hint}</div></div>`).join('');
 }
-function wSum(reg){
-  let s=0; for(let i=0;i<4;i++) s+=(+document.getElementById(`w_${reg}_${i}`).value||0);
-  const el=document.getElementById('wsum_'+reg);
-  el.textContent=(Math.round(s*10)/10)+'%';
-  el.className='wsum '+(Math.abs(s-100)<0.01?'up':'down');
+function renderStratEditor(){ renderStratEditorInto('','wEditor','pEditor',STRAT); }
+function wSum(pfx,reg){
+  let s=0; for(let i=0;i<4;i++) s+=(+document.getElementById(`w_${pfx}${reg}_${i}`).value||0);
+  const el=document.getElementById('wsum_'+pfx+reg);
+  if(el){ el.textContent=(Math.round(s*10)/10)+'%'; el.className='wsum '+(Math.abs(s-100)<0.01?'up':'down'); }
   return s;
+}
+/* 에디터(접두사 pfx)에서 전략 객체 수집 — 비중 합 100% 검증, 실패 시 null */
+function collectStrat(pfx){
+  const order=[0,5,6,2,3,4];
+  const w={};
+  for(const reg of order){
+    if(Math.abs(wSum(pfx,reg)-100)>0.01){ flash(REG_NAME[reg]+' 단계 비중 합이 100%가 아닙니다'); return null; }
+    w[reg]=[0,1,2,3].map(i=>+document.getElementById(`w_${pfx}${reg}_${i}`).value||0);
+  }
+  const p={}; PARAM_DEF.forEach(([k])=>{ const v=parseFloat(document.getElementById('p_'+pfx+k).value); p[k]=isNaN(v)?DEFAULT_STRAT.params[k]:v; });
+  return {weights:w,params:p};
 }
 function openSettings(){
   renderStratEditor();
@@ -1255,11 +1291,8 @@ function openSettings(){
   document.getElementById('settingsModal').classList.add('open');
 }
 async function saveStrategyUI(){
-  const order=[0,5,6,2,3,4];
-  for(const reg of order){ if(Math.abs(wSum(reg)-100)>0.01){ flash(REG_NAME[reg]+' 단계 비중 합이 100%가 아닙니다'); return; } }
-  const w={}; order.forEach(reg=>{ w[reg]=[0,1,2,3].map(i=>+document.getElementById(`w_${reg}_${i}`).value||0); });
-  const p={}; PARAM_DEF.forEach(([k])=>{ const v=parseFloat(document.getElementById('p_'+k).value); p[k]=isNaN(v)?DEFAULT_STRAT.params[k]:v; });
-  STRAT={weights:w,params:p};
+  const S=collectStrat(''); if(!S) return;
+  STRAT=S;
   await persistStrategy();
   applyStrategy();
   closeModal('settingsModal');
@@ -1268,7 +1301,7 @@ async function saveStrategyUI(){
 function resetStrategyUI(){
   STRAT=JSON.parse(JSON.stringify(DEFAULT_STRAT));
   renderStratEditor();
-  document.getElementById('stratSaveNote').textContent='기본값(v6.0 정교 모드)으로 되돌렸습니다. “저장 후 적용”을 눌러 확정하세요.';
+  document.getElementById('stratSaveNote').textContent='초기화(v6.0 정교 모드 기본값)했습니다. “저장 후 적용”을 눌러 확정하세요.';
 }
 async function persistStrategy(){
   try{ localStorage.setItem('adca_strategy', JSON.stringify(STRAT)); }catch(e){}
@@ -1286,12 +1319,11 @@ function loadStrategy(settings){
 }
 function applyStrategy(){
   rebuildTarget();
-  if(!RAW_MD.length){ btRenderStratSummary(); return; }   // 데이터 로드 전 저장 시 가드
+  if(!RAW_MD.length) return;            // 데이터 로드 전 저장 시 가드
   SERIES=computeSeries(RAW_MD);
   CUR=SERIES[SERIES.length-1];
   renderDashboard();
   renderModalRegimes();
-  btRenderStratSummary();
   renderProfit();                       // 목표달성 매수/매도 주수 재계산
 }
 
@@ -1313,17 +1345,26 @@ function initBtDefaults(){
   const info=document.getElementById('btDataInfo');
   if(info) info.textContent='데이터: '+SERIES[0].date+' ~ '+SERIES[SERIES.length-1].date+' ('+SERIES.length.toLocaleString()+'거래일)';
 }
-function btRenderStratSummary(){
-  const el=document.getElementById('btStratSummary'); if(!el) return;
-  const order=[0,5,6,2,3,4];
-  el.innerHTML='<div class="abar-label">현재 전략 비중 — “전략 설정”에서 변경</div>'+order.map(reg=>{
-    const t=TARGET[reg], segs=[['TQQQ',t[0]],['QLD',t[1]],['QQQ',t[2]],['SCHD',t[3]]].filter(x=>x[1]>0);
-    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span class="bt-mini-label" style="color:${REG_LINE[reg]}">${REG_NAME[reg]}</span>`
-      + `<div class="abar" style="flex:1;height:14px">${segs.map(([n,v])=>`<div title="${n} ${Math.round(v*100)}%" style="width:${v*100}%;background:${ALLOC_GRAD[n]}"><span class="abar-seg-p" style="font-size:9.5px">${v>=0.12?Math.round(v*100)+'%':''}</span></div>`).join('')}</div></div>`;
-  }).join('');
+function renderBtSandbox(S){
+  if(!document.getElementById('wEditorBt')) return;
+  BT_STRAT=JSON.parse(JSON.stringify(S||BT_STRAT||STRAT));
+  renderStratEditorInto('bt_','wEditorBt','pEditorBt',BT_STRAT);
+}
+function btLoadLive(){ renderBtSandbox(STRAT); flash('현재 실제 설정을 샌드박스로 불러왔습니다'); }
+function btResetDefault(){ renderBtSandbox(DEFAULT_STRAT); flash('샌드박스를 초기화(v6.0 기본값)했습니다'); }
+async function applyBtStrategy(){
+  if(!BT_RES||!BT_RES.strat){ flash('먼저 백테스트를 실행하세요'); return; }
+  STRAT=JSON.parse(JSON.stringify(BT_RES.strat));
+  await persistStrategy();
+  applyStrategy();
+  flash('백테스트 설정이 실제 전략에 적용되었습니다');
 }
 function runBacktest(){
   if(!SERIES.length){flash('시세 데이터가 없습니다');return;}
+  const S=collectStrat('bt_'); if(!S) return;          // 샌드박스 전략 수집 (백테스트 전용)
+  BT_STRAT=S;
+  const SER=computeSeries(RAW_MD,S.params);            // 샌드박스 파라미터로 단계 재판정
+  const TT={}; for(const k in S.weights) TT[k]=S.weights[k].map(v=>v/100);
   const sd=document.getElementById('bt_start').value, ed=document.getElementById('bt_end').value;
   const init0=+document.getElementById('bt_init').value||0;
   const contrib=+document.getElementById('bt_contrib').value||0;
@@ -1331,21 +1372,21 @@ function runBacktest(){
   const fee=(+document.getElementById('bt_fee').value||0)/100;
   if(!sd||!ed||sd>=ed){flash('기간을 확인하세요');return;}
   if(init0<=0&&contrib<=0){flash('초기 투자금 또는 적립금을 입력하세요');return;}
-  const i0=SERIES.findIndex(r=>r.date>=sd);
-  let i1=-1; for(let i=SERIES.length-1;i>=0;i--){ if(SERIES[i].date<=ed){i1=i;break;} }
-  if(i0<0||i1<0||i1-i0<20){flash('기간 내 데이터가 부족합니다 (데이터: '+SERIES[0].date+' ~ '+SERIES[SERIES.length-1].date+')');return;}
+  const i0=SER.findIndex(r=>r.date>=sd);
+  let i1=-1; for(let i=SER.length-1;i>=0;i--){ if(SER[i].date<=ed){i1=i;break;} }
+  if(i0<0||i1<0||i1-i0<20){flash('기간 내 데이터가 부족합니다 (데이터: '+SER[0].date+' ~ '+SER[SER.length-1].date+')');return;}
   const warns=[];
   if(i0<200) warns.push('⚠️ 시작일 이전 데이터가 '+i0+'거래일뿐이라 초기 단계 판정(200일선·52주 고점)이 부정확할 수 있습니다.');
   const px=r=>[+r.tqqq, +r.qld, +r.qqq, schdPx(r)];
   let schdMiss=0, sh=[0,0,0,0], invested=0, rebals=0, peak=0, mdd=0;
   const days=[], months={};
-  const t0=new Date(SERIES[i0].date+'T00:00:00Z').getTime();
+  const t0=new Date(SER[i0].date+'T00:00:00Z').getTime();
   const yrs=d=>(new Date(d+'T00:00:00Z').getTime()-t0)/31557600000;
   const flows=[];
   let lastReg=null, lastWk=null, lastYm=null;
   const buyAll=(amt,t,p)=>{ for(let k=0;k<4;k++){ const a=amt*t[k]; if(a>0&&p[k]>0&&isFinite(p[k])) sh[k]+=a*(1-fee)/p[k]; } };
   for(let i=i0;i<=i1;i++){
-    const r=SERIES[i], p=px(r), t=TARGET[r.regime];
+    const r=SER[i], p=px(r), t=TT[r.regime];
     if(r.schd==null||isNaN(+r.schd)) schdMiss++;
     if(i===i0){
       if(init0>0){ invested+=init0; flows.push({t:yrs(r.date),v:-init0}); buyAll(init0,t,p); rebals++; }
@@ -1376,7 +1417,7 @@ function runBacktest(){
   const irr=xirr(flows);
   if(schdMiss>0) warns.push('⚠️ 기간 중 '+schdMiss+'일은 SCHD 시세가 없어 고정가($'+SCHD_FALLBACK+', 수익률 0%·현금성)로 처리했습니다 (SCHD 2011-10 상장).');
   warns.push('⚠️ 일봉 종가 기준 근사 시뮬레이션입니다. 배당·세금·슬리피지·환율 미반영이며, 과거 성과는 미래 수익을 보장하지 않습니다. 투자 조언이 아닙니다.');
-  BT_RES={i0,i1,days,months:Object.values(months),irr,mdd,rebals,invested:last.invested,final:last.val,warns};
+  BT_RES={i0,i1,s:SER.slice(i0,i1+1),strat:JSON.parse(JSON.stringify(S)),days,months:Object.values(months),irr,mdd,rebals,invested:last.invested,final:last.val,warns};
   renderBtResults();
 }
 function renderBtResults(){
@@ -1397,7 +1438,7 @@ function renderBtResults(){
   // 기간 단계 차트 (메인과 동일 렌더링)
   const pc=document.getElementById('btPriceChart');
   if(btPriceC)btPriceC.destroy();
-  btPriceC=buildRegimeChart(pc, SERIES.slice(R.i0,R.i1+1));
+  btPriceC=buildRegimeChart(pc, R.s);
   pc.ondblclick=()=>{ if(btPriceC&&btPriceC.resetZoom) btPriceC.resetZoom(); };
   // 평가금액 추이
   const ac=document.getElementById('btAssetChart');
