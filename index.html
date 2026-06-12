@@ -381,10 +381,8 @@ details.sandbox .stage-edit{background:var(--surface)}
     <div class="card" style="margin-top:16px">
       <div class="section-title"><span class="dot"></span>데이터 적재 가이드 (Supabase)</div>
       <div class="note">
-        ① <b>일봉 백필(1회, 필수) — 모바일 가능</b>: 엣지 펑션을 v4(백필 지원)로 업데이트한 뒤, Safari에서 아래 주소를 열면 TQQQ 상장(2010-02)부터 전 기간 일봉이 market_data에 저장됩니다.<br>
-        <span class="mono">…/functions/v1/fetch-market-data?range=max</span><br>
-        업데이트 방법: Supabase 대시보드 → Edge Functions → fetch-market-data → 코드 편집 → 패키지의 <span class="mono">supabase/functions/fetch-market-data/index.ts</span> 내용으로 교체 → Deploy. Safari에서 직접 호출하려면 함수 설정의 <b>Verify JWT를 꺼야</b> 합니다(끄면 누구나 호출 가능하지만 공개 시세 upsert만 수행하므로 위험은 낮음 — 원하면 백필 후 다시 켜세요).<br>
-        (PC가 있다면 기존 방법도 가능: <span class="mono">RANGE="max"</span>로 바꾼 backfill-market-data.mjs를 node로 실행)<br><br>
+        ① <b>일봉 백필(1회, 필수) — 모바일 추천 방법</b>: Supabase 대시보드 → <b>SQL Editor</b> → 패키지의 <span class="mono">backfill.sql</span> 전체를 붙여넣고 <b>Run</b>. DB가 직접 야후에서 전 기간(TQQQ 상장 2010-02~) 일봉을 받아 market_data에 저장합니다. 사전에 Database → Extensions에서 <b>http</b> 확장을 Enable 하세요. 끝나면 행 수·기간이 표시됩니다.<br>
+        예비 수단: ⓐ GitHub 앱 → Actions → backfill-market-data → Run workflow (사전에 저장소 Secrets에 SUPABASE_URL/SERVICE_KEY 등록) ⓑ 엣지 펑션 v4 배포 후 <span class="mono">…/fetch-market-data?range=max</span> 호출 ⓒ PC에서 node로 backfill-market-data.mjs 실행.<br><br>
         ② <b>전략 설정 동기화(선택)</b>: Supabase SQL Editor에서 <span class="mono">alter table settings add column if not exists strategy jsonb;</span> 실행 → 설정(비중·파라미터)이 기기 간 동기화됩니다. 컬럼이 없으면 이 브라우저(localStorage)에만 저장됩니다.<br><br>
         ③ <b>데이터 한계</b>: TQQQ 2010-02 / SCHD 2011-10 상장 이전은 실데이터가 없습니다. SCHD 시세 누락 구간은 고정가(수익률 0%, 현금성)로 처리되며 결과에 경고로 표시됩니다. 닷컴·금융위기(1999–2010) 검증은 합성 데이터 시뮬레이터(sim2.py/sim3.py)를 사용하세요. 앱은 market_data를 최신부터 최대 12,000행까지 로드합니다.
       </div>
