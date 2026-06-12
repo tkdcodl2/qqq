@@ -461,6 +461,7 @@ details.sandbox .stage-edit{background:var(--surface)}
         <tr><td class="tkr" style="color:#ff2222">광기 방어</td><td>200일선 이격 <b>+25%</b> & 고점권(−3% 이내)</td><td class="mono">즉시 전량 SCHD. 해제: 고점 −3% 회복 → 복귀 시작 / −8% 낙폭 후 +7% 추력 → 전량 재진입</td></tr>
         <tr><td class="tkr" style="color:#e35454">급락</td><td>50일 고점 대비 <b>−8% ~ −30%</b> (코로나·관세형 급락)</td><td class="mono">낙폭에 비례해 TQQQ 상한을 매주 하향 (−30%에서 0%) — 급락 한 달이면 주 단위 4번에 나눠 피신</td></tr>
         <tr><td class="tkr" style="color:#3d89c9">추세 이탈</td><td>200일선 아래 <b>20거래일(≈4주) 연속</b></td><td class="mono">전량 SCHD</td></tr>
+        <tr><td class="tkr" style="color:#46d68c">▲ 추력 복귀</td><td>이탈 중 <b>저점 대비 +15% 반등 & 50일선 위</b> — 200일선 회복을 기다리지 않는 V반등 캡처(2020.3·2025.4형). 발동 시 차트에 ▲ 표시</td><td class="mono">즉시 복귀 시작 + 매주 <b>+20%p</b> 가속 (100% 도달·트림 신호·재이탈 시 해제). 재이탈 판정은 200일선 아래 20거래일을 <b>새로</b> 카운트 — 추력 직후 곧바로 재이탈하지 않음</td></tr>
         <tr><td class="tkr" style="color:#46d68c">복귀</td><td>위 신호가 모두 꺼짐. 이탈 후엔 ①200일선 <b>+1%</b> 재돌파(50일선 동반) <b>또는</b> ②저점 <b>+15%</b> 추력 & 50일선 위 (V반등 캡처, 차트 ▲ 표시)</td><td class="mono">추력 복귀는 매주 <b>+20%p</b> 가속, 그 외 매주 +10%p (100%까지)</td></tr>
       </tbody>
     </table></div>
@@ -726,7 +727,7 @@ let STRAT=JSON.parse(JSON.stringify(DEFAULT_STRAT));
 const tgtOf=r=>{ const w=(r&&r.w!=null)?r.w:1; return [w,0,0,1-w]; };   // [TQQQ,QLD,QQQ,SCHD]
 const REG_SUB={
   2:'추세 위 + 신호 없음. TQQQ 100%를 들고 매주 기계적으로 적립합니다. 대부분의 시간을 여기서 보냅니다.',
-  1:'트림·방어가 끝나고 TQQQ 100%로 돌아가는 중. 매주 복귀 속도(기본 10%p)만큼 SCHD→TQQQ로 옮깁니다. 적립도 같은 목표 비중으로.',
+  1:'트림·방어가 끝나고 TQQQ 100%로 돌아가는 중. 매주 복귀 속도(기본 10%p)만큼 SCHD→TQQQ로 옮깁니다. 이탈 후 저점 +15% 추력으로 복귀한 경우(차트 ▲)는 매주 +20%p로 가속해 V반등을 캡처합니다. 적립도 같은 목표 비중으로.',
   3:'주간 RSI 70 이상 또는 성숙 천장(200일선 위 1년+ & 전고점 98% 이내). 고점을 못 맞추는 대신 매주 10%p씩 미리 덜어냅니다. 신호가 꺼지면 즉시 복귀 시작.',
   4:'200일선 이격 +25% 광기(1999말·2020.8형). 전량 SCHD로 피신. 고점 −3% 회복 시 정상 복귀, −8% 낙폭 후 +7% 추력이면 전량 재진입(V반등 캡처).',
   5:'우상향 중 갑작스러운 급락(2020.3 코로나·2025.4 관세형). 50일 고점 대비 −8%부터 낙폭에 비례해 TQQQ 상한을 매주 끌어내려 −30%에서 전량 SCHD. 낙폭이 줄면 상한이 풀려 자동 복귀합니다.',
@@ -805,7 +806,7 @@ function computeSeries(md,P,EX){
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
 let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null;
-const APP_VERSION='7.7';
+const APP_VERSION='7.8';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
@@ -1272,7 +1273,9 @@ async function renderProfit(){
   const cumCards=[
     ['총자산', totalAssets, '','amt',null],
     ['누적원금 (입금누계)', netDeposits, '','amt',null],
+    ['매수원금 (보유분)', invested, '','amt',null],
     ['평가금액', curVal, '','amt',null],
+    ['현금', cash, '','amt',null],
     ['실현손익', totalRealized, totalRealized>=0?'up':'down','amt',null],
     ['배당금', totalDividend, totalDividend>0?'up':'','amt',null],
     ['총수익 (총자산−입금누계)', accPL, accPL>=0?'up':'down','amtpct',accRet],
