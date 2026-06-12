@@ -823,7 +823,7 @@ function computeSeries(md,P,EX){
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
 let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null;
-const APP_VERSION='6.5';
+const APP_VERSION='6.6';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
@@ -1463,7 +1463,7 @@ function runBacktest(){
   const BM_IDX={TQQQ:0,QLD:1,QQQ:2,SCHD:3};
   const bms=['QQQ','QLD','TQQQ','SCHD'].filter(k=>{const e=document.getElementById('bt_bm_'+k);return e&&e.checked;});
   let schdMiss=0, synthDays=0, sh=[0,0,0,0], invested=0, rebals=0, peak=0, mdd=0;
-  const bsh={}; bms.forEach(k=>bsh[k]=0);   // 선택된 비교 지수별 동일적립 주수
+  const bsh={}, bmPeak={}, bmMdd={}; bms.forEach(k=>{bsh[k]=0;bmPeak[k]=0;bmMdd[k]=0;});   // 선택된 비교 지수별 동일적립 주수·MDD
   const volA={};   // 월별 QQQ 일수익률 집계 (변동성)
   const days=[], months={};
   const t0=new Date(SER[i0].date+'T00:00:00Z').getTime();
@@ -1498,7 +1498,8 @@ function runBacktest(){
       }
     }
     const val=sh.reduce((a,q,k)=>a+q*p[k],0);
-    const bm={}; bms.forEach(nm=>bm[nm]=bsh[nm]*p[BM_IDX[nm]]);
+    const bm={}; bms.forEach(nm=>{ const v=bsh[nm]*p[BM_IDX[nm]]; bm[nm]=v;
+      bmPeak[nm]=Math.max(bmPeak[nm],v); if(bmPeak[nm]>0) bmMdd[nm]=Math.min(bmMdd[nm],v/bmPeak[nm]-1); });
     peak=Math.max(peak,val); if(peak>0) mdd=Math.min(mdd,val/peak-1);
     days.push({date:r.date,val,invested,bm,regime:r.regime});
     months[r.date.slice(0,7)]={ym:r.date.slice(0,7),regime:r.regime,val,invested,bm,vals:sh.map((q,k)=>q*p[k])};
@@ -1511,7 +1512,7 @@ function runBacktest(){
   if(synthDays>0) warns.push('⚠️ 기간 중 '+synthDays.toLocaleString()+'거래일은 합성 근사 데이터입니다 (QLD 2006-06 / TQQQ 2010-02 / SCHD 2011-10 상장 이전 — 레버리지 일복리·비용 모델 + SCHD 분기앵커 보간). 해당 구간 결과는 근사치로만 보세요.');
   if(schdMiss>0) warns.push('⚠️ 기간 중 '+schdMiss+'일은 SCHD 시세가 없어 고정가($'+SCHD_FALLBACK+', 수익률 0%·현금성)로 처리했습니다 (SCHD 2011-10 상장).');
   warns.push('⚠️ 일봉 종가 기준 근사 시뮬레이션입니다. 배당·세금·슬리피지·환율 미반영이며, 과거 성과는 미래 수익을 보장하지 않습니다. 투자 조언이 아닙니다.');
-  BT_RES={i0,i1,s:SER.slice(i0,i1+1),strat:JSON.parse(JSON.stringify(S)),days,months:Object.values(months),irr,mdd,rebals,invested:last.invested,final:last.val,bms,bm:last.bm,warns};
+  BT_RES={i0,i1,s:SER.slice(i0,i1+1),strat:JSON.parse(JSON.stringify(S)),days,months:Object.values(months),irr,mdd,rebals,invested:last.invested,final:last.val,bms,bm:last.bm,bmMdd,warns};
   renderBtResults();
 }
 function renderBtResults(){
@@ -1529,8 +1530,9 @@ function renderBtResults(){
     ['MDD', (R.mdd*100).toFixed(1)+'%', 'down', '일별 평가금액 기준'],
     ['리밸런싱', R.rebals+'회', '', (R.rebals/years).toFixed(1)+'회/년 (단계 전환 시)'],
   ];
-  R.bms.forEach(nm=>{ const v=R.bm[nm]||0, br=R.invested>0?v/R.invested-1:0;
-    cards.push([nm+' 동일적립 (지수)', fmtUSD(v), R.final>=v?'':'down', '같은 현금흐름으로 '+nm+'만 샀을 때 — 누적 '+pct(br)]); });
+  R.bms.forEach(nm=>{ const v=R.bm[nm]||0, br=R.invested>0?v/R.invested-1:0, bmd=R.bmMdd?R.bmMdd[nm]:null;
+    cards.push([nm+' 동일적립 (지수)', fmtUSD(v), R.final>=v?'':'down',
+      '누적 '+pct(br)+(bmd!=null?' · MDD '+(bmd*100).toFixed(1)+'%':'')+' — 같은 현금흐름으로 '+nm+'만 매수']); });
   document.getElementById('btSummary').innerHTML=cards.map(([l,v,c,sub])=>
     `<div class="card card-hov ${c==='up'?'green':c==='down'?'red':'blue'}"><div class="label">${l}</div><div class="big-num ${c}">${v}</div><div class="muted" style="font-size:10.5px;margin-top:3px">${sub}</div></div>`).join('');
   // 기간 단계 차트 (메인과 동일 렌더링)
