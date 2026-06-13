@@ -503,7 +503,7 @@ details.sandbox .stage-edit{background:var(--surface)}
     </div>
     <div class="row2" id="secRow2">
       <div class="field"><label>단가 ($)</label><input id="f_price" type="number" step="any" oninput="calcAmount()"></div>
-      <div class="field"><label>환율 (원/$)</label><input id="f_fx" type="number" step="any" value="1380" oninput="calcAmount()"></div>
+      <div class="field"><label>환율 (원/$)</label><input id="f_fx" type="text" inputmode="decimal" value="1,380" oninput="fmtDec('f_fx');calcAmount()"></div>
     </div>
     <div class="field"><label id="amtLabel">거래금액 (원, 자동계산)</label><input id="f_amount" type="text" inputmode="numeric" readonly oninput="fmtField('f_amount')"></div>
     <div class="field" id="realizedWrap" style="display:none"><label>실현손익 (원, 자동계산·수정가능)</label><input id="f_realized" type="text" inputmode="numeric" value="0" oninput="fmtField('f_realized')"></div>
@@ -1158,8 +1158,16 @@ async function depositContribution(){
   const today = (CUR && CUR.date) ? CUR.date : new Date().toISOString().slice(0,10);
   await saveTrade({date:today,ticker:'CASH',type:'deposit',qty:0,price:0,fx:1,amount_krw:amt,realized:0,account:'기본'});
   await renderTrades();await renderProfit();await syncAutoMonthly();await renderMonthly();
-  flash('적립금 '+amt.toLocaleString('ko-KR')+'원 입금 완료 — 매수 입력을 이어서 하세요');
+  flash('적립금 '+amt.toLocaleString('ko-KR')+'원 입금 완료 — 매수 수량 자동 계산됨');
   openTrade();   // 매수 팝업 띄우기 (목표 비중 종목 기본 선택)
+  // 적립금으로 현재가 기준 매수 가능 수량 자동 입력
+  const px = numv('f_price');           // openTrade가 채운 현재 단가($)
+  const fx = numv('f_fx');              // 환율(원/$)
+  if(px>0 && fx>0){
+    const qty = Math.floor(amt/(px*fx)*10)/10;   // 소수 1자리 버림
+    document.getElementById('f_qty').value = qty;
+    calcAmount();
+  }
 }
 function openTrade(id){
   document.getElementById('tradeId').value=id||'';
@@ -1169,7 +1177,7 @@ function openTrade(id){
     document.getElementById('f_type').value='buy';document.getElementById('f_ticker').value=REG_BUY[CUR.regime];
     const _tk=document.getElementById('f_ticker').value;
     document.getElementById('f_qty').value='';document.getElementById('f_price').value=(_tk==='SCHD'?schdPx(CUR):CUR[_tk.toLowerCase()]).toFixed(2);
-    document.getElementById('f_fx').value=FXNOW;document.getElementById('f_amount').value='';document.getElementById('f_realized').value=0;
+    document.getElementById('f_fx').value=Number(FXNOW).toLocaleString('en-US');document.getElementById('f_amount').value='';document.getElementById('f_realized').value=0;
   }
   onTypeChange();calcAmount();
   document.getElementById('tradeModal').classList.add('open');
@@ -1210,7 +1218,7 @@ async function editTrade(id){
   }
   sel.value=t.ticker;
   document.getElementById('f_type').value=t.type;document.getElementById('f_qty').value=t.qty;
-  document.getElementById('f_price').value=t.price;document.getElementById('f_fx').value=t.fx;
+  document.getElementById('f_price').value=t.price;document.getElementById('f_fx').value=Number(t.fx||0).toLocaleString('en-US');
   document.getElementById('f_amount').value=Number(t.amount_krw||0).toLocaleString('ko-KR');document.getElementById('f_realized').value=Number(t.realized||0).toLocaleString('ko-KR');
   onTypeChange();
 }
