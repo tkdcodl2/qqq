@@ -315,7 +315,7 @@ details.sandbox .stage-edit{background:var(--surface)}
         </div>
         <div class="field">
           <label>1회 적립금액 (원)</label>
-          <input id="contribInput" type="number" value="500000" onchange="saveSettingsUI()">
+          <input id="contribInput" type="text" inputmode="numeric" value="500,000" oninput="fmtField('contribInput')" onchange="saveSettingsUI()">
         </div>
         <button class="btn primary" onclick="saveSettingsUI()">설정 저장</button>
         <p class="note" style="margin-top:12px">설정은 Supabase <code>settings</code> 테이블에 저장됩니다(데모 모드에서는 메모리).</p>
@@ -335,6 +335,7 @@ details.sandbox .stage-edit{background:var(--surface)}
     <div style="display:flex;align-items:center;gap:12px">
       <div class="section-title" style="margin:0"><span class="dot"></span>매매 이력</div>
       <div class="hspace" style="flex:1"></div>
+      <button class="btn ghost" onclick="depositContribution()">+ 적립금 입금</button>
       <button class="btn primary" onclick="openTrade()">+ 매매 입력</button>
     </div>
     <div class="card" style="margin-top:14px;padding:0;overflow-x:auto">
@@ -356,8 +357,8 @@ details.sandbox .stage-edit{background:var(--surface)}
         <div class="field"><label>거래비용 (%)</label><input id="bt_fee" type="number" step="0.01" value="0.05"></div>
       </div>
       <div class="row3">
-        <div class="field"><label>초기 투자금 ($)</label><input id="bt_init" type="number" value="100000"></div>
-        <div class="field"><label>적립금 ($)</label><input id="bt_contrib" type="number" value="250"></div>
+        <div class="field"><label>초기 투자금 ($)</label><input id="bt_init" type="text" inputmode="decimal" value="100,000" oninput="fmtDec('bt_init')"></div>
+        <div class="field"><label>적립금 ($)</label><input id="bt_contrib" type="text" inputmode="decimal" value="250" oninput="fmtDec('bt_contrib')"></div>
         <div class="field"><label>적립 주기</label><select id="bt_cad"><option value="weekly">매주</option><option value="monthly">매월</option><option value="daily">매일</option></select></div>
       </div>
       <div class="field" style="margin-bottom:12px"><label>비교 지수 (동일 적립 — 중복 선택 가능)</label>
@@ -457,10 +458,10 @@ details.sandbox .stage-edit{background:var(--surface)}
     <div class="tbl-scroll"><table style="font-size:12.5px;min-width:520px">
       <thead><tr><th>신호</th><th>조건 (QQQ 기준)</th><th>동작</th></tr></thead>
       <tbody>
-        <tr><td class="tkr" style="color:#ff9933">과열 트림</td><td>주간 RSI(14) ≥ <b>70</b> <b>또는</b> 성숙 천장(200일선 위 <b>1년+</b> & 전고점 <b>98%</b> 이내)</td><td class="mono">매주 TQQQ −10%p → SCHD</td></tr>
-        <tr><td class="tkr" style="color:#ff2222">광기 방어</td><td>200일선 이격 <b>+25%</b> & 고점권(−3% 이내)</td><td class="mono">즉시 전량 SCHD. 해제: 고점 −3% 회복 → 복귀 시작 / −8% 낙폭 후 +7% 추력 → 전량 재진입</td></tr>
+        <tr><td class="tkr" style="color:#ff9933">과열</td><td>주간 RSI(14) ≥ <b>70</b> <b>또는</b> 성숙 천장(200일선 위 <b>1년+</b> & 전고점 <b>98%</b> 이내)</td><td class="mono">매주 TQQQ −10%p → SCHD</td></tr>
+        <tr><td class="tkr" style="color:#ff2222">광기</td><td>200일선 이격 <b>+25%</b> & 고점권(−3% 이내)</td><td class="mono">즉시 전량 SCHD. 해제: 고점 −3% 회복 → 복귀 시작 / −8% 낙폭 후 +7% 추력 → 전량 재진입</td></tr>
         <tr><td class="tkr" style="color:#e35454">급락</td><td>50일 고점 대비 <b>−8% ~ −30%</b> (코로나·관세형 급락)</td><td class="mono">낙폭에 비례해 TQQQ 상한을 매주 하향 (−30%에서 0%) — 급락 한 달이면 주 단위 4번에 나눠 피신</td></tr>
-        <tr><td class="tkr" style="color:#3d89c9">추세 이탈</td><td>200일선 아래 <b>20거래일(≈4주) 연속</b></td><td class="mono">전량 SCHD</td></tr>
+        <tr><td class="tkr" style="color:#3d89c9">이탈</td><td>200일선 아래 <b>20거래일(≈4주) 연속</b></td><td class="mono">전량 SCHD</td></tr>
         <tr><td class="tkr" style="color:#46d68c">▲ 추력 복귀</td><td>이탈 중 <b>저점 대비 +15% 반등 & 50일선 위</b> — 200일선 회복을 기다리지 않는 V반등 캡처(2020.3·2025.4형). 발동 시 차트에 ▲ 표시</td><td class="mono">즉시 복귀 시작 + 매주 <b>+20%p</b> 가속 (100% 도달·트림 신호·재이탈 시 해제). 재이탈 판정은 200일선 아래 20거래일을 <b>새로</b> 카운트 — 추력 직후 곧바로 재이탈하지 않음</td></tr>
         <tr><td class="tkr" style="color:#46d68c">복귀</td><td>위 신호가 모두 꺼짐. 이탈 후엔 ①200일선 <b>+1%</b> 재돌파(50일선 동반) <b>또는</b> ②저점 <b>+15%</b> 추력 & 50일선 위 (V반등 캡처, 차트 ▲ 표시)</td><td class="mono">추력 복귀는 매주 <b>+20%p</b> 가속, 그 외 매주 +10%p (100%까지)</td></tr>
       </tbody>
@@ -498,7 +499,7 @@ details.sandbox .stage-edit{background:var(--surface)}
         <option value="deposit">입금</option><option value="withdrawal">출금</option></select></div>
     </div>
     <div class="row2" id="secRow1">
-      <div class="field"><label>종목</label><select id="f_ticker" onchange="onTickerChange()"><option>QQQ</option><option>QLD</option><option>TQQQ</option><option>SCHD</option></select></div>
+      <div class="field"><label>종목</label><select id="f_ticker" onchange="onTickerChange()"><option>TQQQ</option><option>SCHD</option></select></div>
       <div class="field"><label>수량</label><input id="f_qty" type="number" step="any" oninput="calcAmount()"></div>
     </div>
     <div class="row2" id="secRow2">
@@ -806,7 +807,7 @@ function computeSeries(md,P,EX){
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
 let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null;
-const APP_VERSION='7.8';
+const APP_VERSION='7.9';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
@@ -827,7 +828,7 @@ async function init(){
   CUR = SERIES[SERIES.length-1];
   FXNOW = (CUR && CUR.fx) ? +CUR.fx : 1380;
   document.getElementById('cadenceSel').value = SETTINGS.cadence;
-  document.getElementById('contribInput').value = SETTINGS.contribution_amount;
+  document.getElementById('contribInput').value = Number(SETTINGS.contribution_amount||0).toLocaleString('ko-KR');
   renderDashboard();
   renderModalRegimes();
   onCadenceChange();
@@ -1092,7 +1093,7 @@ function onCadenceChange(){
 }
 async function saveSettingsUI(){
   const cadence=document.getElementById('cadenceSel').value;
-  const amt=parseFloat(document.getElementById('contribInput').value)||0;
+  const amt=numv('contribInput');
   await saveSettings({cadence,contribution_amount:amt});
   SETTINGS=await getSettings();
   renderDashboard();
@@ -1113,6 +1114,10 @@ function onTypeChange(){
 }
 const numv=id=>parseFloat((document.getElementById(id).value||'').toString().replace(/,/g,''))||0;
 function fmtField(id){const el=document.getElementById(id);const neg=/^\s*-/.test(el.value);const d=el.value.replace(/[^0-9]/g,'');el.value=(neg&&d?'-':'')+(d?Number(d).toLocaleString('ko-KR'):'');}
+/* 소수점 허용 천단위 콤마 (입력 중 소수점·끝 0 보존) */
+function fmtDec(id){const el=document.getElementById(id);let v=el.value.replace(/[^0-9.]/g,'');const neg=/^\s*-/.test(el.value);
+  const parts=v.split('.');let ip=parts[0].replace(/^0+(?=\d)/,'');const dp=parts.length>1?'.'+parts.slice(1).join('').replace(/\./g,''):'';
+  el.value=(neg&&(ip||dp)?'-':'')+(ip?Number(ip).toLocaleString('en-US'):(dp?'0':''))+dp;}
 function calcAmount(){
   const q=numv('f_qty');
   const p=numv('f_price');
@@ -1147,6 +1152,15 @@ function onTickerChange(){
   const px = tkU==='SCHD' ? schdPx(CUR) : (CUR && CUR[tkU.toLowerCase()]!=null ? +CUR[tkU.toLowerCase()] : null);
   if(px!=null) document.getElementById('f_price').value=px.toFixed(2);
   calcAmount();
+}
+async function depositContribution(){
+  const amt = +(SETTINGS && SETTINGS.contribution_amount) || 0;
+  if(amt<=0){ flash('적립설정에서 1회 적립금액을 먼저 설정하세요'); switchTab('setup'); return; }
+  const today = (CUR && CUR.date) ? CUR.date : new Date().toISOString().slice(0,10);
+  await saveTrade({date:today,ticker:'CASH',type:'deposit',qty:0,price:0,fx:1,amount_krw:amt,realized:0,account:'기본'});
+  await renderTrades();await renderProfit();await syncAutoMonthly();await renderMonthly();
+  flash('적립금 '+amt.toLocaleString('ko-KR')+'원 입금 완료 — 매수 입력을 이어서 하세요');
+  openTrade();   // 매수 팝업 띄우기 (목표 비중 종목 기본 선택)
 }
 function openTrade(id){
   document.getElementById('tradeId').value=id||'';
@@ -1189,7 +1203,13 @@ async function delTrade(id){ if(!confirm('삭제하시겠습니까?'))return; aw
 async function editTrade(id){
   const ts=await getTrades();const t=ts.find(x=>String(x.id)===String(id));if(!t)return;
   openTrade(t.id);
-  document.getElementById('f_date').value=t.date;document.getElementById('f_ticker').value=t.ticker;
+  document.getElementById('f_date').value=t.date;
+  const sel=document.getElementById('f_ticker');
+  // 과거 기록(QLD/QQQ 등 선택지에 없는 종목) 수정 호환: 임시 옵션 추가
+  if(t.ticker && t.ticker!=='CASH' && ![...sel.options].some(o=>o.value===t.ticker)){
+    const o=document.createElement('option'); o.value=o.textContent=t.ticker; sel.appendChild(o);
+  }
+  sel.value=t.ticker;
   document.getElementById('f_type').value=t.type;document.getElementById('f_qty').value=t.qty;
   document.getElementById('f_price').value=t.price;document.getElementById('f_fx').value=t.fx;
   document.getElementById('f_amount').value=Number(t.amount_krw||0).toLocaleString('ko-KR');document.getElementById('f_realized').value=Number(t.realized||0).toLocaleString('ko-KR');
@@ -1432,8 +1452,8 @@ function runBacktest(){
   BT_STRAT=S;
   const SER=computeSeries(RAW_MD,S.params,S.ex);       // 샌드박스 파라미터·단계 토글로 재판정
   const sd=document.getElementById('bt_start').value, ed=document.getElementById('bt_end').value;
-  const init0=+document.getElementById('bt_init').value||0;
-  const contrib=+document.getElementById('bt_contrib').value||0;
+  const init0=numv('bt_init');
+  const contrib=numv('bt_contrib');
   const cad=document.getElementById('bt_cad').value;
   const fee=(+document.getElementById('bt_fee').value||0)/100;
   if(!sd||!ed||sd>=ed){flash('기간을 확인하세요');return;}
