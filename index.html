@@ -583,7 +583,7 @@ details.sandbox .stage-edit{background:var(--surface)}
       <thead><tr><th>신호</th><th>조건 (QQQ 기준)</th><th>동작</th></tr></thead>
       <tbody>
         <tr><td class="tkr" style="color:#f59e0b">과열</td><td>주간 RSI(14) ≥ <b>70</b> <b>또는</b> 성숙 천장(200일선 위 <b>1년+</b> & 전고점 <b>98%</b> 이내)</td><td class="mono">매주 TQQQ −10%p → SCHD</td></tr>
-        <tr><td class="tkr" style="color:#f43f5e">광기</td><td>200일선 이격 <b>+25%</b> & 고점권(−3% 이내)</td><td class="mono">즉시 전량 SCHD. 해제: 고점 −3% 회복 → 복귀 시작 / −8% 낙폭 후 +7% 추력 → 전량 재진입</td></tr>
+        <tr><td class="tkr" style="color:#f43f5e">광기</td><td>200일선 이격 <b>+20%</b> & 주간 RSI <b>75↑</b> & 고점권(−3% 이내)</td><td class="mono">즉시 전량 SCHD. 해제: 고점 −3% 회복 / 추세 회복(200일선 +1% & 50일선 동반) → 매주 +10%p 점진 복귀</td></tr>
         <tr><td class="tkr" style="color:#fb6f3c">급락</td><td>50일 고점 대비 <b>−8% ~ −30%</b> (코로나·관세형 급락)</td><td class="mono">낙폭에 비례해 TQQQ 상한을 매주 하향 (−30%에서 0%) — 급락 한 달이면 주 단위 4번에 나눠 피신</td></tr>
         <tr><td class="tkr" style="color:#3b82f6">이탈</td><td>200일선 아래 <b>20거래일(≈4주) 연속</b></td><td class="mono">전량 SCHD</td></tr>
         <tr><td class="tkr" style="color:#2dd4bf">복귀</td><td>위 신호가 모두 꺼짐. 이탈 후엔 ①200일선 <b>+1%</b> 재돌파(50일선 동반) <b>또는</b> ②저점 <b>+15%</b> 추력 & 50일선 위 (V반등 캡처, 차트 ▲ 표시)</td><td class="mono">추력 복귀는 매주 <b>+20%p</b> 가속, 그 외 매주 +10%p (100%까지)</td></tr>
@@ -593,17 +593,17 @@ details.sandbox .stage-edit{background:var(--surface)}
 
     <div class="section-title" style="font-size:16px;margin-top:18px"><span class="dot"></span>시뮬레이션 결과 (1999–2026 주간 근사, $100,000 + 매주 $250, 수수료 0.05%)</div>
     <div class="tbl-scroll"><table style="min-width:520px">
-      <thead><tr><th>구간</th><th>심플 래더 (IRR/MDD)</th><th>구 6단계 F안</th><th>TQQQ 단독</th></tr></thead>
+      <thead><tr><th>구간</th><th>심플 래더 (IRR/MDD)</th><th>참고: 직전 해제(추력)</th><th>TQQQ 단독</th></tr></thead>
       <tbody>
-        <tr><td>닷컴 붕괴 00–03</td><td class="mono up">+9.1% / −55%</td><td class="mono">−15.8% / −80%</td><td class="mono down">−31% / −98.6%</td></tr>
-        <tr><td>금융위기 07–10</td><td class="mono up">+21.0% / −55%</td><td class="mono">+18.7% / −56%</td><td class="mono down">−2.3% / −88%</td></tr>
-        <tr><td>2022 약세장</td><td class="mono up">+38.4% / −20%</td><td class="mono">+30.2% / −29%</td><td class="mono down">−7.9% / −73%</td></tr>
-        <tr><td>2010–2019</td><td class="mono up">+40.3% / −41%</td><td class="mono">+25.5% / −42%</td><td class="mono">+39.5% / −53%</td></tr>
-        <tr><td>2019–2026</td><td class="mono">+52.1% / −31%</td><td class="mono up">+66.8% / −43%</td><td class="mono">+51.9% / −78%</td></tr>
-        <tr><td><b>전체 2000–2026</b></td><td class="mono up"><b>+30.4% / −63% ($164.9M)</b></td><td class="mono">+27.2% / −80% ($88.0M)</td><td class="mono">+25.9% / −98.6% ($68.3M)</td></tr>
+        <tr><td>닷컴 붕괴 00–03</td><td class="mono up">+10.0% / −55%</td><td class="mono">+12.1% / −56%</td><td class="mono down">−31% / −99%</td></tr>
+        <tr><td>금융위기 07–10</td><td class="mono up">+18.6% / −62%</td><td class="mono">+18.6% / −62%</td><td class="mono down">−2.3% / −88%</td></tr>
+        <tr><td>2022 약세장</td><td class="mono up">+38.5% / −22%</td><td class="mono">+38.5% / −22%</td><td class="mono down">−7.9% / −73%</td></tr>
+        <tr><td>2010–2019</td><td class="mono up">+38.8% / −40%</td><td class="mono">+38.8% / −40%</td><td class="mono">+39.5% / −53%</td></tr>
+        <tr><td>2019–2026</td><td class="mono up">+58.5% / −31%</td><td class="mono">+57.4% / −31%</td><td class="mono">+51.9% / −78%</td></tr>
+        <tr><td><b>전체 2000–2026</b></td><td class="mono up"><b>+31.4% / −70% ($201.8M)</b></td><td class="mono">+31.4% / −70% ($198.9M)</td><td class="mono">+25.9% / −99% ($68.3M)</td></tr>
       </tbody>
     </table></div>
-    <p class="note" style="margin-top:10px">⚠️ 위 수치는 <b>주간 근사 데이터 + in-sample 파라미터</b> 기준입니다(확인 4주/RSI 70/10%p는 그리드 탐색 결과 — 주변 설정도 IRR 25~34%로 견고하지만 표본 의존성이 있습니다). 성숙 천장은 "강할 때 파는" 신호라 95~99년식 수년 폭주장에선 상승분을 일부 놓칠 수 있습니다. 닷컴 +9.1%는 광기 탈출 + 폭락 중 SCHD 적립 + 분할 재진입의 합작이며, 그래도 MDD −55%는 실전에서 견디기 매우 어려운 수준입니다. 인앱 백테스트(실데이터 일봉)로 직접 재확인하세요.</p>
+    <p class="note" style="margin-top:10px">⚠️ 위 수치는 <b>주간 근사 데이터 + in-sample 파라미터</b> 기준입니다(확인 4주/RSI 70/10%p는 그리드 탐색 결과 — 주변 설정도 IRR 25~34%로 견고하지만 표본 의존성이 있습니다). 광기는 <b>이격 +20% & 주간 RSI 75 동시</b>에 발동(2000.3 닷컴 천장·1999말·최근 고점 포착; 구 이격25는 27년간 사실상 2회만), 해제는 <b>고점 −3% 회복 또는 추세 회복(200일선 +1% & 50일선 동반) 시 매주 +10%p 점진 복귀</b>로 바꿨습니다. 직전(−8%+7% 추력 즉시 재진입) 대비 코로나·2025형 급락 천장의 회복을 더 깨끗하게 먹어 19–26·코로나가 개선되지만(전체 $198.9M→$201.8M), 다구간 약세장(닷컴)에서는 회복을 늦게 확인해 +12.1%→+10.0%로 약간 손해 보는 트레이드오프가 있습니다. 성숙 천장은 "강할 때 파는" 신호라 95~99년식 수년 폭주장에선 상승분을 일부 놓칠 수 있고, MDD −70%는 실전에서 견디기 매우 어려운 수준입니다. 인앱 백테스트(실데이터 일봉)로 직접 재확인하세요.</p>
 
     <div class="disclaim">⚠️ 본 자료는 과거 데이터 기반 시뮬레이션이며 투자 조언이 아닙니다. 과거 성과가 미래를 보장하지 않으며, 레버리지 ETF는 변동성 끌림(decay)과 -90% 이상의 실제 손실 위험이 있고, 본 전략의 MDD -58%는 실전에서 견디기 매우 어려운 수준입니다. 모든 투자 책임은 본인에게 있습니다.</div>
   </div>
@@ -831,7 +831,7 @@ function synthesizeMissing(md){
 
 /* v7.0: 심플 래더 — 파라미터 7개가 전부입니다 */
 const DEFAULT_STRAT={
-  params:{rsiHi:70, matDays:260, matATH:98, maniaExt:25, confirmDays:20, stepOut:10, stepIn:10, dipStart:8, dipFull:30, exitThrust:15, thrustIn:20},
+  params:{rsiHi:70, matDays:260, matATH:98, maniaExt:20, maniaRsi:75, confirmDays:20, stepOut:10, stepIn:10, dipStart:8, dipFull:30, exitThrust:15, thrustIn:20},
   ex:{}   // 단계 끄기: {3:1 과열, 4:1 광기, 5:1 급락, 6:1 이탈} — 전략 모달 체크박스로 토글
 };
 const PARAM_DEF=[
@@ -839,7 +839,8 @@ const PARAM_DEF=[
   ['matDays','과열 트림 ② 성숙 천장 기간','거래일','200일선 위 연속 X일 이상이고… (기본 260 ≈ 1년)'],
   ['matATH','과열 트림 ② 성숙 천장 고점권','%','…전고점의 X% 이상인 주는 트림 (기본 98)'],
   ['stepOut','트림 속도','%p/주','트림 신호가 켜진 주마다 TQQQ→SCHD로 옮기는 비중 (기본 10)'],
-  ['maniaExt','광기 이격','%','200일선 이격 +X% & 고점권(−3% 이내) → 즉시 전량 SCHD. 해제: 고점 −3% 회복(정상 복귀) 또는 −8% 낙폭 후 +7% 추력(전량 재진입) (기본 25)'],
+  ['maniaExt','광기 이격','%','200일선 이격 +X% & (다음 RSI 조건 동시 충족) & 고점권(−3% 이내) → 즉시 전량 SCHD. 해제: 고점 −3% 회복 또는 추세 회복(200일선 +1% & 50일선 동반) → 매주 +10%p 점진 복귀 (기본 20)'],
+  ['maniaRsi','광기 RSI','이상','광기 발동에 함께 요구하는 주간 RSI(14) 하한. 이격만으로는 상승 도중에도 떴던 문제를 보정 — 이격+과매수가 동시일 때만 진짜 천장으로 판단 (기본 75, 0=RSI 조건 끔=이격만)'],
   ['confirmDays','추세 이탈 확인','거래일','200일선 아래 연속 X거래일이면 전량 SCHD (기본 20 ≈ 4주)'],
   ['stepIn','복귀 속도','%p/주','신호가 없는 주마다 TQQQ 100%로 되돌리는 비중. 추세 회복(200일선 +1% 재돌파) 후 분할 재진입에도 사용 (기본 10)'],
   ['dipStart','급락 거버너 시작','%','50일 고점 대비 −X%부터 TQQQ 상한을 매주 단계적으로 낮춤 (기본 8, 0=끔)'],
@@ -853,7 +854,7 @@ const REG_SUB={
   2:'추세 위 + 신호 없음. TQQQ 100%를 들고 매주 기계적으로 적립합니다. 대부분의 시간을 여기서 보냅니다.',
   1:'트림·방어가 끝나고 TQQQ 100%로 돌아가는 중. 매주 복귀 속도(기본 10%p)만큼 SCHD→TQQQ로 옮깁니다. 이탈 후 저점 +15% 추력으로 복귀한 경우(차트 ▲)는 매주 +20%p로 가속해 V반등을 캡처합니다. 적립도 같은 목표 비중으로.',
   3:'주간 RSI 70 이상 또는 성숙 천장(200일선 위 1년+ & 전고점 98% 이내). 고점을 못 맞추는 대신 매주 10%p씩 미리 덜어냅니다. 신호가 꺼지면 즉시 복귀 시작.',
-  4:'200일선 이격 +25% 광기(1999말·2020.8형). 전량 SCHD로 피신. 고점 −3% 회복 시 정상 복귀, −8% 낙폭 후 +7% 추력이면 전량 재진입(V반등 캡처).',
+  4:'200일선 이격 +20% & 주간 RSI 75 이상(이격과 과매수가 동시인 진짜 천장 — 2000.3 닷컴·1999말형). 전량 SCHD로 피신. 해제는 고점 −3% 회복(빠른 V반등) 또는 추세 회복(200일선 +1% 재돌파 & 50일선 동반) 시 — 둘 다 매주 +10%p로 점진 복귀하므로 다구간 약세장의 베어 반등에 한 방에 물리지 않습니다.',
   5:'우상향 중 갑작스러운 급락(2020.3 코로나·2025.4 관세형). 50일 고점 대비 −8%부터 낙폭에 비례해 TQQQ 상한을 매주 끌어내려 −30%에서 전량 SCHD. 낙폭이 줄면 상한이 풀려 자동 복귀합니다.',
   6:'200일선 아래 20거래일 연속 = 추세 붕괴 확정. 전량 SCHD로 통과합니다. 복귀는 ①200일선 +1% 재돌파(50일선 동반) 또는 ②이탈 후 저점 +15% 추력 & 50일선 위(V반등 캡처 — 이후 매주 20%p 가속 복귀, 재이탈 판정은 20거래일 새로 카운트, 차트에 ▲ 표시) — 둘 중 빠른 쪽.'
 };
@@ -893,9 +894,9 @@ function computeSeries(md,P,EX){
       pushWeek(pc);
       if(sticky){                         // 광기: 유지/해제 (발동 주에는 평가하지 않음)
         tP=Math.max(tP,pc); tL=Math.min(tL,pc);
-        if(pc>=tP*0.97) sticky=false;
-        else if(tL<=tP*0.92 && pc>=tL*1.07){ sticky=false; cur=1.0; }
-      } else if(!EX[4] && p.ext200>=P.maniaExt/100 && p.dd>=-0.03){ sticky=true; tP=pc; tL=pc; cur=0; }
+        if(pc>=tP*0.97) sticky=false;                                             // 해제①: 고점 −3% 회복 (빠른 V반등)
+        else if(pc>p.sma200*1.01 && p.sma50>=p.sma200*0.99) sticky=false;         // 해제②: 추세 회복(200일선 +1% & 50일선 동반) — 점진 복귀(cur=0 유지 → 매주 드리프트)
+      } else if(!EX[4] && p.ext200>=P.maniaExt/100 && (P.maniaRsi<=0 || (!isNaN(rsiW)&&rsiW>=P.maniaRsi)) && p.dd>=-0.03){ sticky=true; tP=pc; tL=pc; cur=0; }
       if(on && !EX[6] && p.below>=P.confirmDays){ on=false; eLow=pc; fast=false; }      // 추세 붕괴 확정
       else if(!on){
         eLow=Math.min(eLow,pc);
@@ -930,7 +931,7 @@ function computeSeries(md,P,EX){
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
 let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null;
-const APP_VERSION='8.8';
+const APP_VERSION='9.0';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 
@@ -1024,12 +1025,13 @@ function renderIndicators(r){
   const above = r.qqq>=r.sma200;
   const mat = r.above>=P.matDays && r.qqq>=r.ath*(P.matATH/100);
   const rsiTrim = !isNaN(r.rsiW)&&r.rsiW>=P.rsiHi;
+  const maniaHot = (P.maniaRsi<=0) || (!isNaN(r.rsiW)&&r.rsiW>=P.maniaRsi);   // 광기 RSI 동반조건
   g.innerHTML =
     indCard('QQQ 종가','$'+r.qqq.toFixed(2),'', r.date)
   + indCard('200일선','$'+r.sma200.toFixed(2), above?'up':'down', above?('가격이 위 · '+r.above+'일 연속'):('아래 '+r.below+'일 / 이탈 확정 '+P.confirmDays+'일'))
   + indCard('주간 RSI(14)', isNaN(r.rsiW)?'—':r.rsiW.toFixed(0), rsiTrim?'down':'up', rsiTrim?('트림 기준('+P.rsiHi+') 이상 — 매주 '+P.stepOut+'%p 트림'):('트림 기준 '+P.rsiHi+' 미만'))
   + indCard('성숙 천장', mat?'발동':'아님', mat?'down':'up', '200일선 위 '+r.above+'/'+P.matDays+'일 · 전고점 대비 '+(r.qqq/r.ath*100).toFixed(1)+'% (기준 '+P.matATH+'%)')
-  + indCard('200일선 이격','('+(ext>=0?'+':'')+(ext*100).toFixed(1)+'%)', ext>=P.maniaExt/100?'down':'up', ext>=P.maniaExt/100?('광기 기준(+'+P.maniaExt+'%) 초과 — 전량 방어'):'광기 기준(+'+P.maniaExt+'%) 미만')
+  + indCard('200일선 이격','('+(ext>=0?'+':'')+(ext*100).toFixed(1)+'%)', (ext>=P.maniaExt/100&&maniaHot)?'down':(ext>=P.maniaExt/100?'neutral':'up'), ext>=P.maniaExt/100?(maniaHot?('광기 발동권(이격+'+P.maniaExt+'% & RSI'+P.maniaRsi+'↑ 동시) — 전량 방어'):('이격 +'+P.maniaExt+'% 초과지만 RSI '+P.maniaRsi+' 미만 — 광기 아님')):'광기 기준(+'+P.maniaExt+'%) 미만')
   + indCard('고점대비 낙폭', (dd*100).toFixed(1)+'%', dd<=-0.15?'down':(dd<=-0.05?'neutral':'up'), 'ATH $'+r.ath.toFixed(0))
   + indCard('50일 고점 낙폭', (r.ddr50*100).toFixed(1)+'%', r.ddr50<=-P.dipStart/100?'down':'up', r.ddr50<=-P.dipStart/100?('급락 거버너 작동 (−'+P.dipStart+'%~−'+P.dipFull+'%)'):'급락 거버너 기준(−'+P.dipStart+'%) 위')
   + indCard('목표 TQQQ 비중', Math.round(r.w*100)+'%', r.w>=1?'up':(r.w<=0?'down':'neutral'), 'SCHD '+Math.round((1-r.w)*100)+'% · 매주 한 번만 조정')
