@@ -794,7 +794,7 @@ function computeSeries(md,P,EX){
       cur=Math.round(cur*100)/100;
       curWk=wk;
     }
-    o.rsiW=rsiW; o.w=cur; o.up=on?1:0; o.sticky=sticky;
+    o.rsiW=rsiW; o.w=cur; o.up=on?1:0; o.sticky=sticky; o.fast=(on&&!sticky&&fast&&cur<1)?1:0;
     o.trim=on&&!sticky&&trimSig(o,q[i]);
     o.dip=on&&!sticky&&!EX[5]&&P.dipStart>0&&o.ddr50<=-P.dipStart/100;
     o.regime = sticky?4 : (!on?6 : (o.dip?5 : (o.trim?3 : (cur<1?1:2))));
@@ -845,7 +845,7 @@ function renderDashboard(){
   const sc=document.getElementById('stateCard');
   sc.className='card card-hov state-box '+REG_COLOR[reg];
   document.getElementById('stateDate').textContent=r.date;
-  document.getElementById('stateName').textContent=REG_NAME[reg];
+  document.getElementById('stateName').textContent = (reg===1&&r.fast) ? '복귀(추력발동)' : REG_NAME[reg];
   // gauge: TQQQ 목표 비중을 5칸으로 표시
   const gr=document.getElementById('gaugeRow'); gr.innerHTML='';
   const pips=Math.round(w*5);
@@ -858,7 +858,7 @@ function renderDashboard(){
   else if(reg===6) act='전량 SCHD — 200일선 +1% 재돌파 확인 대기';
   else if(reg===5) act='급락 거버너 — 50일 고점 '+(r.ddr50*100).toFixed(1)+'% → TQQQ 상한 '+Math.round(Math.min(1,Math.max(0,(P.dipFull+r.ddr50*100)/(P.dipFull-P.dipStart)))*100)+'%';
   else if(reg===3) act='매주 '+P.stepOut+'%p씩 TQQQ → SCHD 트림 중';
-  else if(reg===1) act='매주 '+P.stepIn+'%p씩 SCHD → TQQQ 복귀 중';
+  else if(reg===1) act='매주 '+(r.fast?P.thrustIn+'%p씩 SCHD → TQQQ 추력 가속 복귀 중 (V반등 캡처)':P.stepIn+'%p씩 SCHD → TQQQ 복귀 중');
   else act='유지 — TQQQ 100% 기계적 적립';
   let ae=document.getElementById('stateAction');
   if(!ae){ ae=document.createElement('div'); ae.id='stateAction'; ae.className='muted'; ae.style.cssText='margin-top:7px;font-size:12px;line-height:1.45'; sc.appendChild(ae); }
@@ -888,7 +888,7 @@ function renderIndicators(r){
   + indCard('고점대비 낙폭', (dd*100).toFixed(1)+'%', dd<=-0.15?'down':(dd<=-0.05?'neutral':'up'), 'ATH $'+r.ath.toFixed(0))
   + indCard('50일 고점 낙폭', (r.ddr50*100).toFixed(1)+'%', r.ddr50<=-P.dipStart/100?'down':'up', r.ddr50<=-P.dipStart/100?('급락 거버너 작동 (−'+P.dipStart+'%~−'+P.dipFull+'%)'):'급락 거버너 기준(−'+P.dipStart+'%) 위')
   + indCard('목표 TQQQ 비중', Math.round(r.w*100)+'%', r.w>=1?'up':(r.w<=0?'down':'neutral'), 'SCHD '+Math.round((1-r.w)*100)+'% · 매주 한 번만 조정')
-  + indCard('현재 단계', REG_NAME[r.regime], REG_COLOR[r.regime]==='red'?'down':REG_COLOR[r.regime]==='gold'?'neutral':'up', '매수 1순위: '+REG_BUY[r.regime]);
+  + indCard('현재 단계', (r.regime===1&&r.fast)?'복귀(추력발동)':REG_NAME[r.regime], REG_COLOR[r.regime]==='red'?'down':REG_COLOR[r.regime]==='gold'?'neutral':'up', '매수 1순위: '+REG_BUY[r.regime]);
 }
 function allocBar(title,pairs,emptyMsg,faded){
   const total=pairs.reduce((s,p)=>s+(p[1]||0),0);
@@ -995,7 +995,7 @@ function buildRegimeChart(ctx,s){
   ]},options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
     plugins:{legend:{labels:{color:'#6b7494',boxWidth:12,font:{size:11}}},
       zoom:{zoom:{drag:{enabled:true,backgroundColor:'rgba(82,186,136,.18)',borderColor:'rgba(82,186,136,.55)',borderWidth:1},mode:'x'},limits:{x:{minRange:10}}},
-      tooltip:{position:'priceLine',callbacks:{afterTitle:items=>{const i=items[0].dataIndex;return '단계: '+REG_NAME[s[i].regime]+' · TQQQ '+Math.round((s[i].w!=null?s[i].w:1)*100)+'%'+(s[i].thrust?' · ▲ 추력 복귀':'');}}}},
+      tooltip:{position:'priceLine',callbacks:{afterTitle:items=>{const i=items[0].dataIndex;const o=s[i];const nm=(o.regime===1&&o.fast)?'복귀(추력발동)':REG_NAME[o.regime];return '단계: '+nm+' · TQQQ '+Math.round((o.w!=null?o.w:1)*100)+'%'+(o.thrust?' · ▲ 추력 발동':'');}}}},
     scales:{x:{ticks:{color:'#6b7494',maxTicksLimit:6,font:{size:10}},grid:{color:'rgba(255,255,255,.03)'}},
             y:{ticks:{color:'#6b7494',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}}}}});
 }
@@ -1125,12 +1125,9 @@ function calcAmount(){
   calcRealizedAuto();
 }
 /* 매도 실현손익 자동 계산: 매도 시점까지의 평균단가(원화 원가) 기반 */
-/* 시간순 처리 정렬: 같은 날짜면 현금→매수→배당→매도 순(매도 시점에 보유분이 먼저 반영되어야 평균단가 정확), 동순위는 id 오름차순 */
-const TYPE_ORDER={deposit:0,withdrawal:0,buy:1,div:2,sell:3};
+/* 시간순 처리 정렬: 같은 날짜면 입력한 순서(id 오름차순)대로 처리 */
 function tradeOrder(a,b){
-  return a.date.localeCompare(b.date)
-    || ((TYPE_ORDER[a.type]??9)-(TYPE_ORDER[b.type]??9))
-    || ((+a.id||0)-(+b.id||0));
+  return a.date.localeCompare(b.date) || ((+a.id||0)-(+b.id||0));
 }
 function avgCostKRW(ticker, asOfDate, excludeId){
   let qty=0,cost=0;
