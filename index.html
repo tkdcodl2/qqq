@@ -23,29 +23,40 @@
   --font-text:'Pretendard','Pretendard Variable',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
   --font-num:'Inter','Pretendard',sans-serif;
   /* deep space base */
-  --bg:#070912; --bg2:#0a0e1a;
-  --surface:rgba(20,26,42,.55); --surface-solid:#121726; --surface2:rgba(30,38,60,.5); --surface3:#171d2e;
-  --border:rgba(120,140,190,.14); --border2:rgba(120,140,190,.26);
-  --accent:#2dd4bf; --accent-d:#0f9e8e; --accent2:#3b82f6; --red:#f43f5e; --gold:#f59e0b;
-  --text:#eef2fb; --text2:#aeb8d4; --muted:#717da3;
-  --glow:rgba(45,212,191,.5);
-  --r:16px;
+  --bg:#05060d; --bg2:#080b16;
+  /* glass surfaces — 더 투명하게 하여 뒤의 오로라가 비치도록 */
+  --surface:rgba(22,28,46,.42); --surface-solid:#121726; --surface2:rgba(30,40,64,.34); --surface3:#171d2e;
+  --border:rgba(150,170,220,.16); --border2:rgba(150,170,220,.32);
+  --hair:rgba(255,255,255,.10);                 /* 상단 하이라이트 헤어라인 */
+  --accent:#2dd4bf; --accent-d:#0f9e8e; --accent2:#5b9bff; --red:#f43f5e; --gold:#f59e0b; --violet:#9d7bff;
+  --text:#f0f3fb; --text2:#aeb8d4; --muted:#7480a4;
+  --glow:rgba(45,212,191,.55);
+  --shadow-card:0 18px 48px -24px rgba(0,0,0,.92);
+  --shadow-hi:0 1px 0 rgba(255,255,255,.10) inset;
+  --r:18px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{background:var(--bg);color:var(--text);font-family:var(--font-text);-webkit-font-smoothing:antialiased}
 body{min-height:100vh;position:relative;overflow-x:hidden}
-/* ambient aurora field */
+/* ambient aurora field — 더 크고 선명한 컬러 블롭이 카드 유리 뒤로 비침 */
 body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
   background:
-    radial-gradient(680px circle at 12% -8%, rgba(45,212,191,.10), transparent 60%),
-    radial-gradient(720px circle at 92% 4%, rgba(90,169,240,.10), transparent 58%),
-    radial-gradient(900px circle at 50% 116%, rgba(120,90,240,.08), transparent 60%);
-  animation:auroraDrift 26s ease-in-out infinite alternate}
-body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
-  background-image:linear-gradient(rgba(120,140,190,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(120,140,190,.04) 1px,transparent 1px);
-  background-size:46px 46px;
-  mask-image:radial-gradient(circle at 50% 30%,#000 0%,transparent 78%)}
-@keyframes auroraDrift{0%{transform:translate3d(0,0,0) scale(1)}100%{transform:translate3d(0,-18px,0) scale(1.06)}}
+    radial-gradient(820px circle at 8% -10%, rgba(45,212,191,.20), transparent 56%),
+    radial-gradient(880px circle at 96% 2%, rgba(91,155,255,.18), transparent 56%),
+    radial-gradient(1100px circle at 50% 118%, rgba(157,123,255,.16), transparent 58%),
+    radial-gradient(700px circle at 78% 80%, rgba(244,63,94,.07), transparent 56%);
+  animation:auroraDrift 24s ease-in-out infinite alternate}
+/* 그리드 + 비네팅 (가장자리를 어둡게 눌러 카드가 떠 보이게) */
+body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(140,160,210,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(140,160,210,.045) 1px,transparent 1px),
+    radial-gradient(circle at 50% 38%, transparent 40%, rgba(0,0,0,.55) 100%);
+  background-size:48px 48px,48px 48px,100% 100%;
+  mask-image:radial-gradient(circle at 50% 30%,#000 0%,#000 55%,transparent 88%),none;
+  -webkit-mask-image:radial-gradient(circle at 50% 30%,#000 0%,#000 55%,transparent 88%);
+  mask-composite:add}
+@keyframes auroraDrift{0%{transform:translate3d(0,0,0) scale(1)}100%{transform:translate3d(0,-22px,0) scale(1.08)}}
 @media(prefers-reduced-motion:reduce){body::before{animation:none}*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
 a{color:inherit;text-decoration:none}
 .wrap{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:0 20px 120px}
@@ -64,7 +75,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px) saturate(140%
 .hspace{flex:1}
 .mode-pill{font-size:11px;padding:5px 10px;border-radius:20px;border:1px solid var(--border);color:var(--muted);background:var(--surface2)}
 .mode-pill.live{color:var(--accent);border-color:rgba(45,212,191,.4)}
-.btn-strategy{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-text);font-weight:500;letter-spacing:.2px;font-size:13px;padding:8px 14px;border-radius:11px;border:1px solid var(--border);background:var(--surface);backdrop-filter:blur(10px);color:var(--text2);cursor:pointer;transition:.2s cubic-bezier(.4,0,.2,1)}
+.btn-strategy{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;font-family:var(--font-text);font-weight:500;letter-spacing:.2px;font-size:13px;padding:8px 14px;border-radius:11px;border:1px solid var(--border);background:var(--surface);backdrop-filter:blur(10px);color:var(--text2);cursor:pointer;transition:.2s cubic-bezier(.4,0,.2,1)}
 .btn-strategy:hover{border-color:var(--border2);color:var(--accent);background:rgba(45,212,191,.08);transform:translateY(-1px)}
 .btn-strategy svg{width:15px;height:15px;opacity:.9}
 
@@ -75,15 +86,19 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px) saturate(140%
 .tab-btn.active{background:linear-gradient(135deg,var(--accent),var(--accent-d));color:#06120d;border-color:transparent;box-shadow:0 6px 20px -6px var(--glow)}
 
 /* cards — glass */
-.card{position:relative;background:var(--surface);backdrop-filter:blur(16px) saturate(130%);-webkit-backdrop-filter:blur(16px) saturate(130%);border:1px solid var(--border);border-radius:var(--r);padding:17px;overflow:hidden;transition:.22s cubic-bezier(.4,0,.2,1);
-  box-shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 12px 30px -18px rgba(0,0,0,.7)}
-.card::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(160deg,rgba(255,255,255,.06),transparent 38%)}
-.card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:var(--accent);opacity:0}
-.card.green::before{background:linear-gradient(90deg,var(--accent),transparent 70%);opacity:1}
-.card.blue::before{background:linear-gradient(90deg,var(--accent2),transparent 70%);opacity:1}
-.card.red::before{background:linear-gradient(90deg,var(--red),transparent 70%);opacity:1}
-.card.gold::before{background:linear-gradient(90deg,var(--gold),transparent 70%);opacity:1}
-.card-hov:hover{transform:translateY(-3px);border-color:var(--border2);box-shadow:0 1px 0 rgba(255,255,255,.06) inset, 0 22px 44px -22px rgba(0,0,0,.85)}
+.card{position:relative;background:var(--surface);backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%);border:1px solid var(--border);border-radius:var(--r);padding:18px;overflow:hidden;transition:.26s cubic-bezier(.4,0,.2,1);
+  box-shadow:var(--shadow-hi), var(--shadow-card)}
+/* 유리 표면: 좌상단에서 들어오는 빛 + 상단 1px 헤어라인 하이라이트 */
+.card::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:
+    linear-gradient(155deg,rgba(255,255,255,.10),rgba(255,255,255,.02) 32%,transparent 60%);
+  -webkit-mask-image:none}
+.card::before{content:"";position:absolute;top:0;left:14px;right:14px;height:1px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--hair) 22%,var(--hair) 78%,transparent);opacity:1}
+.card.green::before{background:linear-gradient(90deg,transparent,var(--accent),transparent);box-shadow:0 0 18px -2px var(--glow)}
+.card.blue::before{background:linear-gradient(90deg,transparent,var(--accent2),transparent);box-shadow:0 0 18px -2px rgba(91,155,255,.5)}
+.card.red::before{background:linear-gradient(90deg,transparent,var(--red),transparent);box-shadow:0 0 18px -2px rgba(244,63,94,.5)}
+.card.gold::before{background:linear-gradient(90deg,transparent,var(--gold),transparent);box-shadow:0 0 18px -2px rgba(245,158,11,.5)}
+.card-hov:hover{transform:translateY(-4px);border-color:var(--border2);box-shadow:var(--shadow-hi), 0 28px 60px -26px rgba(0,0,0,.95)}
 /* entrance */
 @keyframes riseIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 #tab-dash .hero>.card,#tab-dash .summary-grid>.card,#tab-dash .ind-grid>.ind{animation:riseIn .55s cubic-bezier(.2,.8,.2,1) both}
@@ -98,37 +113,46 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px) saturate(140%
 @keyframes ripple{0%{transform:scale(.7);opacity:.5}100%{transform:scale(1.9);opacity:0}}
 .muted{color:var(--muted)}
 .label{font-family:var(--font-text);font-size:10.5px;letter-spacing:1.2px;color:var(--muted);text-transform:uppercase;margin-bottom:7px;font-weight:500}
-.big-num{font-family:var(--font-num);font-weight:400;font-size:23px;line-height:1;letter-spacing:.5px;font-variant-numeric:tabular-nums}
+.big-num{font-family:var(--font-num);font-weight:600;font-size:18px;line-height:1;letter-spacing:0;font-variant-numeric:tabular-nums}
 .sub-usd{font-family:var(--font-num);font-size:10.5px;color:var(--muted);font-weight:400;margin-top:3px;letter-spacing:0}
 
 /* state hero */
 .hero{display:grid;grid-template-columns:minmax(150px,.85fr) minmax(105px,.5fr) minmax(360px,2.6fr);gap:14px}
-.state-box{display:flex;flex-direction:column;justify-content:center;gap:5px;min-height:96px;position:relative;
+.state-box{display:flex;flex-direction:column;justify-content:center;gap:5px;min-height:104px;position:relative;overflow:hidden;
   background:
-    radial-gradient(150% 120% at 88% -10%, color-mix(in srgb, var(--rc,var(--accent)) 22%, transparent), transparent 56%),
+    radial-gradient(150% 130% at 92% -20%, color-mix(in srgb, var(--rc,var(--accent)) 32%, transparent), transparent 58%),
+    radial-gradient(120% 120% at 6% 120%, color-mix(in srgb, var(--rc,var(--accent)) 14%, transparent), transparent 60%),
     var(--surface);
-  box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 0 36px -14px color-mix(in srgb, var(--rc,var(--accent)) 60%, transparent), 0 12px 30px -18px rgba(0,0,0,.7)}
-.state-name{font-family:var(--font-text);font-weight:400;font-size:25px;letter-spacing:.8px;line-height:1.05;display:flex;align-items:center;gap:9px}
+  box-shadow:var(--shadow-hi), 0 0 50px -16px color-mix(in srgb, var(--rc,var(--accent)) 70%, transparent), var(--shadow-card)}
+/* 상태 카드 안에서 천천히 도는 광택 스윕 (시그니처) */
+.state-box::after{content:"";position:absolute;top:-40%;right:-20%;width:60%;height:180%;pointer-events:none;
+  background:radial-gradient(closest-side, color-mix(in srgb, var(--rc,var(--accent)) 22%, transparent), transparent 70%);
+  filter:blur(8px);animation:heroPulse 6s ease-in-out infinite}
+@keyframes heroPulse{0%,100%{opacity:.5;transform:translateY(0) scale(1)}50%{opacity:.9;transform:translateY(6px) scale(1.08)}}
+.state-name{font-family:var(--font-text);font-weight:700;font-size:27px;letter-spacing:-.5px;line-height:1.05;display:flex;align-items:center;gap:10px;position:relative;z-index:1}
 .state-name::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--rc,var(--accent));box-shadow:0 0 14px var(--rc,var(--glow));flex:0 0 auto;animation:livePulse 2.2s ease-in-out infinite}
 @keyframes livePulse{0%,100%{box-shadow:0 0 6px var(--rc,var(--glow))}50%{box-shadow:0 0 16px 2px var(--rc,var(--glow))}}
-.state-sub{font-size:12px;color:var(--text2);max-width:94%;line-height:1.45}
-.gauge-row{display:flex;gap:5px;margin-top:9px}
+.state-sub{font-size:12px;color:var(--text2);max-width:94%;line-height:1.45;position:relative;z-index:1}
+.gauge-row{display:flex;gap:5px;margin-top:9px;position:relative;z-index:1}
 .gpip{flex:1;height:8px;border-radius:5px;background:rgba(255,255,255,.06);border:1px solid var(--border);position:relative;overflow:hidden}
 .gpip.on{background:linear-gradient(90deg,var(--rc,var(--accent)),var(--accent2));border-color:transparent;box-shadow:0 0 12px -2px var(--rc,var(--glow))}
 .gpip.on::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);transform:translateX(-100%);animation:sheen 2.8s ease-in-out infinite}
 @keyframes sheen{0%{transform:translateX(-100%)}55%,100%{transform:translateX(220%)}}
-.reco-box{display:flex;flex-direction:column;gap:8px;justify-content:center;align-items:center;text-align:center}
-.reco-weights{display:flex;flex-wrap:wrap;gap:6px 12px;justify-content:center;font-size:13px;color:var(--text);font-weight:700}
-.reco-weights .rw{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-family:var(--font-num)}
-.reco-ticker{font-family:var(--font-text);font-weight:700;font-size:22px;letter-spacing:0;line-height:1}
+.reco-box{display:flex;flex-direction:column;gap:12px;justify-content:center;align-items:center;text-align:center;min-height:104px}
+.reco-weights{display:flex;flex-wrap:wrap;gap:8px 14px;justify-content:center;font-size:15px;color:var(--text);font-weight:700}
+.reco-weights .rw{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-family:var(--font-num)}
+.reco-weights .dotc{width:11px;height:11px;border-radius:50%}
+.reco-ticker{font-family:var(--font-text);font-weight:700;font-size:19px;letter-spacing:-.2px;line-height:1}
 .pill{display:inline-block;font-size:11.5px;font-weight:600;padding:5px 13px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-text)}
 .pill.buy{color:var(--accent);border-color:rgba(45,212,191,.35);background:rgba(45,212,191,.1)}
 
 /* indicator grid */
 .ind-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.ind{background:var(--surface2);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:13px;padding:12px 13px;transition:.2s;position:relative;overflow:hidden}
-.ind:hover{border-color:var(--border2);transform:translateY(-2px)}
-.ind .v{font-family:var(--font-num);font-weight:400;font-size:19px;letter-spacing:.5px;margin-top:2px}
+.ind{background:var(--surface2);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);border:1px solid var(--border);border-radius:14px;padding:12px 13px;transition:.22s;position:relative;overflow:hidden;
+  box-shadow:0 1px 0 rgba(255,255,255,.06) inset, 0 10px 26px -20px rgba(0,0,0,.8)}
+.ind::before{content:"";position:absolute;top:0;left:12px;right:12px;height:1px;background:linear-gradient(90deg,transparent,var(--hair),transparent)}
+.ind:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 1px 0 rgba(255,255,255,.08) inset, 0 16px 32px -20px rgba(0,0,0,.9)}
+.ind .v{font-family:var(--font-num);font-weight:600;font-size:15.5px;letter-spacing:0;margin-top:2px}
 .up{color:var(--accent)} .down{color:var(--red)} .neutral{color:var(--gold)}
 
 /* allocation bars (현재 vs 목표) */
@@ -156,17 +180,17 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px) saturate(140%
     transparent 100%);
   filter:blur(.6px);
   transform:translateX(-160%);
-  animation:barSweep 3s cubic-bezier(.5,0,.5,1) infinite}
+  animation:barSweep 5.2s cubic-bezier(.5,0,.5,1) infinite}
 /* 유리 표면 광택 (정적) + 가장자리 전류 글로우 펄스 */
 .abar::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:5;
   background:linear-gradient(180deg,rgba(255,255,255,.24),transparent 34%,transparent 80%,rgba(255,255,255,.07))}
-/* 펄스가 막대를 가로지르는 순간에만 빠르게 통과, 나머지 시간은 화면 밖에서 대기 */
+/* 펄스가 막대를 가로지르는 순간에만 천천히 통과, 나머지 시간은 화면 밖에서 대기 */
 @keyframes barSweep{
   0%   {transform:translateX(-160%)}
-  28%  {transform:translateX(260%)}
+  20%  {transform:translateX(260%)}
   100% {transform:translateX(260%)}}
 /* 현재 비중 막대는 위상차를 둬 번갈아 번쩍 */
-.abar.faded::before{animation-delay:1.5s}
+.abar.faded::before{animation-delay:2.6s}
 @media(prefers-reduced-motion:reduce){.abar::before{animation:none;opacity:0}}
 .abar-seg-t{position:relative;z-index:6;font-size:10px;font-weight:700;letter-spacing:.3px;line-height:1;color:rgba(255,255,255,.98);margin-right:5px;text-shadow:0 1px 2px rgba(0,0,0,.5)}
 .abar-seg-p{position:relative;z-index:6;font-family:var(--font-num);font-size:11px;font-weight:700;line-height:1;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5)}
@@ -192,7 +216,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px) saturate(140%
 .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px}
 .summary-grid .card{padding:13px 15px}
 .summary-grid .label{margin-bottom:6px;font-size:10px}
-.summary-grid .big-num{font-size:21px;letter-spacing:.5px}
+.summary-grid .big-num{font-size:16px;letter-spacing:0}
 .summary-grid .sub-usd{margin-top:3px;font-size:10px}
 .summary-grid .card-pct{font-size:11px}
 .card-val{text-align:right}
@@ -307,7 +331,7 @@ details.sandbox .stage-edit{background:var(--surface)}
   .mobile-tabbar button{flex:1;background:none;border:none;color:var(--muted);font-family:var(--font-text);font-size:10px;padding:8px 2px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:.15s}
   .mobile-tabbar button.active{color:var(--accent)}
   .mobile-tabbar .ic{font-size:17px}
-  .big-num{font-size:20px}.state-name{font-size:18px}.reco-ticker{font-size:21px}
+  .big-num{font-size:16px}.state-name{font-size:19px}.reco-ticker{font-size:20px}
   /* 매매이력: 컴팩트 가로 스크롤 테이블 (사용자 선호) */
   #tradeTable{min-width:620px}
   #tradeTable td,#tradeTable th{padding:8px 8px;font-size:12px;white-space:nowrap}
@@ -906,7 +930,7 @@ function computeSeries(md,P,EX){
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
 let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null;
-const APP_VERSION='8.6';
+const APP_VERSION='8.7';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 
@@ -1819,7 +1843,14 @@ async function stageToggle(reg){
 }
 function openStrategy(){document.getElementById('strategyModal').classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
-document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+document.querySelectorAll('.modal-overlay').forEach(m=>{
+  let downOnOverlay=false;
+  // 드래그가 모달 내부(입력칸 등)에서 시작돼 오버레이 위에서 끝나도 닫히지 않도록,
+  // mousedown 과 click(=mouseup) 이 모두 오버레이 자신에서 일어난 경우에만 닫는다.
+  m.addEventListener('mousedown',e=>{downOnOverlay=(e.target===m);});
+  m.addEventListener('touchstart',e=>{downOnOverlay=(e.target===m);},{passive:true});
+  m.addEventListener('click',e=>{if(e.target===m && downOnOverlay)m.classList.remove('open');downOnOverlay=false;});
+});
 document.getElementById('tradeModal').addEventListener('keydown',e=>{
   if(e.key==='Enter' && !e.isComposing && e.keyCode!==229){
     const tag=(e.target.tagName||'').toUpperCase();
