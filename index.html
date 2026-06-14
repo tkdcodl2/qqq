@@ -1125,10 +1125,17 @@ function calcAmount(){
   calcRealizedAuto();
 }
 /* 매도 실현손익 자동 계산: 매도 시점까지의 평균단가(원화 원가) 기반 */
+/* 시간순 처리 정렬: 같은 날짜면 현금→매수→배당→매도 순(매도 시점에 보유분이 먼저 반영되어야 평균단가 정확), 동순위는 id 오름차순 */
+const TYPE_ORDER={deposit:0,withdrawal:0,buy:1,div:2,sell:3};
+function tradeOrder(a,b){
+  return a.date.localeCompare(b.date)
+    || ((TYPE_ORDER[a.type]??9)-(TYPE_ORDER[b.type]??9))
+    || ((+a.id||0)-(+b.id||0));
+}
 function avgCostKRW(ticker, asOfDate, excludeId){
   let qty=0,cost=0;
   [...TRADES_CACHE].filter(t=>t.ticker===ticker && t.date<=asOfDate && String(t.id)!==String(excludeId))
-    .sort((a,b)=>a.date.localeCompare(b.date)||((+a.id||0)-(+b.id||0)))
+    .sort(tradeOrder)
     .forEach(t=>{
       if(t.type==='buy'){qty+=+t.qty;cost+=+t.amount_krw;}
       else if(t.type==='sell'){const avg=qty>0?cost/qty:0;cost-=avg*(+t.qty);qty-=+t.qty;}
@@ -1245,7 +1252,7 @@ async function renderProfit(){
   let totalRealized=0, totalDividend=0, cash=0, netDeposits=0;
   const DIV={QQQ:0,QLD:0,TQQQ:0,SCHD:0};
   // process chronologically
-  [...ts].sort((a,b)=>a.date.localeCompare(b.date)).forEach(t=>{
+  [...ts].sort(tradeOrder).forEach(t=>{
     const k=t.ticker; if(!H[k]&&t.type!=='deposit'&&t.type!=='withdrawal')H[k]={qty:0,cost:0};
     if(t.type==='buy'){H[k].qty+=+t.qty;H[k].cost+=+t.amount_krw;cash-=+t.amount_krw;}
     else if(t.type==='sell'){const avg=H[k].qty>0?H[k].cost/H[k].qty:0;H[k].cost-=avg*(+t.qty);H[k].qty-=+t.qty;totalRealized+=(+t.realized||0);cash+=+t.amount_krw;}
