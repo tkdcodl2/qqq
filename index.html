@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<!-- Hammer.js: chartjs-plugin-zoom 2.x 의 핀치 제스처에 필수 (모바일 두 손가락 확대) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- 선택: 배포 시 config.js 에서 window.APP_CONFIG = {SUPABASE_URL, SUPABASE_ANON_KEY} 설정 -->
@@ -18,9 +20,9 @@
   --bg:#070912; --bg2:#0a0e1a;
   --surface:rgba(20,26,42,.55); --surface-solid:#121726; --surface2:rgba(30,38,60,.5); --surface3:#171d2e;
   --border:rgba(120,140,190,.14); --border2:rgba(120,140,190,.26);
-  --accent:#4fd1a5; --accent-d:#2ea882; --accent2:#5aa9f0; --red:#f4677f; --gold:#e6b04c;
+  --accent:#2dd4bf; --accent-d:#0f9e8e; --accent2:#3b82f6; --red:#f43f5e; --gold:#f59e0b;
   --text:#eef2fb; --text2:#aeb8d4; --muted:#717da3;
-  --glow:rgba(79,209,165,.5);
+  --glow:rgba(45,212,191,.5);
   --r:16px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -29,7 +31,7 @@ body{min-height:100vh;position:relative;overflow-x:hidden}
 /* ambient aurora field */
 body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
   background:
-    radial-gradient(680px circle at 12% -8%, rgba(79,209,165,.10), transparent 60%),
+    radial-gradient(680px circle at 12% -8%, rgba(45,212,191,.10), transparent 60%),
     radial-gradient(720px circle at 92% 4%, rgba(90,169,240,.10), transparent 58%),
     radial-gradient(900px circle at 50% 116%, rgba(120,90,240,.08), transparent 60%);
   animation:auroraDrift 26s ease-in-out infinite alternate}
@@ -55,9 +57,9 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px) saturate(140%
 .logo small{display:none}
 .hspace{flex:1}
 .mode-pill{font-size:11px;padding:5px 10px;border-radius:20px;border:1px solid var(--border);color:var(--muted);background:var(--surface2)}
-.mode-pill.live{color:var(--accent);border-color:rgba(79,209,165,.4)}
+.mode-pill.live{color:var(--accent);border-color:rgba(45,212,191,.4)}
 .btn-strategy{display:inline-flex;align-items:center;gap:7px;font-family:'Space Grotesk','IBM Plex Sans KR';font-weight:500;letter-spacing:.2px;font-size:13px;padding:8px 14px;border-radius:11px;border:1px solid var(--border);background:var(--surface);backdrop-filter:blur(10px);color:var(--text2);cursor:pointer;transition:.2s cubic-bezier(.4,0,.2,1)}
-.btn-strategy:hover{border-color:var(--border2);color:var(--accent);background:rgba(79,209,165,.08);transform:translateY(-1px)}
+.btn-strategy:hover{border-color:var(--border2);color:var(--accent);background:rgba(45,212,191,.08);transform:translateY(-1px)}
 .btn-strategy svg{width:15px;height:15px;opacity:.9}
 
 /* tabs */
@@ -114,7 +116,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px) saturate(140%
 .reco-weights .rw{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-family:'Inter','IBM Plex Sans KR',sans-serif}
 .reco-ticker{font-family:'Space Grotesk';font-weight:700;font-size:22px;letter-spacing:0;line-height:1}
 .pill{display:inline-block;font-size:11.5px;font-weight:600;padding:5px 13px;border-radius:20px;border:1px solid var(--border);font-family:'Space Grotesk','IBM Plex Sans KR'}
-.pill.buy{color:var(--accent);border-color:rgba(79,209,165,.35);background:rgba(79,209,165,.1)}
+.pill.buy{color:var(--accent);border-color:rgba(45,212,191,.35);background:rgba(45,212,191,.1)}
 
 /* indicator grid */
 .ind-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
@@ -127,34 +129,43 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px) saturate(140%
 .abar-row{margin:0 0 14px}
 .abar-label{font-family:'Space Grotesk','IBM Plex Sans KR';font-size:10px;color:var(--muted);margin-bottom:7px;letter-spacing:1px;font-weight:500;text-transform:uppercase}
 /* 유리병 */
-.abar{display:flex;height:26px;border-radius:999px;overflow:hidden;position:relative;
-  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));
-  border:1px solid rgba(255,255,255,.14);
-  box-shadow:0 4px 14px -6px rgba(0,0,0,.7), inset 0 2px 4px rgba(0,0,0,.45), inset 0 -1px 2px rgba(255,255,255,.08)}
+.abar{display:flex;height:30px;border-radius:999px;overflow:hidden;position:relative;
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 5px 16px -6px rgba(0,0,0,.75), inset 0 2px 5px rgba(0,0,0,.5), inset 0 -1px 2px rgba(255,255,255,.09)}
 .abar.faded{border-style:dashed;border-color:var(--border2)}   /* 현재 비중: 점선 구분, 효과 유지 */
 /* 유리 표면 광택 (병 전체에 흐르는 하이라이트) */
-.abar::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;
-  background:linear-gradient(180deg,rgba(255,255,255,.22),transparent 38%,transparent 82%,rgba(255,255,255,.06))}
-/* 물(세그먼트) */
+.abar::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:5;
+  background:linear-gradient(180deg,rgba(255,255,255,.26),transparent 34%,transparent 80%,rgba(255,255,255,.08))}
+/* 물(세그먼트) — 인라인 단색 위에 깊이감 그라데이션을 덧입혀 '물'처럼 */
 .abar>div{position:relative;display:flex;align-items:center;justify-content:center;color:#fff;min-width:0;white-space:nowrap;
-  transition:width 1s cubic-bezier(.33,1,.4,1);overflow:hidden;isolation:isolate}
-/* 물 표면 일렁임 — 마루 모양 반복을 좌우로 흘려보냄 (앞 물결) */
-.abar>div::before{content:"";position:absolute;left:-50%;right:-50%;top:-2px;height:200%;pointer-events:none;z-index:1;
+  transition:width 1s cubic-bezier(.33,1,.4,1);overflow:hidden;isolation:isolate;
+  background-image:linear-gradient(180deg,rgba(255,255,255,.30),rgba(255,255,255,0) 40%,rgba(0,0,0,.22))}
+/* 물 표면 일렁임 — 또렷한 흰 마루가 좌우로 흐르며 위아래로 출렁 (앞 물결) */
+.abar>div::before{content:"";position:absolute;left:-60%;right:-60%;top:0;height:130%;pointer-events:none;z-index:2;mix-blend-mode:screen;
   background:
-    radial-gradient(120% 90% at 25% 0%, rgba(255,255,255,.30) 0 14%, transparent 42%),
-    radial-gradient(120% 90% at 75% 0%, rgba(255,255,255,.18) 0 14%, transparent 42%);
-  background-size:46px 100%;background-repeat:repeat-x;
-  animation:slosh 3.2s linear infinite}
-/* 깊은 물 흔들림 (뒤 물결, 느리고 반대로) */
-.abar>div::after{content:"";position:absolute;left:-60%;right:-60%;top:30%;height:170%;pointer-events:none;z-index:0;
-  background:radial-gradient(120% 80% at 50% 0%, rgba(0,0,0,.18) 0 18%, transparent 46%);
-  background-size:64px 100%;background-repeat:repeat-x;
-  animation:slosh2 4.6s linear infinite}
-@keyframes slosh{0%{transform:translateX(0) translateY(0)}50%{transform:translateX(-23px) translateY(1.2px)}100%{transform:translateX(-46px) translateY(0)}}
-@keyframes slosh2{0%{transform:translateX(0)}100%{transform:translateX(64px)}}
+    radial-gradient(80% 160% at 25% -40%, rgba(255,255,255,.7) 0 6%, rgba(255,255,255,.22) 16%, transparent 34%),
+    radial-gradient(80% 160% at 75% -40%, rgba(255,255,255,.5) 0 6%, rgba(255,255,255,.15) 16%, transparent 34%);
+  background-size:44px 100%;background-repeat:repeat-x;
+  animation:slosh 2.6s ease-in-out infinite}
+/* 깊은 물 흔들림 (뒤 물결, 느리고 반대로, 그림자 마루) */
+.abar>div::after{content:"";position:absolute;left:-70%;right:-70%;top:14%;height:120%;pointer-events:none;z-index:1;
+  background:radial-gradient(90% 170% at 50% -30%, rgba(0,0,0,.34) 0 8%, transparent 38%);
+  background-size:60px 100%;background-repeat:repeat-x;
+  animation:slosh2 3.7s ease-in-out infinite}
+@keyframes slosh{
+  0%{transform:translateX(0) translateY(0)}
+  25%{transform:translateX(-9px) translateY(-1.8px)}
+  50%{transform:translateX(-19px) translateY(1.6px)}
+  75%{transform:translateX(-29px) translateY(-1.4px)}
+  100%{transform:translateX(-38px) translateY(0)}}
+@keyframes slosh2{
+  0%{transform:translateX(0) translateY(0)}
+  50%{transform:translateX(28px) translateY(1.5px)}
+  100%{transform:translateX(56px) translateY(0)}}
 @media(prefers-reduced-motion:reduce){.abar>div::before,.abar>div::after{animation:none}}
-.abar-seg-t{position:relative;z-index:4;font-size:10px;font-weight:700;letter-spacing:.3px;line-height:1;color:rgba(255,255,255,.98);margin-right:5px;text-shadow:0 1px 2px rgba(0,0,0,.4)}
-.abar-seg-p{position:relative;z-index:4;font-family:'Inter','IBM Plex Sans KR',sans-serif;font-size:11px;font-weight:700;line-height:1;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.4)}
+.abar-seg-t{position:relative;z-index:6;font-size:10px;font-weight:700;letter-spacing:.3px;line-height:1;color:rgba(255,255,255,.98);margin-right:5px;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+.abar-seg-p{position:relative;z-index:6;font-family:'Inter','IBM Plex Sans KR',sans-serif;font-size:11px;font-weight:700;line-height:1;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5)}
 .range-pills{display:inline-flex;gap:4px}
 .range-pills button{font-family:'Inter','IBM Plex Sans KR',sans-serif;font-size:10.5px;font-weight:600;color:var(--muted);background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:999px;padding:4px 10px;cursor:pointer;transition:.15s}
 .range-pills button:hover{color:var(--text2);border-color:var(--border2)}
@@ -192,9 +203,9 @@ tbody td{text-align:right;padding:12px;border-bottom:1px solid var(--border);fon
 tbody tr{transition:.13s}
 tbody tr:hover{background:rgba(255,255,255,.035)}
 .type-badge{font-family:'Space Grotesk','IBM Plex Sans KR';font-size:11px;font-weight:600;padding:3px 9px;border-radius:7px}
-.type-badge.buy{color:var(--accent);background:rgba(79,209,165,.13)}
-.type-badge.sell{color:var(--red);background:rgba(244,103,127,.13)}
-.type-badge.div{color:var(--gold);background:rgba(230,176,76,.13)}
+.type-badge.buy{color:var(--accent);background:rgba(45,212,191,.13)}
+.type-badge.sell{color:var(--red);background:rgba(244,63,94,.13)}
+.type-badge.div{color:var(--gold);background:rgba(245,158,11,.13)}
 .type-badge.dep{color:var(--accent2);background:rgba(90,169,240,.15)}
 .type-badge.wd{color:var(--muted);background:rgba(113,125,163,.16)}
 .tkr{font-weight:700;font-family:'Space Grotesk','IBM Plex Sans KR'}
@@ -205,7 +216,7 @@ tbody tr:hover{background:rgba(255,255,255,.035)}
 .field{margin-bottom:14px}
 .field label{display:block;font-family:'Space Grotesk','IBM Plex Sans KR';font-size:11.5px;color:var(--text2);margin-bottom:7px;letter-spacing:.2px}
 input,select{width:100%;min-width:0;max-width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:11px 13px;font-size:14px;font-family:'Inter','IBM Plex Sans KR',sans-serif;transition:.16s}
-input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,209,165,.14)}
+input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(45,212,191,.14)}
 /* iOS date input이 칸을 넘어 옆 필드를 침범하는 문제 방지 */
 input[type="date"]{-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;overflow:hidden;text-align:center}
 input[type="date"]::-webkit-date-and-time-value{text-align:center;margin:0}
@@ -235,7 +246,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{margin-left:2px;opacity:.6
 .modal .close:hover{color:var(--text)}
 .regime-card{background:var(--surface2);border:1px solid var(--border);border-radius:13px;padding:14px 16px;margin-bottom:10px}
 .regime-card .h{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.chip{font-family:'Space Grotesk','IBM Plex Sans KR';font-weight:600;font-size:13px;letter-spacing:.3px;padding:4px 11px;border-radius:8px;background:rgba(79,209,165,.13);color:var(--accent)}
+.chip{font-family:'Space Grotesk','IBM Plex Sans KR';font-weight:600;font-size:13px;letter-spacing:.3px;padding:4px 11px;border-radius:8px;background:rgba(45,212,191,.13);color:var(--accent)}
 .wbar{display:flex;height:22px;border-radius:7px;overflow:hidden;border:1px solid var(--border);margin-top:8px;font-size:11px}
 .wbar div{display:flex;align-items:center;justify-content:center;color:#06120d;font-weight:700;font-family:'Inter','IBM Plex Sans KR',sans-serif}
 .note{font-size:12px;color:var(--text2);line-height:1.6}
@@ -449,7 +460,7 @@ details.sandbox .stage-edit{background:var(--surface)}
       <div class="field" style="margin-bottom:12px"><label>비교 지수 (동일 적립 — 중복 선택 가능)</label>
         <div style="display:flex;gap:14px;flex-wrap:wrap;padding:4px 0">
           <label class="wcell"><input type="checkbox" id="bt_bm_QQQ" checked style="width:16px;height:16px"><span style="color:#3fa7e0">QQQ</span></label>
-          <label class="wcell"><input type="checkbox" id="bt_bm_QLD" checked style="width:16px;height:16px"><span style="color:#f5a623">QLD</span></label>
+          <label class="wcell"><input type="checkbox" id="bt_bm_QLD" checked style="width:16px;height:16px"><span style="color:#f59e0b">QLD</span></label>
           <label class="wcell"><input type="checkbox" id="bt_bm_TQQQ" checked style="width:16px;height:16px"><span style="color:#e35454">TQQQ</span></label>
           <label class="wcell"><input type="checkbox" id="bt_bm_SCHD" style="width:16px;height:16px"><span style="color:#8a93a8">SCHD</span></label>
         </div>
@@ -543,11 +554,11 @@ details.sandbox .stage-edit{background:var(--surface)}
     <div class="tbl-scroll"><table style="font-size:12.5px;min-width:520px">
       <thead><tr><th>신호</th><th>조건 (QQQ 기준)</th><th>동작</th></tr></thead>
       <tbody>
-        <tr><td class="tkr" style="color:#f5a623">과열</td><td>주간 RSI(14) ≥ <b>70</b> <b>또는</b> 성숙 천장(200일선 위 <b>1년+</b> & 전고점 <b>98%</b> 이내)</td><td class="mono">매주 TQQQ −10%p → SCHD</td></tr>
-        <tr><td class="tkr" style="color:#ff5d6c">광기</td><td>200일선 이격 <b>+25%</b> & 고점권(−3% 이내)</td><td class="mono">즉시 전량 SCHD. 해제: 고점 −3% 회복 → 복귀 시작 / −8% 낙폭 후 +7% 추력 → 전량 재진입</td></tr>
-        <tr><td class="tkr" style="color:#ff8a5b">급락</td><td>50일 고점 대비 <b>−8% ~ −30%</b> (코로나·관세형 급락)</td><td class="mono">낙폭에 비례해 TQQQ 상한을 매주 하향 (−30%에서 0%) — 급락 한 달이면 주 단위 4번에 나눠 피신</td></tr>
-        <tr><td class="tkr" style="color:#5aa9f0">이탈</td><td>200일선 아래 <b>20거래일(≈4주) 연속</b></td><td class="mono">전량 SCHD</td></tr>
-        <tr><td class="tkr" style="color:#5ee6c0">복귀</td><td>위 신호가 모두 꺼짐. 이탈 후엔 ①200일선 <b>+1%</b> 재돌파(50일선 동반) <b>또는</b> ②저점 <b>+15%</b> 추력 & 50일선 위 (V반등 캡처, 차트 ▲ 표시)</td><td class="mono">추력 복귀는 매주 <b>+20%p</b> 가속, 그 외 매주 +10%p (100%까지)</td></tr>
+        <tr><td class="tkr" style="color:#f59e0b">과열</td><td>주간 RSI(14) ≥ <b>70</b> <b>또는</b> 성숙 천장(200일선 위 <b>1년+</b> & 전고점 <b>98%</b> 이내)</td><td class="mono">매주 TQQQ −10%p → SCHD</td></tr>
+        <tr><td class="tkr" style="color:#f43f5e">광기</td><td>200일선 이격 <b>+25%</b> & 고점권(−3% 이내)</td><td class="mono">즉시 전량 SCHD. 해제: 고점 −3% 회복 → 복귀 시작 / −8% 낙폭 후 +7% 추력 → 전량 재진입</td></tr>
+        <tr><td class="tkr" style="color:#fb6f3c">급락</td><td>50일 고점 대비 <b>−8% ~ −30%</b> (코로나·관세형 급락)</td><td class="mono">낙폭에 비례해 TQQQ 상한을 매주 하향 (−30%에서 0%) — 급락 한 달이면 주 단위 4번에 나눠 피신</td></tr>
+        <tr><td class="tkr" style="color:#3b82f6">이탈</td><td>200일선 아래 <b>20거래일(≈4주) 연속</b></td><td class="mono">전량 SCHD</td></tr>
+        <tr><td class="tkr" style="color:#2dd4bf">복귀</td><td>위 신호가 모두 꺼짐. 이탈 후엔 ①200일선 <b>+1%</b> 재돌파(50일선 동반) <b>또는</b> ②저점 <b>+15%</b> 추력 & 50일선 위 (V반등 캡처, 차트 ▲ 표시)</td><td class="mono">추력 복귀는 매주 <b>+20%p</b> 가속, 그 외 매주 +10%p (100%까지)</td></tr>
       </tbody>
     </table></div>
     <p class="note" style="margin:8px 0 0"><b>실행.</b> 매주 적립일에 대시보드의 목표 TQQQ 비중을 확인하고, 신규 적립금은 목표 비중대로 매수합니다. 목표가 지난주와 달라졌으면(최대 10%p) 보유분도 한 번 맞춥니다. 대시보드의 "+N주 매수/매도"가 그 차이를 주수로 환산한 값입니다. 매매는 많아야 주 1회, 대부분 전체 자산의 10%만 움직입니다.</p>
@@ -819,7 +830,7 @@ const REG_SUB={
   6:'200일선 아래 20거래일 연속 = 추세 붕괴 확정. 전량 SCHD로 통과합니다. 복귀는 ①200일선 +1% 재돌파(50일선 동반) 또는 ②이탈 후 저점 +15% 추력 & 50일선 위(V반등 캡처 — 이후 매주 20%p 가속 복귀, 재이탈 판정은 20거래일 새로 카운트, 차트에 ▲ 표시) — 둘 중 빠른 쪽.'
 };
 const REG_COLOR={2:'green',1:'green',3:'gold',4:'red',5:'red',6:'blue'};
-const REG_LINE={2:'#eef2fb',1:'#5ee6c0',3:'#f5a623',4:'#ff5d6c',5:'#ff8a5b',6:'#5aa9f0'};  // 적립=화이트·복귀=청록민트·과열=앰버·광기=레드·급락=코랄·이탈=블루
+const REG_LINE={2:'#e8eefb',1:'#2dd4bf',3:'#f59e0b',4:'#f43f5e',5:'#fb6f3c',6:'#3b82f6'};  // 적립=화이트·복귀=진청록·과열=앰버·광기=로즈레드·급락=코랄·이탈=블루
 
 function sma(arr,n,i){ if(i<n-1)return NaN; let s=0; for(let k=i-n+1;k<=i;k++)s+=arr[k]; return s/n; }
 function computeSeries(md,P,EX){
@@ -891,7 +902,7 @@ function computeSeries(md,P,EX){
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
 let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null;
-const APP_VERSION='8.4';
+const APP_VERSION='8.5';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 
@@ -914,8 +925,8 @@ function runCountUp(){
 }
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
 const pct = n => (n>=0?'+':'')+ (n*100).toFixed(1)+'%';
-const ALLOC_COLORS={TQQQ:'#fb7185',QLD:'#fbbf6b',QQQ:'#60a5fa',SCHD:'#34d399',CASH:'#94a3b8'};
-const ALLOC_GRAD={TQQQ:'#fb7185',QLD:'#fbbf6b',QQQ:'#60a5fa',SCHD:'#34d399',CASH:'#94a3b8'};
+const ALLOC_COLORS={TQQQ:'#f43f5e',QLD:'#f59e0b',QQQ:'#3b82f6',SCHD:'#10b981',CASH:'#64748b'};
+const ALLOC_GRAD={TQQQ:'#f43f5e',QLD:'#f59e0b',QQQ:'#3b82f6',SCHD:'#10b981',CASH:'#64748b'};
 const ALLOC_DISP={TQQQ:'TQQQ',QLD:'QLD',QQQ:'QQQ',SCHD:'SCHD',CASH:'현금'};
 const SCHD_FALLBACK=32.3;                                  // 시세 미수집 시 임시 단가($)
 const schdPx=row=>(row&&row.schd!=null&&!isNaN(+row.schd))?+row.schd:SCHD_FALLBACK;
@@ -1086,7 +1097,7 @@ function buildRegimeChart(ctx,s){
       return it?{x:it.element.x,y:it.element.y}:evtPos;
     };
   }
-  const lastCol = REG_LINE[(s[n-1]||{}).regime] || '#5ee6c0';
+  const lastCol = REG_LINE[(s[n-1]||{}).regime] || '#2dd4bf';
   const hexRgba=(hex,a)=>{const m=hex.replace('#','');const r=parseInt(m.slice(0,2),16),g=parseInt(m.slice(2,4),16),b=parseInt(m.slice(4,6),16);return `rgba(${r},${g},${b},${a})`;};
   const REDUCE = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const PULSE_PERIOD = 4200;   // 전체 주기(ms)
@@ -1168,16 +1179,17 @@ function buildRegimeChart(ctx,s){
      pointRadius:c=>{const o=s[c.dataIndex]||{};return o.thrust?5:(o.regime===4?3:0);},
      pointHoverRadius:c=>{const o=s[c.dataIndex]||{};return (o.thrust||o.regime===4)?6:3;},
      pointStyle:c=>{const o=s[c.dataIndex]||{};return o.thrust?'triangle':'circle';},
-     pointBackgroundColor:c=>{const o=s[c.dataIndex]||{};return o.thrust?'#5ee6c0':'rgba(0,0,0,0)';},
+     pointBackgroundColor:c=>{const o=s[c.dataIndex]||{};return o.thrust?'#2dd4bf':'rgba(0,0,0,0)';},
      pointHoverBackgroundColor:'#ffffff',pointHoverBorderColor:'#ffffff',pointHoverBorderWidth:2,
-     pointBorderColor:c=>{const o=s[c.dataIndex]||{};return o.thrust?'#5ee6c0':(o.regime===4?'#ff5d6c':'rgba(0,0,0,0)');},
+     pointBorderColor:c=>{const o=s[c.dataIndex]||{};return o.thrust?'#2dd4bf':(o.regime===4?'#f43f5e':'rgba(0,0,0,0)');},
      pointBorderWidth:2},
-    {label:'200일선',data:s.map(o=>o.sma200),borderColor:'#e6b04c',borderWidth:1.4,pointRadius:0,pointHoverRadius:0,pointHitRadius:0,borderDash:[5,4]},
+    {label:'200일선',data:s.map(o=>o.sma200),borderColor:'#f59e0b',borderWidth:1.4,pointRadius:0,pointHoverRadius:0,pointHitRadius:0,borderDash:[5,4]},
     {label:'50일선',data:s.map(o=>o.sma50),borderColor:'#6b7494',borderWidth:1,pointRadius:0,pointHoverRadius:0,pointHitRadius:0}
   ]},plugins:[glowPlugin],options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
     plugins:{legend:{labels:{color:'#717da3',boxWidth:12,font:{size:11}}},
       zoom:{
-        zoom:{drag:{enabled:true,backgroundColor:'rgba(79,209,165,.18)',borderColor:'rgba(79,209,165,.6)',borderWidth:1,threshold:6},pinch:{enabled:true},wheel:{enabled:true,speed:.08},mode:'x'},
+        zoom:{drag:{enabled:true,backgroundColor:'rgba(56,232,168,.18)',borderColor:'rgba(56,232,168,.65)',borderWidth:1,threshold:8},pinch:{enabled:true},wheel:{enabled:true,speed:.08},mode:'x'},
+        pan:{enabled:false},
         limits:{x:{minRange:10}}
       },
       tooltip:{position:'priceLine',callbacks:{afterTitle:items=>{const i=items[0].dataIndex;const o=s[i];const nm=(o.regime===1&&o.fast)?'복귀(추력발동)':REG_NAME[o.regime];return '단계: '+nm+' · TQQQ '+Math.round((o.w!=null?o.w:1)*100)+'%'+(o.thrust?' · ▲ 추력 발동':'');}}}},
@@ -1198,11 +1210,11 @@ function renderAssetChart(data){
   const evalAmt=data.map(d=>+d.eval_amount);
   const total=data.map(d=>(+d.eval_amount)+(+d.cash));
   const g=ctx.getContext('2d'); const grad=g.createLinearGradient(0,0,0,300);
-  grad.addColorStop(0,'rgba(79,209,165,.28)'); grad.addColorStop(1,'rgba(79,209,165,0)');
+  grad.addColorStop(0,'rgba(45,212,191,.28)'); grad.addColorStop(1,'rgba(45,212,191,0)');
   assetChart=new Chart(ctx,{type:'line',data:{labels,datasets:[
-    {label:'평가금액',data:evalAmt,borderColor:'#4fd1a5',backgroundColor:grad,borderWidth:2,pointRadius:0,tension:.35,fill:true},
-    {label:'총자산',data:total,borderColor:'#e6b04c',borderWidth:2,pointRadius:0,tension:.35,fill:false},
-    {label:'원금',data:principal,borderColor:'#5aa9f0',borderWidth:2,pointRadius:0,tension:.35,fill:false,borderDash:[5,4]}
+    {label:'평가금액',data:evalAmt,borderColor:'#2dd4bf',backgroundColor:grad,borderWidth:2,pointRadius:0,tension:.35,fill:true},
+    {label:'총자산',data:total,borderColor:'#f59e0b',borderWidth:2,pointRadius:0,tension:.35,fill:false},
+    {label:'원금',data:principal,borderColor:'#3b82f6',borderWidth:2,pointRadius:0,tension:.35,fill:false,borderDash:[5,4]}
   ]},options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
     plugins:{legend:{labels:{color:'#717da3',boxWidth:12,font:{size:11}}},
       tooltip:{callbacks:{label:c=>c.dataset.label+': '+won(c.parsed.y)}}},
@@ -1745,12 +1757,12 @@ function renderBtResults(){
   const ac=document.getElementById('btAssetChart');
   if(btAssetC)btAssetC.destroy();
   const g=ac.getContext('2d'); const grad=g.createLinearGradient(0,0,0,300);
-  grad.addColorStop(0,'rgba(79,209,165,.28)'); grad.addColorStop(1,'rgba(79,209,165,0)');
+  grad.addColorStop(0,'rgba(45,212,191,.28)'); grad.addColorStop(1,'rgba(45,212,191,0)');
   const bmDs=R.bms.map(nm=>({label:nm+' 동일적립',data:R.days.map(x=>x.bm[nm]),borderColor:(ALLOC_COLORS[nm]||'#8a93a8')+'cc',borderWidth:1.4,pointRadius:0,tension:.1,fill:false}));
   btAssetC=new Chart(ac,{type:'line',data:{labels:R.days.map(x=>x.date),datasets:[
-    {label:'평가금액',data:R.days.map(x=>x.val),borderColor:'#4fd1a5',backgroundColor:grad,borderWidth:2,pointRadius:0,tension:.1,fill:true},
+    {label:'평가금액',data:R.days.map(x=>x.val),borderColor:'#2dd4bf',backgroundColor:grad,borderWidth:2,pointRadius:0,tension:.1,fill:true},
     ...bmDs,
-    {label:'투자원금',data:R.days.map(x=>x.invested),borderColor:'#5aa9f0',borderWidth:1.6,pointRadius:0,tension:.1,fill:false,borderDash:[5,4]}
+    {label:'투자원금',data:R.days.map(x=>x.invested),borderColor:'#3b82f6',borderWidth:1.6,pointRadius:0,tension:.1,fill:false,borderDash:[5,4]}
   ]},options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
     plugins:{legend:{labels:{color:'#717da3',boxWidth:12,font:{size:11}}},
       tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmtUSD(c.parsed.y)}}},
