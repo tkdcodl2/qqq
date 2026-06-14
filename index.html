@@ -112,9 +112,9 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px) saturate(140%
 .section-title .dot::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1px solid var(--accent);opacity:.4;animation:ripple 2.6s ease-out infinite}
 @keyframes ripple{0%{transform:scale(.7);opacity:.5}100%{transform:scale(1.9);opacity:0}}
 .muted{color:var(--muted)}
-.label{font-family:var(--font-text);font-size:10.5px;letter-spacing:1.2px;color:var(--muted);text-transform:uppercase;margin-bottom:7px;font-weight:500}
-.big-num{font-family:var(--font-num);font-weight:600;font-size:18px;line-height:1;letter-spacing:0;font-variant-numeric:tabular-nums}
-.sub-usd{font-family:var(--font-num);font-size:10.5px;color:var(--muted);font-weight:400;margin-top:3px;letter-spacing:0}
+.label{font-family:var(--font-text);font-size:10px;letter-spacing:1.2px;color:var(--muted);text-transform:uppercase;margin-bottom:7px;font-weight:500}
+.big-num{font-family:var(--font-num);font-weight:600;font-size:16px;line-height:1;letter-spacing:0;font-variant-numeric:tabular-nums}
+.sub-usd{font-family:var(--font-num);font-size:10px;color:var(--muted);font-weight:400;margin-top:3px;letter-spacing:0}
 
 /* state hero */
 .hero{display:grid;grid-template-columns:minmax(150px,.85fr) minmax(105px,.5fr) minmax(360px,2.6fr);gap:14px}
@@ -152,7 +152,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px) saturate(140%
   box-shadow:0 1px 0 rgba(255,255,255,.06) inset, 0 10px 26px -20px rgba(0,0,0,.8)}
 .ind::before{content:"";position:absolute;top:0;left:12px;right:12px;height:1px;background:linear-gradient(90deg,transparent,var(--hair),transparent)}
 .ind:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 1px 0 rgba(255,255,255,.08) inset, 0 16px 32px -20px rgba(0,0,0,.9)}
-.ind .v{font-family:var(--font-num);font-weight:600;font-size:15.5px;letter-spacing:0;margin-top:2px}
+.ind .v{font-family:var(--font-num);font-weight:600;font-size:14px;letter-spacing:0;margin-top:2px}
 .up{color:var(--accent)} .down{color:var(--red)} .neutral{color:var(--gold)}
 
 /* allocation bars (현재 vs 목표) */
@@ -215,10 +215,10 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px) saturate(140%
 
 .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px}
 .summary-grid .card{padding:13px 15px}
-.summary-grid .label{margin-bottom:6px;font-size:10px}
-.summary-grid .big-num{font-size:16px;letter-spacing:0}
-.summary-grid .sub-usd{margin-top:3px;font-size:10px}
-.summary-grid .card-pct{font-size:11px}
+.summary-grid .label{margin-bottom:6px;font-size:9.5px}
+.summary-grid .big-num{font-size:14.5px;letter-spacing:0}
+.summary-grid .sub-usd{margin-top:3px;font-size:9.5px}
+.summary-grid .card-pct{font-size:10.5px}
 .card-val{text-align:right}
 .card-amt{display:flex;align-items:baseline;justify-content:flex-end;gap:6px;flex-wrap:wrap}
 .card-pct{font-family:var(--font-num);font-size:12px;font-weight:600;white-space:nowrap}
@@ -331,7 +331,7 @@ details.sandbox .stage-edit{background:var(--surface)}
   .mobile-tabbar button{flex:1;background:none;border:none;color:var(--muted);font-family:var(--font-text);font-size:10px;padding:8px 2px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:.15s}
   .mobile-tabbar button.active{color:var(--accent)}
   .mobile-tabbar .ic{font-size:17px}
-  .big-num{font-size:16px}.state-name{font-size:19px}.reco-ticker{font-size:20px}
+  .big-num{font-size:14.5px}.state-name{font-size:19px}.reco-ticker{font-size:20px}
   /* 매매이력: 컴팩트 가로 스크롤 테이블 (사용자 선호) */
   #tradeTable{min-width:620px}
   #tradeTable td,#tradeTable th{padding:8px 8px;font-size:12px;white-space:nowrap}
@@ -930,7 +930,7 @@ function computeSeries(md,P,EX){
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
 let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null;
-const APP_VERSION='8.7';
+const APP_VERSION='8.8';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 
