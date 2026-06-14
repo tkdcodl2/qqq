@@ -931,7 +931,7 @@ function computeSeries(md,P,EX){
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
 let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null;
-const APP_VERSION='9.0';
+const APP_VERSION='9.1';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 
@@ -1639,7 +1639,17 @@ function loadStrategy(settings){
   if(settings && settings.strategy) s=settings.strategy;
   if(!s){ try{ s=JSON.parse(localStorage.getItem('adca_strategy')||'null'); }catch(e){} }
   if(s && s.params){
-    const p={}; for(const k in DEFAULT_STRAT.params){ const v=parseFloat(s.params[k]); p[k]=isNaN(v)?DEFAULT_STRAT.params[k]:v; }
+    const sp=s.params;
+    // 구버전(<v8.9, 광기 RSI 게이트 도입 전) 저장본 마이그레이션:
+    // maniaRsi 키가 없으면 당시 기본 maniaExt(25)가 새 RSI 게이트와 결합돼 '이격25 & RSI75'가 되어
+    // 광기 발동이 외려 더 희귀해진다. → 광기 쌍(이격·RSI)을 신규 기본값(이격20·RSI75)으로 이관.
+    const legacyMania = (sp.maniaRsi===undefined || sp.maniaRsi===null);
+    const p={};
+    for(const k in DEFAULT_STRAT.params){
+      let v=parseFloat(sp[k]);
+      if(legacyMania && (k==='maniaExt'||k==='maniaRsi')) v=NaN;   // 신규 기본값으로 강제
+      p[k]=isNaN(v)?DEFAULT_STRAT.params[k]:v;
+    }
     STRAT={params:p, ex:Object.assign({},s.ex||{})};
   }
 }
