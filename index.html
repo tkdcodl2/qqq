@@ -192,8 +192,12 @@ tbody tr:hover{background:rgba(255,255,255,.035)}
 /* forms */
 .field{margin-bottom:14px}
 .field label{display:block;font-family:'Space Grotesk','IBM Plex Sans KR';font-size:11.5px;color:var(--text2);margin-bottom:7px;letter-spacing:.2px}
-input,select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:11px 13px;font-size:14px;font-family:'Inter','IBM Plex Sans KR',sans-serif;transition:.16s}
+input,select{width:100%;min-width:0;max-width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:11px 13px;font-size:14px;font-family:'Inter','IBM Plex Sans KR',sans-serif;transition:.16s}
 input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,209,165,.14)}
+/* iOS date input이 칸을 넘어 옆 필드를 침범하는 문제 방지 */
+input[type="date"]{-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;overflow:hidden;text-align:center}
+input[type="date"]::-webkit-date-and-time-value{text-align:center;margin:0}
+input[type="date"]::-webkit-calendar-picker-indicator{margin-left:2px;opacity:.6}
 .btn{font-family:'Space Grotesk','IBM Plex Sans KR';font-weight:600;font-size:14px;padding:11px 20px;border-radius:11px;border:none;cursor:pointer;transition:.18s cubic-bezier(.4,0,.2,1)}
 .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-d));color:#06120d}
 .btn.primary:hover{box-shadow:0 8px 24px -8px var(--glow);transform:translateY(-1px)}
@@ -201,6 +205,13 @@ input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 
 .btn.ghost:hover{border-color:var(--border2);color:var(--accent)}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.row2>*,.row3>*{min-width:0}
+.field{min-width:0}
+/* PC: 백테스트 6개 입력을 3열로 균등 배치 (넓은 화면 공간 활용) */
+@media(min-width:861px){
+  .bt-fields{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .bt-fields .row2{display:contents}
+}
 
 /* modal */
 .modal-overlay{display:none;position:fixed;inset:0;z-index:100;background:rgba(4,6,12,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
@@ -409,15 +420,19 @@ details.sandbox .stage-edit{background:var(--surface)}
     <div class="card">
       <div class="section-title"><span class="dot"></span>백테스트 설정</div>
       <p class="note" style="margin-bottom:12px">Supabase market_data의 일봉으로 <b>현재 전략 설정(단계 판정 파라미터·단계별 비중)</b>을 시뮬레이션합니다. 달러($) 기준이며 환율 효과·배당·세금은 제외한 근사치입니다. 단계 판정에 200일선이 필요하므로 시작일 이전에 최소 200거래일의 데이터가 있어야 정확합니다.</p>
-      <div class="row3">
+      <div class="bt-fields">
+      <div class="row2">
         <div class="field"><label>시작일</label><input id="bt_start" type="date"></div>
         <div class="field"><label>종료일</label><input id="bt_end" type="date"></div>
-        <div class="field"><label>거래비용 (%)</label><input id="bt_fee" type="number" step="0.01" value="0.05"></div>
       </div>
-      <div class="row3">
+      <div class="row2">
+        <div class="field"><label>거래비용 (%)</label><input id="bt_fee" type="number" step="0.01" value="0.05"></div>
         <div class="field"><label>초기 투자금 ($)</label><input id="bt_init" type="text" inputmode="decimal" value="100,000" oninput="fmtDec('bt_init')"></div>
+      </div>
+      <div class="row2">
         <div class="field"><label>적립금 ($)</label><input id="bt_contrib" type="text" inputmode="decimal" value="250" oninput="fmtDec('bt_contrib')"></div>
         <div class="field"><label>적립 주기</label><select id="bt_cad"><option value="weekly">매주</option><option value="monthly">매월</option><option value="daily">매일</option></select></div>
+      </div>
       </div>
       <div class="field" style="margin-bottom:12px"><label>비교 지수 (동일 적립 — 중복 선택 가능)</label>
         <div style="display:flex;gap:14px;flex-wrap:wrap;padding:4px 0">
@@ -864,7 +879,7 @@ function computeSeries(md,P,EX){
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
 let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null;
-const APP_VERSION='8.2';
+const APP_VERSION='8.3';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 
@@ -1024,7 +1039,7 @@ function setChartRange(d,btn){
 function renderPriceChart(){
   const N=Math.min(CHART_RANGE||SERIES.length,SERIES.length); const s=SERIES.slice(-N);
   const ctx=document.getElementById('priceChart');
-  if(priceChart){ if(priceChart.$glowRAF) cancelAnimationFrame(priceChart.$glowRAF); priceChart.destroy(); }
+  if(priceChart) priceChart.destroy();
   priceChart=buildRegimeChart(ctx,s);
   ctx.ondblclick=()=>{ if(priceChart&&priceChart.resetZoom) priceChart.resetZoom(); };
 }
@@ -1059,55 +1074,25 @@ function buildRegimeChart(ctx,s){
       return it?{x:it.element.x,y:it.element.y}:evtPos;
     };
   }
-  const REDUCE = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const lastCol = REG_LINE[(s[n-1]||{}).regime] || '#5ee6c0';
   const hexRgba=(hex,a)=>{const m=hex.replace('#','');const r=parseInt(m.slice(0,2),16),g=parseInt(m.slice(2,4),16),b=parseInt(m.slice(4,6),16);return `rgba(${r},${g},${b},${a})`;};
-  // 전기 글로우 + 끝점 전기 파동 플러그인 (QQQ 라인 한정) — 극적이되 라인 가독성 유지
+  // 끝점 발광 마커 (정적) — 라인 자체엔 그림자 미적용해 선명도 유지, 재draw 루프 없음
   const glowPlugin = {
     id:'priceGlow',
-    beforeDatasetDraw(chart,args){
-      if(args.index!==0) return;            // QQQ 라인만 발광
-      const c=chart.ctx; c.save();
-      c.shadowColor=lastCol; c.shadowBlur=14; c.shadowOffsetX=0; c.shadowOffsetY=0;
-    },
-    afterDatasetDraw(chart,args){ if(args.index===0) chart.ctx.restore(); },
     afterDatasetsDraw(chart){
       const meta=chart.getDatasetMeta(0); if(!meta||!meta.data||!meta.data.length) return;
       const pt=meta.data[meta.data.length-1]; if(!pt) return;
-      const c=chart.ctx; const area=chart.chartArea;
+      const area=chart.chartArea;
       if(pt.x<area.left-1||pt.x>area.right+1) return;   // 줌으로 끝점이 화면 밖이면 생략
-      const t = REDUCE ? 0 : Date.now()/1000;
-      const ph = REDUCE ? 0.5 : (Math.sin(t*2.6)*0.5+0.5);     // 빠른 맥동
-      c.save();
-      // 1) 큰 외곽 halo (맥동)
-      const rOuter = 10 + ph*10;
-      let grad=c.createRadialGradient(pt.x,pt.y,1,pt.x,pt.y,rOuter);
-      grad.addColorStop(0, hexRgba(lastCol,.9)); grad.addColorStop(.5, hexRgba(lastCol,.4)); grad.addColorStop(1,hexRgba(lastCol,0));
-      c.globalAlpha=0.55+ph*0.35; c.fillStyle=grad;
-      c.beginPath(); c.arc(pt.x,pt.y,rOuter,0,Math.PI*2); c.fill();
-      // 2) 바깥으로 퍼지는 전기 파동 링 2개 (위상 어긋나게)
-      if(!REDUCE){
-        for(let k=0;k<2;k++){
-          const prog=((t*0.9)+k*0.5)%1;            // 0→1 반복
-          const rr=6+prog*26;
-          c.globalAlpha=(1-prog)*0.5;
-          c.lineWidth=2*(1-prog)+0.4;
-          c.strokeStyle=lastCol;
-          c.beginPath(); c.arc(pt.x,pt.y,rr,0,Math.PI*2); c.stroke();
-        }
-      }
-      // 3) 코어 (흰 점 + 색 링)
-      c.globalAlpha=1; c.fillStyle='#ffffff';
-      c.beginPath(); c.arc(pt.x,pt.y,3,0,Math.PI*2); c.fill();
-      c.lineWidth=2; c.strokeStyle=lastCol;
-      c.beginPath(); c.arc(pt.x,pt.y,3,0,Math.PI*2); c.stroke();
+      const c=chart.ctx; c.save();
+      // soft halo (정적)
+      const grad=c.createRadialGradient(pt.x,pt.y,1,pt.x,pt.y,13);
+      grad.addColorStop(0, hexRgba(lastCol,.8)); grad.addColorStop(.45, hexRgba(lastCol,.32)); grad.addColorStop(1, hexRgba(lastCol,0));
+      c.fillStyle=grad; c.beginPath(); c.arc(pt.x,pt.y,13,0,Math.PI*2); c.fill();
+      // 코어
+      c.fillStyle='#ffffff'; c.beginPath(); c.arc(pt.x,pt.y,3,0,Math.PI*2); c.fill();
+      c.lineWidth=2; c.strokeStyle=lastCol; c.beginPath(); c.arc(pt.x,pt.y,3,0,Math.PI*2); c.stroke();
       c.restore();
-      // 부드러운 재요청 (대시보드가 보이는 동안만, 중복 예약 방지)
-      const dashHidden = (()=>{const d=document.getElementById('tab-dash');return d&&d.classList.contains('hidden');})();
-      if(!REDUCE && !dashHidden && !chart.$glowPending){
-        chart.$glowPending=true;
-        chart.$glowRAF=requestAnimationFrame(()=>{ chart.$glowPending=false; if(chart.ctx) chart.draw(); });
-      }
     }
   };
   // QQQ 라인 아래 면적 채움 (끝점 단계색 기반 세로 그라데이션)
@@ -1772,7 +1757,7 @@ document.getElementById('tradeModal').addEventListener('keydown',e=>{
 function switchTab(t){
   ['dash','setup','trades','bt'].forEach(x=>document.getElementById('tab-'+x).classList.toggle('hidden',x!==t));
   document.querySelectorAll('.tab-btn,[data-tab]').forEach(b=>{if(b.dataset.tab)b.classList.toggle('active',b.dataset.tab===t);});
-  if(t==='dash' && priceChart && priceChart.ctx){ priceChart.resize(); priceChart.draw(); }  // 끝점 펄스 루프 재개
+  if(t==='dash' && priceChart && priceChart.resize) priceChart.resize();   // 탭 복귀 시 캔버스 크기 보정
 }
 function flash(msg){
   let el=document.getElementById('flash');
