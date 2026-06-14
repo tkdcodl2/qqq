@@ -6,7 +6,10 @@
 <title>Adaptive DCA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<!-- 텍스트/한글 = Pretendard, 숫자 = Inter (전 화면 2종으로 통일) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <!-- Hammer.js: chartjs-plugin-zoom 2.x 의 핀치 제스처에 필수 (모바일 두 손가락 확대) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
@@ -16,6 +19,9 @@
 <script src="config.js" onerror="void 0"></script>
 <style>
 :root{
+  /* fonts: 텍스트/한글 = Pretendard, 숫자 = Inter (전 화면 2종 통일) */
+  --font-text:'Pretendard','Pretendard Variable',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+  --font-num:'Inter','Pretendard',sans-serif;
   /* deep space base */
   --bg:#070912; --bg2:#0a0e1a;
   --surface:rgba(20,26,42,.55); --surface-solid:#121726; --surface2:rgba(30,38,60,.5); --surface3:#171d2e;
@@ -26,7 +32,7 @@
   --r:16px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--bg);color:var(--text);font-family:'Inter','IBM Plex Sans KR',sans-serif;-webkit-font-smoothing:antialiased}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font-text);-webkit-font-smoothing:antialiased}
 body{min-height:100vh;position:relative;overflow-x:hidden}
 /* ambient aurora field */
 body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
@@ -43,14 +49,14 @@ body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opac
 @media(prefers-reduced-motion:reduce){body::before{animation:none}*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
 a{color:inherit;text-decoration:none}
 .wrap{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:0 20px 120px}
-.mono{font-family:'Inter','IBM Plex Sans KR',sans-serif;font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.mono{font-family:var(--font-num);font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
 /* 차트 핀치/드래그 줌이 페이지 스크롤에 가로채이지 않도록 */
 #priceChart,#btPriceChart{touch-action:none}
 
 /* header */
 header{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px) saturate(140%);-webkit-backdrop-filter:blur(20px) saturate(140%);background:linear-gradient(180deg,rgba(10,14,26,.85),rgba(10,14,26,.55));border-bottom:1px solid var(--border)}
 .hbar{max-width:1240px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:18px}
-.logo{font-family:'Space Grotesk';font-weight:700;font-size:21px;letter-spacing:-.5px;color:var(--text);display:flex;align-items:center;gap:9px}
+.logo{font-family:var(--font-text);font-weight:700;font-size:21px;letter-spacing:-.5px;color:var(--text);display:flex;align-items:center;gap:9px}
 .logo::before{content:"";width:11px;height:11px;border-radius:3px;background:conic-gradient(from 140deg,var(--accent),var(--accent2),var(--accent));box-shadow:0 0 16px var(--glow);animation:pulseDot 3.4s ease-in-out infinite}
 @keyframes pulseDot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.82);opacity:.7}}
 .logo span{color:var(--accent)}
@@ -58,13 +64,13 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px) saturate(140%
 .hspace{flex:1}
 .mode-pill{font-size:11px;padding:5px 10px;border-radius:20px;border:1px solid var(--border);color:var(--muted);background:var(--surface2)}
 .mode-pill.live{color:var(--accent);border-color:rgba(45,212,191,.4)}
-.btn-strategy{display:inline-flex;align-items:center;gap:7px;font-family:'Space Grotesk','IBM Plex Sans KR';font-weight:500;letter-spacing:.2px;font-size:13px;padding:8px 14px;border-radius:11px;border:1px solid var(--border);background:var(--surface);backdrop-filter:blur(10px);color:var(--text2);cursor:pointer;transition:.2s cubic-bezier(.4,0,.2,1)}
+.btn-strategy{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-text);font-weight:500;letter-spacing:.2px;font-size:13px;padding:8px 14px;border-radius:11px;border:1px solid var(--border);background:var(--surface);backdrop-filter:blur(10px);color:var(--text2);cursor:pointer;transition:.2s cubic-bezier(.4,0,.2,1)}
 .btn-strategy:hover{border-color:var(--border2);color:var(--accent);background:rgba(45,212,191,.08);transform:translateY(-1px)}
 .btn-strategy svg{width:15px;height:15px;opacity:.9}
 
 /* tabs */
 .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0 18px}
-.tab-btn{font-family:'Space Grotesk','IBM Plex Sans KR';font-size:13px;font-weight:500;padding:9px 17px;border-radius:11px;border:1px solid var(--border);background:var(--surface);backdrop-filter:blur(10px);color:var(--muted);cursor:pointer;transition:.2s cubic-bezier(.4,0,.2,1)}
+.tab-btn{font-family:var(--font-text);font-size:13px;font-weight:500;padding:9px 17px;border-radius:11px;border:1px solid var(--border);background:var(--surface);backdrop-filter:blur(10px);color:var(--muted);cursor:pointer;transition:.2s cubic-bezier(.4,0,.2,1)}
 .tab-btn:hover{color:var(--text);border-color:var(--border2)}
 .tab-btn.active{background:linear-gradient(135deg,var(--accent),var(--accent-d));color:#06120d;border-color:transparent;box-shadow:0 6px 20px -6px var(--glow)}
 
@@ -86,14 +92,14 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px) saturate(140%
 #tab-dash .summary-grid>.card:nth-child(n){animation-delay:.04s}
 @media(prefers-reduced-motion:reduce){#tab-dash .hero>.card,#tab-dash .summary-grid>.card,#tab-dash .ind-grid>.ind{animation:none}}
 .grid{display:grid;gap:16px}
-.section-title{font-family:'Space Grotesk','IBM Plex Sans KR';font-weight:600;letter-spacing:.2px;font-size:15px;color:var(--text);margin:4px 0 12px;display:flex;align-items:center;gap:9px}
+.section-title{font-family:var(--font-text);font-weight:600;letter-spacing:.2px;font-size:15px;color:var(--text);margin:4px 0 12px;display:flex;align-items:center;gap:9px}
 .section-title .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--glow);position:relative}
 .section-title .dot::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1px solid var(--accent);opacity:.4;animation:ripple 2.6s ease-out infinite}
 @keyframes ripple{0%{transform:scale(.7);opacity:.5}100%{transform:scale(1.9);opacity:0}}
 .muted{color:var(--muted)}
-.label{font-family:'Space Grotesk','IBM Plex Sans KR';font-size:10.5px;letter-spacing:1.2px;color:var(--muted);text-transform:uppercase;margin-bottom:7px;font-weight:500}
-.big-num{font-family:'Bebas Neue','IBM Plex Sans KR',sans-serif;font-weight:400;font-size:23px;line-height:1;letter-spacing:.5px;font-variant-numeric:tabular-nums}
-.sub-usd{font-family:'Inter','IBM Plex Sans KR',sans-serif;font-size:10.5px;color:var(--muted);font-weight:400;margin-top:3px;letter-spacing:0}
+.label{font-family:var(--font-text);font-size:10.5px;letter-spacing:1.2px;color:var(--muted);text-transform:uppercase;margin-bottom:7px;font-weight:500}
+.big-num{font-family:var(--font-num);font-weight:400;font-size:23px;line-height:1;letter-spacing:.5px;font-variant-numeric:tabular-nums}
+.sub-usd{font-family:var(--font-num);font-size:10.5px;color:var(--muted);font-weight:400;margin-top:3px;letter-spacing:0}
 
 /* state hero */
 .hero{display:grid;grid-template-columns:minmax(150px,.85fr) minmax(105px,.5fr) minmax(360px,2.6fr);gap:14px}
@@ -102,7 +108,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px) saturate(140%
     radial-gradient(150% 120% at 88% -10%, color-mix(in srgb, var(--rc,var(--accent)) 22%, transparent), transparent 56%),
     var(--surface);
   box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 0 36px -14px color-mix(in srgb, var(--rc,var(--accent)) 60%, transparent), 0 12px 30px -18px rgba(0,0,0,.7)}
-.state-name{font-family:'Bebas Neue','IBM Plex Sans KR',sans-serif;font-weight:400;font-size:25px;letter-spacing:.8px;line-height:1.05;display:flex;align-items:center;gap:9px}
+.state-name{font-family:var(--font-text);font-weight:400;font-size:25px;letter-spacing:.8px;line-height:1.05;display:flex;align-items:center;gap:9px}
 .state-name::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--rc,var(--accent));box-shadow:0 0 14px var(--rc,var(--glow));flex:0 0 auto;animation:livePulse 2.2s ease-in-out infinite}
 @keyframes livePulse{0%,100%{box-shadow:0 0 6px var(--rc,var(--glow))}50%{box-shadow:0 0 16px 2px var(--rc,var(--glow))}}
 .state-sub{font-size:12px;color:var(--text2);max-width:94%;line-height:1.45}
@@ -113,61 +119,59 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px) saturate(140%
 @keyframes sheen{0%{transform:translateX(-100%)}55%,100%{transform:translateX(220%)}}
 .reco-box{display:flex;flex-direction:column;gap:8px;justify-content:center;align-items:center;text-align:center}
 .reco-weights{display:flex;flex-wrap:wrap;gap:6px 12px;justify-content:center;font-size:13px;color:var(--text);font-weight:700}
-.reco-weights .rw{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-family:'Inter','IBM Plex Sans KR',sans-serif}
-.reco-ticker{font-family:'Space Grotesk';font-weight:700;font-size:22px;letter-spacing:0;line-height:1}
-.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:5px 13px;border-radius:20px;border:1px solid var(--border);font-family:'Space Grotesk','IBM Plex Sans KR'}
+.reco-weights .rw{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-family:var(--font-num)}
+.reco-ticker{font-family:var(--font-text);font-weight:700;font-size:22px;letter-spacing:0;line-height:1}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:5px 13px;border-radius:20px;border:1px solid var(--border);font-family:var(--font-text)}
 .pill.buy{color:var(--accent);border-color:rgba(45,212,191,.35);background:rgba(45,212,191,.1)}
 
 /* indicator grid */
 .ind-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .ind{background:var(--surface2);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:13px;padding:12px 13px;transition:.2s;position:relative;overflow:hidden}
 .ind:hover{border-color:var(--border2);transform:translateY(-2px)}
-.ind .v{font-family:'Bebas Neue','IBM Plex Sans KR',sans-serif;font-weight:400;font-size:19px;letter-spacing:.5px;margin-top:2px}
+.ind .v{font-family:var(--font-num);font-weight:400;font-size:19px;letter-spacing:.5px;margin-top:2px}
 .up{color:var(--accent)} .down{color:var(--red)} .neutral{color:var(--gold)}
 
 /* allocation bars (현재 vs 목표) */
 .abar-row{margin:0 0 14px}
-.abar-label{font-family:'Space Grotesk','IBM Plex Sans KR';font-size:10px;color:var(--muted);margin-bottom:7px;letter-spacing:1px;font-weight:500;text-transform:uppercase}
-/* 유리병 */
-.abar{display:flex;height:30px;border-radius:999px;overflow:hidden;position:relative;
+.abar-label{font-family:var(--font-text);font-size:10px;color:var(--muted);margin-bottom:7px;letter-spacing:1px;font-weight:500;text-transform:uppercase}
+/* 막대 트랙 */
+.abar{display:flex;height:30px;border-radius:999px;overflow:hidden;position:relative;isolation:isolate;
   background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
   border:1px solid rgba(255,255,255,.16);
   box-shadow:0 5px 16px -6px rgba(0,0,0,.75), inset 0 2px 5px rgba(0,0,0,.5), inset 0 -1px 2px rgba(255,255,255,.09)}
 .abar.faded{border-style:dashed;border-color:var(--border2)}   /* 현재 비중: 점선 구분, 효과 유지 */
-/* 유리 표면 광택 (병 전체에 흐르는 하이라이트) */
-.abar::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:5;
-  background:linear-gradient(180deg,rgba(255,255,255,.26),transparent 34%,transparent 80%,rgba(255,255,255,.08))}
-/* 물(세그먼트) — 인라인 단색 위에 깊이감 그라데이션을 덧입혀 '물'처럼 */
+/* 세그먼트 — 은은한 입체 그라데이션 */
 .abar>div{position:relative;display:flex;align-items:center;justify-content:center;color:#fff;min-width:0;white-space:nowrap;
-  transition:width 1s cubic-bezier(.33,1,.4,1);overflow:hidden;isolation:isolate;
-  background-image:linear-gradient(180deg,rgba(255,255,255,.30),rgba(255,255,255,0) 40%,rgba(0,0,0,.22))}
-/* 물 표면 일렁임 — 또렷한 흰 마루가 좌우로 흐르며 위아래로 출렁 (앞 물결) */
-.abar>div::before{content:"";position:absolute;left:-60%;right:-60%;top:0;height:130%;pointer-events:none;z-index:2;mix-blend-mode:screen;
-  background:
-    radial-gradient(80% 160% at 25% -40%, rgba(255,255,255,.7) 0 6%, rgba(255,255,255,.22) 16%, transparent 34%),
-    radial-gradient(80% 160% at 75% -40%, rgba(255,255,255,.5) 0 6%, rgba(255,255,255,.15) 16%, transparent 34%);
-  background-size:44px 100%;background-repeat:repeat-x;
-  animation:slosh 2.6s ease-in-out infinite}
-/* 깊은 물 흔들림 (뒤 물결, 느리고 반대로, 그림자 마루) */
-.abar>div::after{content:"";position:absolute;left:-70%;right:-70%;top:14%;height:120%;pointer-events:none;z-index:1;
-  background:radial-gradient(90% 170% at 50% -30%, rgba(0,0,0,.34) 0 8%, transparent 38%);
-  background-size:60px 100%;background-repeat:repeat-x;
-  animation:slosh2 3.7s ease-in-out infinite}
-@keyframes slosh{
-  0%{transform:translateX(0) translateY(0)}
-  25%{transform:translateX(-9px) translateY(-1.8px)}
-  50%{transform:translateX(-19px) translateY(1.6px)}
-  75%{transform:translateX(-29px) translateY(-1.4px)}
-  100%{transform:translateX(-38px) translateY(0)}}
-@keyframes slosh2{
-  0%{transform:translateX(0) translateY(0)}
-  50%{transform:translateX(28px) translateY(1.5px)}
-  100%{transform:translateX(56px) translateY(0)}}
-@media(prefers-reduced-motion:reduce){.abar>div::before,.abar>div::after{animation:none}}
+  transition:width 1s cubic-bezier(.33,1,.4,1);
+  background-image:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0) 46%,rgba(0,0,0,.18))}
+/* 전기 펄스 스윕 — 좁고 강한 빛줄기가 주기적으로 막대를 가로질러 지나감 (가격그래프 펄스와 동일 컨셉) */
+.abar::before{content:"";position:absolute;top:0;bottom:0;left:0;width:40%;z-index:4;pointer-events:none;border-radius:inherit;mix-blend-mode:screen;
+  background:linear-gradient(100deg,
+    transparent 0%,
+    rgba(255,255,255,.08) 30%,
+    rgba(255,255,255,.85) 48%,
+    rgba(255,255,255,1) 50%,
+    rgba(255,255,255,.85) 52%,
+    rgba(255,255,255,.08) 70%,
+    transparent 100%);
+  filter:blur(.6px);
+  transform:translateX(-160%);
+  animation:barSweep 3s cubic-bezier(.5,0,.5,1) infinite}
+/* 유리 표면 광택 (정적) + 가장자리 전류 글로우 펄스 */
+.abar::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:5;
+  background:linear-gradient(180deg,rgba(255,255,255,.24),transparent 34%,transparent 80%,rgba(255,255,255,.07))}
+/* 펄스가 막대를 가로지르는 순간에만 빠르게 통과, 나머지 시간은 화면 밖에서 대기 */
+@keyframes barSweep{
+  0%   {transform:translateX(-160%)}
+  28%  {transform:translateX(260%)}
+  100% {transform:translateX(260%)}}
+/* 현재 비중 막대는 위상차를 둬 번갈아 번쩍 */
+.abar.faded::before{animation-delay:1.5s}
+@media(prefers-reduced-motion:reduce){.abar::before{animation:none;opacity:0}}
 .abar-seg-t{position:relative;z-index:6;font-size:10px;font-weight:700;letter-spacing:.3px;line-height:1;color:rgba(255,255,255,.98);margin-right:5px;text-shadow:0 1px 2px rgba(0,0,0,.5)}
-.abar-seg-p{position:relative;z-index:6;font-family:'Inter','IBM Plex Sans KR',sans-serif;font-size:11px;font-weight:700;line-height:1;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+.abar-seg-p{position:relative;z-index:6;font-family:var(--font-num);font-size:11px;font-weight:700;line-height:1;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5)}
 .range-pills{display:inline-flex;gap:4px}
-.range-pills button{font-family:'Inter','IBM Plex Sans KR',sans-serif;font-size:10.5px;font-weight:600;color:var(--muted);background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:999px;padding:4px 10px;cursor:pointer;transition:.15s}
+.range-pills button{font-family:var(--font-num);font-size:10.5px;font-weight:600;color:var(--muted);background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:999px;padding:4px 10px;cursor:pointer;transition:.15s}
 .range-pills button:hover{color:var(--text2);border-color:var(--border2)}
 .range-pills button.on{color:#06120d;background:var(--accent);border-color:var(--accent)}
 .nowrap-table td,.nowrap-table th{white-space:nowrap}
@@ -180,10 +184,10 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px) saturate(140%
 @media(max-width:760px){.alloc-grid{flex-direction:column;align-items:stretch;gap:0}.alloc-bars{order:1}.alloc-grid .abar-legend{order:2;border-right:none;padding-right:0;border-top:1px solid var(--border);padding-top:13px;margin-top:14px}}
 .abar-leg{display:flex;justify-content:space-between;align-items:center;font-size:12px}
 .abar-leg-n{display:flex;align-items:center;font-weight:700;letter-spacing:.3px}
-.abar-leg-v{display:flex;align-items:center;gap:12px;font-family:'Inter','IBM Plex Sans KR',sans-serif}
+.abar-leg-v{display:flex;align-items:center;gap:12px;font-family:var(--font-num)}
 .abar-act{min-width:92px;text-align:right;font-variant-numeric:tabular-nums}
 .dotc{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:9px;box-shadow:inset 0 1px 0 rgba(255,255,255,.45);vertical-align:-1px}
-.appver{text-align:center;color:var(--muted);font-size:11px;letter-spacing:.5px;padding:28px 0 12px;font-family:'Inter','IBM Plex Sans KR',sans-serif}
+.appver{text-align:center;color:var(--muted);font-size:11px;letter-spacing:.5px;padding:28px 0 12px;font-family:var(--font-num)}
 
 .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px}
 .summary-grid .card{padding:13px 15px}
@@ -193,35 +197,35 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px) saturate(140%
 .summary-grid .card-pct{font-size:11px}
 .card-val{text-align:right}
 .card-amt{display:flex;align-items:baseline;justify-content:flex-end;gap:6px;flex-wrap:wrap}
-.card-pct{font-family:'Inter','IBM Plex Sans KR',sans-serif;font-size:12px;font-weight:600;white-space:nowrap}
+.card-pct{font-family:var(--font-num);font-size:12px;font-weight:600;white-space:nowrap}
 
 /* table */
 table{width:100%;border-collapse:collapse;font-size:13px}
-thead th{position:sticky;top:0;background:rgba(23,29,46,.92);backdrop-filter:blur(8px);color:var(--muted);font-family:'Space Grotesk','IBM Plex Sans KR';font-weight:600;font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;text-align:right;padding:11px 12px;border-bottom:1px solid var(--border2)}
+thead th{position:sticky;top:0;background:rgba(23,29,46,.92);backdrop-filter:blur(8px);color:var(--muted);font-family:var(--font-text);font-weight:600;font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;text-align:right;padding:11px 12px;border-bottom:1px solid var(--border2)}
 thead th:first-child,tbody td:first-child{text-align:left}
-tbody td{text-align:right;padding:12px;border-bottom:1px solid var(--border);font-family:'Inter','IBM Plex Sans KR',sans-serif;font-variant-numeric:tabular-nums}
+tbody td{text-align:right;padding:12px;border-bottom:1px solid var(--border);font-family:var(--font-num);font-variant-numeric:tabular-nums}
 tbody tr{transition:.13s}
 tbody tr:hover{background:rgba(255,255,255,.035)}
-.type-badge{font-family:'Space Grotesk','IBM Plex Sans KR';font-size:11px;font-weight:600;padding:3px 9px;border-radius:7px}
+.type-badge{font-family:var(--font-text);font-size:11px;font-weight:600;padding:3px 9px;border-radius:7px}
 .type-badge.buy{color:var(--accent);background:rgba(45,212,191,.13)}
 .type-badge.sell{color:var(--red);background:rgba(244,63,94,.13)}
 .type-badge.div{color:var(--gold);background:rgba(245,158,11,.13)}
 .type-badge.dep{color:var(--accent2);background:rgba(90,169,240,.15)}
 .type-badge.wd{color:var(--muted);background:rgba(113,125,163,.16)}
-.tkr{font-weight:700;font-family:'Space Grotesk','IBM Plex Sans KR'}
+.tkr{font-weight:700;font-family:var(--font-text)}
 .icon-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:4px 7px;border-radius:6px;transition:.13s}
 .icon-btn:hover{color:var(--text);background:var(--surface2)}
 
 /* forms */
 .field{margin-bottom:14px}
-.field label{display:block;font-family:'Space Grotesk','IBM Plex Sans KR';font-size:11.5px;color:var(--text2);margin-bottom:7px;letter-spacing:.2px}
-input,select{width:100%;min-width:0;max-width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:11px 13px;font-size:14px;font-family:'Inter','IBM Plex Sans KR',sans-serif;transition:.16s}
+.field label{display:block;font-family:var(--font-text);font-size:11.5px;color:var(--text2);margin-bottom:7px;letter-spacing:.2px}
+input,select{width:100%;min-width:0;max-width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:11px 13px;font-size:14px;font-family:var(--font-num);transition:.16s}
 input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(45,212,191,.14)}
 /* iOS date input이 칸을 넘어 옆 필드를 침범하는 문제 방지 */
 input[type="date"]{-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;overflow:hidden;text-align:center}
 input[type="date"]::-webkit-date-and-time-value{text-align:center;margin:0}
 input[type="date"]::-webkit-calendar-picker-indicator{margin-left:2px;opacity:.6}
-.btn{font-family:'Space Grotesk','IBM Plex Sans KR';font-weight:600;font-size:14px;padding:11px 20px;border-radius:11px;border:none;cursor:pointer;transition:.18s cubic-bezier(.4,0,.2,1)}
+.btn{font-family:var(--font-text);font-weight:600;font-size:14px;padding:11px 20px;border-radius:11px;border:none;cursor:pointer;transition:.18s cubic-bezier(.4,0,.2,1)}
 .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-d));color:#06120d}
 .btn.primary:hover{box-shadow:0 8px 24px -8px var(--glow);transform:translateY(-1px)}
 .btn.ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
@@ -241,14 +245,14 @@ input[type="date"]::-webkit-calendar-picker-indicator{margin-left:2px;opacity:.6
 .modal-overlay.open{display:flex}
 .modal{background:linear-gradient(180deg,rgba(23,29,46,.96),rgba(18,23,38,.96));backdrop-filter:blur(24px);border:1px solid var(--border2);border-radius:20px;max-width:780px;width:100%;padding:28px;box-shadow:0 30px 80px -30px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.06) inset;animation:modalIn .32s cubic-bezier(.2,.8,.2,1)}
 @keyframes modalIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
-.modal h2{font-family:'Space Grotesk','IBM Plex Sans KR';font-weight:700;font-size:25px;letter-spacing:-.5px;margin-bottom:4px}
+.modal h2{font-family:var(--font-text);font-weight:700;font-size:25px;letter-spacing:-.5px;margin-bottom:4px}
 .modal .close{float:right;font-size:22px;color:var(--muted);cursor:pointer;line-height:1;transition:.15s}
 .modal .close:hover{color:var(--text)}
 .regime-card{background:var(--surface2);border:1px solid var(--border);border-radius:13px;padding:14px 16px;margin-bottom:10px}
 .regime-card .h{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.chip{font-family:'Space Grotesk','IBM Plex Sans KR';font-weight:600;font-size:13px;letter-spacing:.3px;padding:4px 11px;border-radius:8px;background:rgba(45,212,191,.13);color:var(--accent)}
+.chip{font-family:var(--font-text);font-weight:600;font-size:13px;letter-spacing:.3px;padding:4px 11px;border-radius:8px;background:rgba(45,212,191,.13);color:var(--accent)}
 .wbar{display:flex;height:22px;border-radius:7px;overflow:hidden;border:1px solid var(--border);margin-top:8px;font-size:11px}
-.wbar div{display:flex;align-items:center;justify-content:center;color:#06120d;font-weight:700;font-family:'Inter','IBM Plex Sans KR',sans-serif}
+.wbar div{display:flex;align-items:center;justify-content:center;color:#06120d;font-weight:700;font-family:var(--font-num)}
 .note{font-size:12px;color:var(--text2);line-height:1.6}
 .disclaim{font-size:11px;color:var(--muted);line-height:1.6;border-top:1px solid var(--border);margin-top:18px;padding-top:14px}
 .hidden{display:none!important}
@@ -300,7 +304,7 @@ details.sandbox .stage-edit{background:var(--surface)}
   .summary-grid{gap:8px}
   .card{padding:14px}
   .mobile-tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:60;background:rgba(10,14,26,.92);backdrop-filter:blur(16px);border-top:1px solid var(--border);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
-  .mobile-tabbar button{flex:1;background:none;border:none;color:var(--muted);font-family:'Space Grotesk','IBM Plex Sans KR';font-size:10px;padding:8px 2px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:.15s}
+  .mobile-tabbar button{flex:1;background:none;border:none;color:var(--muted);font-family:var(--font-text);font-size:10px;padding:8px 2px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:.15s}
   .mobile-tabbar button.active{color:var(--accent)}
   .mobile-tabbar .ic{font-size:17px}
   .big-num{font-size:20px}.state-name{font-size:18px}.reco-ticker{font-size:21px}
@@ -348,7 +352,7 @@ details.sandbox .stage-edit{background:var(--surface)}
 
     <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:16px;gap:16px" id="chartRow">
       <div class="card">
-        <div class="section-title" style="flex-wrap:wrap"><span class="dot"></span>QQQ 가격 · 200일선 <span class="muted" style="font-family:Inter;font-size:10.5px;letter-spacing:0;font-weight:500;margin-left:6px">드래그·핀치 확대 · 더블탭 초기화</span>
+        <div class="section-title" style="flex-wrap:wrap"><span class="dot"></span>QQQ 가격 · 200일선 <span class="muted" style="font-family:var(--font-num);font-size:10.5px;letter-spacing:0;font-weight:500;margin-left:6px">드래그·핀치 확대 · 더블탭 초기화</span>
           <span class="range-pills" id="rangePills" style="margin-left:auto">
             <button onclick="setChartRange(126,this)">6M</button><button class="on" onclick="setChartRange(260,this)">1Y</button><button onclick="setChartRange(520,this)">2Y</button><button onclick="setChartRange(780,this)">3Y</button><button onclick="setChartRange(1300,this)">5Y</button><button onclick="setChartRange(2600,this)">10Y</button><button onclick="setChartRange(0,this)">전체</button>
           </span></div>
@@ -379,7 +383,7 @@ details.sandbox .stage-edit{background:var(--surface)}
       </table>
     </div>
 
-    <div class="section-title" style="margin-top:26px"><span class="dot"></span>수익현황 <span class="muted" style="font-family:Inter;font-size:11px;letter-spacing:0;font-weight:500">누적 기준</span></div>
+    <div class="section-title" style="margin-top:26px"><span class="dot"></span>수익현황 <span class="muted" style="font-family:var(--font-num);font-size:11px;letter-spacing:0;font-weight:500">누적 기준</span></div>
     <div class="summary-grid" id="cumSummary"></div>
     <div class="card" style="margin-top:16px;padding:0;overflow-x:auto">
       <table class="nowrap-table">
@@ -490,7 +494,7 @@ details.sandbox .stage-edit{background:var(--surface)}
         <span class="muted" style="font-size:12px">방금 실행한 백테스트의 비중·파라미터를 대시보드 전략으로 저장합니다.</span>
       </div>
       <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:16px;gap:16px" id="btChartRow">
-        <div class="card"><div class="section-title"><span class="dot"></span>기간 단계 차트 (QQQ) <span class="muted" style="font-family:Inter;font-size:10.5px;letter-spacing:0;margin-left:8px">드래그·핀치 확대 · 더블탭 초기화</span></div><div style="height:300px"><canvas id="btPriceChart"></canvas></div></div>
+        <div class="card"><div class="section-title"><span class="dot"></span>기간 단계 차트 (QQQ) <span class="muted" style="font-family:var(--font-num);font-size:10.5px;letter-spacing:0;margin-left:8px">드래그·핀치 확대 · 더블탭 초기화</span></div><div style="height:300px"><canvas id="btPriceChart"></canvas></div></div>
         <div class="card"><div class="section-title"><span class="dot"></span>평가금액 추이 ($)</div><div style="height:300px"><canvas id="btAssetChart"></canvas></div></div>
       </div>
       <div class="card" style="margin-top:16px">
@@ -902,7 +906,7 @@ function computeSeries(md,P,EX){
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
 let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null;
-const APP_VERSION='8.5';
+const APP_VERSION='8.6';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 
@@ -1232,7 +1236,7 @@ async function renderMonthly(){
     const ret=(+r.principal)>0?pl/(+r.principal):null;
     const c=pl>=0?'up':'down';
     const autoBtn=r.manual?`<button class="icon-btn" title="자동 계산으로 되돌리기" onclick="resetMonthly('${r.ym}')">↺ 자동</button>`:'';
-    return `<tr><td class="tkr">${r.ym}${r.manual?' <span class="muted" style="font-size:10px;font-family:Inter">수기</span>':''}</td>
+    return `<tr><td class="tkr">${r.ym}${r.manual?' <span class="muted" style="font-size:10px;font-family:var(--font-num)">수기</span>':''}</td>
       <td class="mono">${won(total)}</td>
       <td class="mono">${won(+r.principal)}</td>
       <td class="mono">${won(+r.eval_amount)}</td>
