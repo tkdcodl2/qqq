@@ -925,7 +925,7 @@ function computeSeries(md,P,EX){
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
 let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null;
-const APP_VERSION='9.2';
+const APP_VERSION='11.0';   // 전략 v11 (4종목 레버리지 사다리)
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 
@@ -956,7 +956,7 @@ const schdPx=row=>(row&&row.schd!=null&&!isNaN(+row.schd))?+row.schd:SCHD_FALLBA
 
 /* ===================== 초기화 ===================== */
 async function init(){
-  document.getElementById('appVer').textContent='v'+APP_VERSION;
+  document.getElementById('appVer').textContent='v'+APP_VERSION+' · 전략 v'+((typeof DEFAULT_STRAT!=='undefined'&&DEFAULT_STRAT.v)||'');
   RAW_MD = synthesizeMissing(await getMarketData());
   SETTINGS = await getSettings();
   loadStrategy(SETTINGS);                 // 사용자 전략 설정(비중·파라미터) 적용 후 단계 계산
