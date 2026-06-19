@@ -572,26 +572,27 @@ details.sandbox .stage-edit{background:var(--surface)}
 <div class="modal-overlay" id="strategyModal">
   <div class="modal">
     <span class="close" onclick="closeModal('strategyModal')">&times;</span>
-    <h2>모멘텀 천장회피 전략</h2>
-    <p class="note" style="margin-bottom:16px"><b>철학: 상승추세에선 TQQQ 100%로 추세를 최대한 탄다.</b> 200일선 위에서는 트림 없이 풀레버리지로 적립하고 — <b>과열 천장 징후</b>(큰 이격 + 과매수)나 <b>추세 이탈</b>이 나오면 <b>전량 SCHD로 즉시 회피</b>해 폭락을 흘려보낸 뒤, <b>저점 반등이 확인되면 다시 TQQQ 100%로 한 번에 복귀</b>해 반등을 통째로 잡습니다. 낙폭 비례 축소(거버너)나 분할 복귀를 두지 않아, 바닥에서 가볍게 들고 있지 않는 것이 수익의 핵심입니다.</p>
+    <h2>모멘텀 천장회피 + 급락 거버너</h2>
+    <p class="note" style="margin-bottom:16px"><b>철학: 상승추세에선 TQQQ 100%로 추세를 최대한 타되, 큰 낙폭에는 자동으로 비중을 줄여 자본을 지킨다.</b> 200일선 위에서는 트림 없이 풀레버리지로 적립하고 — <b>과열 천장 징후</b>(큰 이격 + 과매수)나 <b>추세 이탈</b>이 나오면 <b>전량 SCHD로 즉시 회피</b>합니다. 그 사이 갑작스러운 급락에는 <b>50일 고점 낙폭에 비례해 TQQQ 비중을 단계적으로 축소(급락 거버너)</b>해 −28%에서 전량 피신하고, <b>저점 반등이 확인되면 다시 TQQQ로 즉시 복귀</b>합니다. 거버너가 닷컴급 다단계 폭락의 꼬리 위험을 눌러 줍니다.</p>
 
-    <div class="section-title" style="font-size:16px"><span class="dot"></span>3가지 상태</div>
+    <div class="section-title" style="font-size:16px"><span class="dot"></span>5가지 상태</div>
     <div id="modalRegimes"></div>
 
     <div class="section-title" style="font-size:16px;margin-top:18px"><span class="dot"></span>규칙 — 매주 마지막 거래일 종가로 판단</div>
     <div class="tbl-scroll"><table style="font-size:12.5px;min-width:520px">
       <thead><tr><th>신호</th><th>조건 (QQQ 기준)</th><th>동작</th></tr></thead>
       <tbody>
-        <tr><td class="tkr" style="color:#2dd4bf">적립</td><td>200일선 <b>위</b> & 천장/이탈 신호 없음</td><td class="mono">TQQQ 100% 유지·적립 (트림 없음)</td></tr>
-        <tr><td class="tkr" style="color:#f43f5e">천장 회피</td><td>200일선 이격 <b>+20%</b> & 주간 RSI <b>70↑</b> & 고점권(−3% 이내)</td><td class="mono">즉시 전량 SCHD. 해제: 고점 −3% 회복 / 추세 회복(200일선 +1% & 50일선 동반) → TQQQ 100% 즉시 복귀</td></tr>
-        <tr><td class="tkr" style="color:#3b82f6">이탈</td><td>200일선 아래 <b>25거래일(≈5주) 연속</b></td><td class="mono">전량 SCHD. 복귀: 200일선 +1% 재돌파(50일선 동반) 또는 저점 +15% 추력 & 50일선 위 → TQQQ 100% 즉시</td></tr>
+        <tr><td class="tkr" style="color:#2dd4bf">적립</td><td>200일선 <b>위</b> & 천장/이탈/급락 신호 없음</td><td class="mono">TQQQ 100% 유지·적립 (트림 없음)</td></tr>
+        <tr><td class="tkr" style="color:#fb6f3c">급락</td><td>50일 고점 대비 <b>−8% ~ −28%</b> (코로나·관세형 급락)</td><td class="mono">낙폭에 비례해 TQQQ 비중을 매주 하향 (−28%에서 0%). 낙폭이 줄면 자동 복원</td></tr>
+        <tr><td class="tkr" style="color:#f43f5e">천장 회피</td><td>200일선 이격 <b>+20%</b> & 주간 RSI <b>70↑</b> & 고점권(−3% 이내)</td><td class="mono">즉시 전량 SCHD. 해제: 고점 −3% 회복 / 추세 회복 → TQQQ 즉시 복귀</td></tr>
+        <tr><td class="tkr" style="color:#3b82f6">이탈</td><td>200일선 아래 <b>25거래일(≈5주) 연속</b></td><td class="mono">전량 SCHD. 복귀: 200일선 +1% 재돌파(50일선 동반) 또는 저점 +15% 추력 & 50일선 위 → TQQQ 즉시</td></tr>
       </tbody>
     </table></div>
-    <p class="note" style="margin:8px 0 0"><b>실행.</b> 매주 적립일에 대시보드의 목표 비중을 확인합니다 — 대부분 <b>TQQQ 100%</b>이고, 천장/이탈 신호가 켜지면 <b>전량 SCHD</b>, 반등이 확인되면 다시 <b>TQQQ 100%</b>입니다. 신규 적립금은 목표대로 매수하고, 목표가 바뀐 주에는 보유분도 한 번에 맞춥니다. 매매는 신호 전환 시에만 발생합니다(잦지 않음).</p>
+    <p class="note" style="margin:8px 0 0"><b>실행.</b> 매주 적립일에 대시보드의 목표 비중을 확인합니다 — 평소 <b>TQQQ 100%</b>, 급락 땐 낙폭만큼 줄어든 비중, 천장/이탈 신호 땐 <b>전량 SCHD</b>입니다. 신규 적립금은 목표대로 매수하고, 목표가 바뀐 주에는 보유분도 맞춥니다.</p>
 
     <div class="section-title" style="font-size:16px;margin-top:18px"><span class="dot"></span>참고 — 주간 근사 백테스트 ($100,000 + 매월 $1,000)</div>
-    <p class="note">전 기간(1999–2026, 2011년 이전은 합성 근사) 주간 백테스트에서 이 전략은 <b>전체기간 최대낙폭을 TQQQ 단독 −99%대에서 −70%대로 크게 낮추면서도</b> 누적 성과는 TQQQ 단독을 웃돌았습니다 — 닷컴·금융위기 같은 대형 약세장에서 천장 회피·추세 이탈이 자본을 지키고, 반등에서 풀레버리지로 복귀해 복리가 살아남기 때문입니다. 2011년 이후 실데이터 구간에서는 누적이 TQQQ 단독에 다소 못 미치는 대신(영구 폭락이 없던 구간) 낙폭이 −63% 수준으로 더 얕습니다.</p>
-    <p class="note" style="margin-top:8px"><b>정확한 수치는 아래 「백테스트」 탭에서 실데이터(일봉) 기준으로 직접 확인하세요</b> — 기간·적립 주기·수수료를 바꿔가며 검증할 수 있고, 같은 현금흐름의 TQQQ·QLD·QQQ·SCHD 단순적립과도 비교됩니다.</p>
+    <p class="note">급락 거버너를 켠 주간 백테스트(1999–2026, 2011년 이전은 합성 근사)에서 이 전략은 <b>최대낙폭을 TQQQ 단독 −99%대보다 크게 얕게</b> 누르면서도 누적 성과를 지켰습니다 — 거버너가 급락마다 3배 노출을 줄여 자본 전멸을 막고, 복리 기반이 살아남기 때문입니다(주봉 기준 전체기간 −70%대 초반, 2011년 이후 실데이터 −50%대). 거버너를 끄면(이전 버전) 같은 구간 MDD가 훨씬 깊어집니다.</p>
+    <p class="note" style="margin-top:8px"><b>정확한 수치는 아래 「백테스트」 탭에서 실데이터(일봉) 기준으로 직접 확인하세요</b> — 2010년 이전은 합성·무배당 데이터라 전체기간 수치는 방향성 참고용이고, <b>2011-01-01부터로 돌리면 실데이터 구간의 신뢰도 높은 결과</b>를 봅니다. 같은 현금흐름의 TQQQ·QLD·QQQ·SCHD 단순적립과도 비교됩니다.</p>
     <p class="note" style="margin-top:10px">⚠️ 천장 회피(이격 <b>+20%</b> & 주간 RSI <b>70</b>)는 닷컴 천장 같은 '명백한 과열'에 맞춰진 규칙이라, 과열 신호 없이 오는 폭락엔 효과가 약할 수 있습니다(<b>과최적화 주의</b>). 추세확인(25거래일)·복귀추력(15%)도 표본 의존성이 있으니, 인앱 백테스트에서 주변 설정으로 견고성을 확인하세요. 2011년 이전은 합성·근사(주간) 데이터이며, 거래비용·세금·슬리피지는 미반영이라 세후 실제 수익은 더 낮습니다.</p>
 
     <div class="disclaim">⚠️ 본 자료는 과거 데이터 기반 시뮬레이션이며 투자 조언이 아닙니다. 과거 성과가 미래를 보장하지 않으며, 레버리지 ETF는 변동성 끌림(decay)과 -90% 이상의 실제 손실 위험이 있고, 본 전략의 전체기간 MDD는 -70%대로 실전에서 견디기 매우 어려운 수준입니다. 모든 투자 책임은 본인에게 있습니다.</div>
@@ -819,28 +820,31 @@ function synthesizeMissing(md){
   return md;
 }
 
-/* v9: 모멘텀 천장회피 — 상승추세엔 TQQQ 100%, 천장/이탈 시 즉시 SCHD, 저점 반등에 즉시 100% 복귀(분할·트림·거버너 없음) */
+/* v10: 모멘텀 천장회피 + 급락 거버너 — 상승추세엔 TQQQ 100%, 천장/이탈 시 즉시 SCHD,
+   급락 시 50일 고점 낙폭에 비례해 TQQQ 비중을 단계적으로 축소(거버너), 저점 반등에 즉시 복귀 */
 const DEFAULT_STRAT={
-  v:9,
-  // '이진(binary)' 설정으로 모멘텀 전략을 구현: rsiHi·matDays 비활성=트림 끔, dipStart 0=거버너 끔,
-  // stepIn/thrustIn 100=즉시 100% 복귀, dipReWeeks 0=단일 추력, maniaExt 20 & maniaRsi 70, confirmDays 25(≈5주)
-  params:{rsiHi:999, matDays:999999, matATH:98, maniaExt:20, maniaRsi:70, confirmDays:25, stepOut:100, stepIn:100, dipStart:0, dipFull:30, exitThrust:15, thrustIn:100, dipReWeeks:0, dipReDD:22, dipReThrust:10},
-  ex:{}   // 단계 끄기: {4:1 천장(광기), 6:1 이탈} — 전략 모달 체크박스로 토글
+  v:10,
+  // 트림은 끔(rsiHi·matDays 비활성), 즉시 복귀(stepIn/thrustIn 100)·단일 추력(dipReWeeks 0) 유지,
+  // 급락 거버너 ON: dipStart 8(=−8%부터 축소) / dipFull 28(=−28%에서 전량 SCHD). maniaExt 20·maniaRsi 70, confirmDays 25(≈5주)
+  params:{rsiHi:999, matDays:999999, matATH:98, maniaExt:20, maniaRsi:70, confirmDays:25, stepOut:100, stepIn:100, dipStart:8, dipFull:28, exitThrust:15, thrustIn:100, dipReWeeks:0, dipReDD:22, dipReThrust:10},
+  ex:{}   // 단계 끄기: {5:1 급락, 4:1 천장, 6:1 이탈} — 전략 모달 체크박스로 토글
 };
 const PARAM_DEF=[
   ['maniaExt','천장 회피 이격','%','200일선 대비 +X% 이상 이격 & (아래 RSI 동반) & 고점권(−3% 이내)이면 천장 징후 → 전량 SCHD 회피 (기본 20)'],
   ['maniaRsi','천장 회피 RSI','이상','천장 회피에 함께 요구하는 주간 RSI(14) 하한 — 이격과 과매수가 동시일 때만 천장으로 판단 (기본 70, 0=RSI 조건 끔)'],
   ['confirmDays','추세 이탈 확인','거래일','200일선 아래 연속 X거래일이면 전량 SCHD (기본 25 ≈ 5주). 작을수록 빨리 피신하지만 휩쏘 증가'],
-  ['exitThrust','저점 반등 복귀','%','이탈/회피 후 저점 대비 +X% 반등 & 50일선 위면 TQQQ 100%로 즉시 복귀 — V반등 캡처 (기본 15)'],
+  ['exitThrust','저점 반등 복귀','%','이탈/회피 후 저점 대비 +X% 반등 & 50일선 위면 TQQQ로 즉시 복귀 — V반등 캡처 (기본 15)'],
+  ['dipStart','급락 거버너 시작','%','50일 고점 대비 −X%부터 낙폭에 비례해 TQQQ 비중을 단계적으로 축소 (기본 8, 0=거버너 끔). 작을수록 빨리·많이 줄여 MDD↓·수익↓'],
+  ['dipFull','급락 거버너 전량','%','50일 고점 대비 −X%에서 TQQQ 0%(전량 SCHD). 낙폭이 줄면 비중도 자동 복원 (기본 28)'],
 ];
 let STRAT=JSON.parse(JSON.stringify(DEFAULT_STRAT));
 const tgtOf=r=>{ const w=(r&&r.w!=null)?r.w:1; return [w,0,0,1-w]; };   // [TQQQ,QLD,QQQ,SCHD]
 const REG_SUB={
   2:'상승추세(200일선 위) + 천장 신호 없음. TQQQ 100%를 들고 매주 기계적으로 적립합니다. 대부분의 시간을 여기서 보냅니다.',
-  1:'저점 반등이 확인되어 TQQQ 100%로 복귀하는 주. 분할 없이 한 번에 채웁니다.',
+  1:'방어가 끝나고 TQQQ로 복귀하는 중(또는 급락 거버너가 비중을 조정 중). 신호가 없으면 즉시 100%까지 채웁니다.',
   3:'(미사용) 현재 전략은 상승추세에서 트림하지 않고 TQQQ 100%를 유지합니다.',
-  4:'천장 회피. 200일선 이격 +20% & 주간 RSI 70 이상(이격과 과매수가 동시인 천장 징후 — 2000.3 닷컴형). 전량 SCHD로 피신. 해제는 고점 −3% 회복 또는 추세 회복(200일선 +1% & 50일선 동반) 시 — 신호가 뜨면 즉시 TQQQ 100%로 복귀합니다.',
-  5:'(미사용) 현재 전략은 낙폭 비례 축소(거버너)를 쓰지 않습니다.',
+  4:'천장 회피. 200일선 이격 +20% & 주간 RSI 70 이상(이격과 과매수가 동시인 천장 징후 — 2000.3 닷컴형). 전량 SCHD로 피신. 해제는 고점 −3% 회복 또는 추세 회복(200일선 +1% & 50일선 동반) 시 — 신호가 뜨면 즉시 TQQQ로 복귀합니다.',
+  5:'우상향 중 갑작스러운 급락(2020.3 코로나·2025.4 관세형). 50일 고점 대비 −8%부터 낙폭에 비례해 TQQQ 비중을 끌어내려 −28%에서 전량 SCHD. 낙폭이 줄면 비중이 자동 복원됩니다 — 거버너가 큰 폭락의 꼬리 위험을 눌러 줍니다.',
   6:'추세 이탈. 200일선 아래 25거래일(≈5주) 연속 = 추세 붕괴. 전량 SCHD로 자본을 지키며 통과합니다. 복귀는 ①200일선 +1% 재돌파(50일선 동반) 또는 ②이탈 후 저점 +15% 추력 & 50일선 위 — 둘 중 빠른 쪽에서 즉시 TQQQ 100%.'
 };
 const REG_COLOR={2:'green',1:'green',3:'gold',4:'red',5:'red',6:'blue'};
@@ -1584,7 +1588,7 @@ function renderStratEditorInto(pfx, wId, pId, S){
   if(we){
     const ex=S.ex||{};
     we.innerHTML='<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:4px 0 10px"><span class="muted" style="font-size:11.5px">단계 사용:</span>'
-      +[4,6].map(reg=>`<label style="display:inline-flex;align-items:center;gap:5px;font-size:12.5px;cursor:pointer;color:${REG_LINE[reg]}"><input type="checkbox" id="ex_${pfx}${reg}" ${ex[reg]?'':'checked'} style="width:15px;height:15px;accent-color:var(--accent)">${REG_NAME[reg]}</label>`).join('')
+      +[5,4,6].map(reg=>`<label style="display:inline-flex;align-items:center;gap:5px;font-size:12.5px;cursor:pointer;color:${REG_LINE[reg]}"><input type="checkbox" id="ex_${pfx}${reg}" ${ex[reg]?'':'checked'} style="width:15px;height:15px;accent-color:var(--accent)">${REG_NAME[reg]}</label>`).join('')
       +'<span class="muted" style="font-size:11px">(적립·복귀는 항상 켜짐)</span></div>';
   }
   document.getElementById(pId).innerHTML=PARAM_DEF.map(([k,lab,unit,hint])=>
