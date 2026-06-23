@@ -522,7 +522,12 @@ details.sandbox .stage-edit{background:var(--surface)}
         <div class="card"><div class="section-title"><span class="dot"></span>평가금액 추이 ($)</div><div style="height:300px"><canvas id="btAssetChart"></canvas></div></div>
       </div>
       <div class="card" style="margin-top:16px">
-        <div class="section-title"><span class="dot"></span>월별 데이터</div>
+        <div class="section-title" style="display:flex;align-items:center;gap:8px"><span class="dot"></span>기간별 데이터
+          <span style="margin-left:auto;display:inline-flex;gap:4px">
+            <button class="btn primary" id="btGranM" onclick="setBtGran('month')" style="padding:5px 12px;font-size:12px;letter-spacing:0">월간</button>
+            <button class="btn ghost" id="btGranW" onclick="setBtGran('week')" style="padding:5px 12px;font-size:12px;letter-spacing:0">주간</button>
+          </span>
+        </div>
         <div style="overflow:auto;max-height:480px">
           <table class="nowrap-table"><thead><tr id="btMonthlyHead"></tr></thead>
           <tbody id="btMonthlyBody"></tbody></table>
@@ -951,8 +956,8 @@ function computeSeries(md,P,EX){
 /* ===================== 전역 상태 ===================== */
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
-let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null;
-const APP_VERSION='9.4';
+let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null, BT_GRAN='month';
+const APP_VERSION='9.5';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 
@@ -1755,8 +1760,8 @@ function runBacktest(){
   const bms=['QQQ','QLD','TQQQ','SCHD'].filter(k=>{const e=document.getElementById('bt_bm_'+k);return e&&e.checked;});
   let schdMiss=0, synthDays=0, sh=[0,0,0,0], invested=0, rebals=0, peak=0, mdd=0;
   const bsh={}, bmPeak={}, bmMdd={}; bms.forEach(k=>{bsh[k]=0;bmPeak[k]=0;bmMdd[k]=0;});   // 선택된 비교 지수별 동일적립 주수·MDD
-  const volA={};   // 월별 QQQ 일수익률 집계 (변동성)
-  const days=[], months={};
+  const volA={}, volW={};   // QQQ 일수익률 집계 (월/주 변동성)
+  const days=[], months={}, weeks={};
   const t0=new Date(SER[i0].date+'T00:00:00Z').getTime();
   const yrs=d=>(new Date(d+'T00:00:00Z').getTime()-t0)/31557600000;
   const flows=[];
@@ -1764,11 +1769,12 @@ function runBacktest(){
   const buyAll=(amt,t,p)=>{ for(let k=0;k<4;k++){ const a=amt*t[k]; if(a>0&&p[k]>0&&isFinite(p[k])) sh[k]+=a*(1-fee)/p[k]; }
     bms.forEach(nm=>{ const q=p[BM_IDX[nm]]; if(q>0&&isFinite(q)) bsh[nm]+=amt*(1-fee)/q; }); };   // 같은 현금흐름으로 각 비교 지수 매수
   for(let i=i0;i<=i1;i++){
-    const r=SER[i], p=px(r), t=[r.w,0,0,1-r.w];
+    const r=SER[i], p=px(r), t=[r.w,0,0,1-r.w], _wk=wkKey(r.date);
     if(r.schd==null||isNaN(+r.schd)) schdMiss++;
     if(r.synth) synthDays++;
     if(i>i0){ const ym=r.date.slice(0,7), dr=r.qqq/SER[i-1].qqq-1;
-      const a=volA[ym]||(volA[ym]={n:0,s:0,s2:0}); a.n++; a.s+=dr; a.s2+=dr*dr; }
+      const a=volA[ym]||(volA[ym]={n:0,s:0,s2:0}); a.n++; a.s+=dr; a.s2+=dr*dr;
+      const aw=volW[_wk]||(volW[_wk]={n:0,s:0,s2:0}); aw.n++; aw.s+=dr; aw.s2+=dr*dr; }
     if(i===i0){
       if(init0>0){ invested+=init0; flows.push({t:yrs(r.date),v:-init0}); buyAll(init0,t,p); rebals++; }
       lastReg=r.w; lastWk=wkKey(r.date); lastYm=r.date.slice(0,7);
@@ -1793,18 +1799,52 @@ function runBacktest(){
       bmPeak[nm]=Math.max(bmPeak[nm],v); if(bmPeak[nm]>0) bmMdd[nm]=Math.min(bmMdd[nm],v/bmPeak[nm]-1); });
     peak=Math.max(peak,val); if(peak>0) mdd=Math.min(mdd,val/peak-1);
     days.push({date:r.date,val,invested,bm,regime:r.regime});
-    months[r.date.slice(0,7)]={ym:r.date.slice(0,7),regime:r.regime,w:r.w,val,invested,bm,vals:sh.map((q,k)=>q*p[k])};
+    const _vals=sh.map((q,k)=>q*p[k]);
+    months[r.date.slice(0,7)]={label:r.date.slice(0,7),regime:r.regime,w:r.w,val,invested,bm,vals:_vals};
+    weeks[_wk]={label:r.date,regime:r.regime,w:r.w,val,invested,bm,vals:_vals};
   }
   const last=days[days.length-1];
   flows.push({t:yrs(last.date),v:last.val});
   const irr=xirr(flows);
   for(const ym in volA){ const a=volA[ym];
     if(months[ym]) months[ym].vol = a.n>=2 ? Math.sqrt(Math.max(0,(a.s2-a.s*a.s/a.n)/(a.n-1))*252) : null; }
+  for(const wk in volW){ const a=volW[wk];
+    if(weeks[wk]) weeks[wk].vol = a.n>=2 ? Math.sqrt(Math.max(0,(a.s2-a.s*a.s/a.n)/(a.n-1))*252) : null; }
   if(synthDays>0) warns.push('⚠️ 기간 중 '+synthDays.toLocaleString()+'거래일은 합성 근사 데이터입니다 (QLD 2006-06 / TQQQ 2010-02 / SCHD 2011-10 상장 이전 — 레버리지 일복리·비용 모델 + SCHD 분기앵커 보간). 해당 구간 결과는 근사치로만 보세요.');
   if(schdMiss>0) warns.push('⚠️ 기간 중 '+schdMiss+'일은 SCHD 시세가 없어 고정가($'+SCHD_FALLBACK+', 수익률 0%·현금성)로 처리했습니다 (SCHD 2011-10 상장).');
   warns.push('⚠️ 일봉 종가 기준 근사 시뮬레이션입니다. 배당·세금·슬리피지·환율 미반영이며, 과거 성과는 미래 수익을 보장하지 않습니다. 투자 조언이 아닙니다.');
-  BT_RES={i0,i1,s:SER.slice(i0,i1+1),strat:JSON.parse(JSON.stringify(S)),days,months:Object.values(months),irr,mdd,rebals,invested:last.invested,final:last.val,bms,bm:last.bm,bmMdd,warns};
+  BT_RES={i0,i1,s:SER.slice(i0,i1+1),strat:JSON.parse(JSON.stringify(S)),days,months:Object.values(months),weeks:Object.values(weeks),irr,mdd,rebals,invested:last.invested,final:last.val,bms,bm:last.bm,bmMdd,warns};
   renderBtResults();
+}
+function setBtGran(g){
+  BT_GRAN=g;
+  const m=document.getElementById('btGranM'), w=document.getElementById('btGranW');
+  if(m) m.className='btn '+(g==='month'?'primary':'ghost');
+  if(w) w.className='btn '+(g==='week'?'primary':'ghost');
+  renderBtTable();
+}
+function renderBtTable(){
+  const R=BT_RES; if(!R) return;
+  const isW=BT_GRAN==='week';
+  const rows=isW?(R.weeks||[]):R.months;
+  document.getElementById('btMonthlyHead').innerHTML=
+    '<th>'+(isW?'주 (마감일)':'년월')+'</th><th>단계('+(isW?'주말':'월말')+')</th><th>TQQQ 목표</th><th>평가금액</th><th>TQQQ</th><th>SCHD</th><th>누적수익률</th>'
+    + R.bms.map(nm=>'<th>'+nm+' 누적 (동일적립)</th>').join('')
+    + '<th>QQQ 변동성 ('+(isW?'주':'월')+', 연환산)</th>';
+  document.getElementById('btMonthlyBody').innerHTML=rows.map(m=>{
+    const cum=m.invested>0?m.val/m.invested-1:0;
+    const cell=v=>{ const wt=m.val>0?v/m.val:0; return v>0.5?fmtUSD(v)+' <span class="muted">('+Math.round(wt*100)+'%)</span>':'—'; };
+    const bmTds=R.bms.map(nm=>{ const bcum=m.invested>0?(m.bm[nm]||0)/m.invested-1:0;
+      return `<td class="mono ${cum>=bcum?'muted':'neutral'}">${pct(bcum)}</td>`; }).join('');
+    return `<tr><td class="tkr">${m.label}</td>
+      <td><span class="chip" style="font-size:12px;color:${REG_LINE[m.regime]};background:${REG_LINE[m.regime]}26">${REG_NAME[m.regime]}</span></td>
+      <td class="mono">${Math.round((m.w!=null?m.w:1)*100)}%</td>
+      <td class="mono">${fmtUSD(m.val)}</td>
+      <td class="mono">${cell(m.vals[0])}</td><td class="mono">${cell(m.vals[3])}</td>
+      <td class="mono ${cum>=0?'up':'down'}">${pct(cum)}</td>
+      ${bmTds}
+      <td class="mono ${m.vol!=null&&m.vol>=0.30?'down':m.vol!=null&&m.vol>=0.20?'neutral':'muted'}">${m.vol!=null?(m.vol*100).toFixed(0)+'%':'—'}</td></tr>`;
+  }).join('');
 }
 function renderBtResults(){
   const R=BT_RES; if(!R) return;
@@ -1846,25 +1886,8 @@ function renderBtResults(){
       tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmtUSD(c.parsed.y)}}},
     scales:{x:{ticks:{color:'#717da3',maxTicksLimit:8,font:{size:10}},grid:{color:'rgba(255,255,255,.03)'}},
             y:{ticks:{color:'#717da3',font:{size:10},callback:v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':'$'+Math.round(v/1e3)+'K'},grid:{color:'rgba(255,255,255,.04)'}}}}});
-  // 월별 테이블
-  document.getElementById('btMonthlyHead').innerHTML=
-    '<th>년월</th><th>단계(월말)</th><th>TQQQ 목표</th><th>평가금액</th><th>TQQQ</th><th>SCHD</th><th>누적수익률</th>'
-    + R.bms.map(nm=>'<th>'+nm+' 누적 (동일적립)</th>').join('')
-    + '<th>QQQ 변동성 (월, 연환산)</th>';
-  document.getElementById('btMonthlyBody').innerHTML=R.months.map(m=>{
-    const cum=m.invested>0?m.val/m.invested-1:0;
-    const cell=v=>{ const w=m.val>0?v/m.val:0; return v>0.5?fmtUSD(v)+' <span class="muted">('+Math.round(w*100)+'%)</span>':'—'; };
-    const bmTds=R.bms.map(nm=>{ const bcum=m.invested>0?(m.bm[nm]||0)/m.invested-1:0;
-      return `<td class="mono ${cum>=bcum?'muted':'neutral'}">${pct(bcum)}</td>`; }).join('');
-    return `<tr><td class="tkr">${m.ym}</td>
-      <td><span class="chip" style="font-size:12px;color:${REG_LINE[m.regime]};background:${REG_LINE[m.regime]}26">${REG_NAME[m.regime]}</span></td>
-      <td class="mono">${Math.round((m.w!=null?m.w:1)*100)}%</td>
-      <td class="mono">${fmtUSD(m.val)}</td>
-      <td class="mono">${cell(m.vals[0])}</td><td class="mono">${cell(m.vals[3])}</td>
-      <td class="mono ${cum>=0?'up':'down'}">${pct(cum)}</td>
-      ${bmTds}
-      <td class="mono ${m.vol!=null&&m.vol>=0.30?'down':m.vol!=null&&m.vol>=0.20?'neutral':'muted'}">${m.vol!=null?(m.vol*100).toFixed(0)+'%':'—'}</td></tr>`;
-  }).join('');
+  // 기간별 테이블 (월간/주간 토글)
+  setBtGran(BT_GRAN);
   document.getElementById('btWarn').innerHTML=R.warns.join('<br>');
   document.getElementById('btResults').scrollIntoView({behavior:'smooth',block:'start'});
 }
