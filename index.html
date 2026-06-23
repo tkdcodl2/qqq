@@ -526,7 +526,7 @@ details.sandbox .stage-edit{background:var(--surface)}
       </div>
       <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:16px;gap:16px" id="btChartRow">
         <div class="card"><div class="section-title"><span class="dot"></span>기간 단계 차트 (QQQ) <span class="muted" style="font-family:var(--font-num);font-size:10.5px;letter-spacing:0;margin-left:8px">드래그·핀치 확대 · 더블탭 초기화</span></div><div style="height:300px"><canvas id="btPriceChart"></canvas></div></div>
-        <div class="card"><div class="section-title"><span class="dot"></span>평가금액 추이 ($)</div><div style="height:300px"><canvas id="btAssetChart"></canvas></div></div>
+        <div class="card"><div class="section-title"><span class="dot"></span>평가금액 추이 ($)<button id="btLogToggle" class="icon-btn" style="margin-left:auto" onclick="toggleLogScale()">선형으로</button></div><div style="height:300px"><canvas id="btAssetChart"></canvas></div></div>
       </div>
       <div class="card" style="margin-top:16px">
         <div class="section-title" style="display:flex;align-items:center;gap:8px"><span class="dot"></span>기간별 데이터
@@ -970,8 +970,8 @@ function computeSeries(md,P,EX){
 /* ===================== 전역 상태 ===================== */
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
-let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null, BT_GRAN='month';
-const APP_VERSION='9.11';
+let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null, BT_GRAN='month', LOG_SCALE=true;
+const APP_VERSION='9.12';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 
@@ -1927,26 +1927,35 @@ function renderBtResults(){
   if(btPriceC){ if(btPriceC.$pulseRAF) cancelAnimationFrame(btPriceC.$pulseRAF); btPriceC.destroy(); }
   btPriceC=buildRegimeChart(pc, R.s);
   pc.ondblclick=()=>{ if(btPriceC&&btPriceC.resetZoom) btPriceC.resetZoom(); };
-  // 평가금액 추이
-  const ac=document.getElementById('btAssetChart');
-  if(btAssetC)btAssetC.destroy();
-  const g=ac.getContext('2d'); const grad=g.createLinearGradient(0,0,0,300);
-  grad.addColorStop(0,'rgba(45,212,191,.28)'); grad.addColorStop(1,'rgba(45,212,191,0)');
-  const bmDs=R.bms.map(nm=>({label:nm+' 동일적립',data:R.days.map(x=>x.bm[nm]),borderColor:(ALLOC_COLORS[nm]||'#8a93a8')+'cc',borderWidth:1.4,pointRadius:0,tension:.1,fill:false}));
-  btAssetC=new Chart(ac,{type:'line',data:{labels:R.days.map(x=>x.date),datasets:[
-    {label:'평가금액',data:R.days.map(x=>x.val),borderColor:'#2dd4bf',backgroundColor:grad,borderWidth:2,pointRadius:0,tension:.1,fill:true},
-    ...bmDs,
-    {label:'투자원금',data:R.days.map(x=>x.invested),borderColor:'#3b82f6',borderWidth:1.6,pointRadius:0,tension:.1,fill:false,borderDash:[5,4]}
-  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
-    plugins:{legend:{labels:{color:'#717da3',boxWidth:12,font:{size:11}}},
-      tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmtUSD(c.parsed.y)}}},
-    scales:{x:{ticks:{color:'#717da3',maxTicksLimit:8,font:{size:10}},grid:{color:'rgba(255,255,255,.03)'}},
-            y:{ticks:{color:'#717da3',font:{size:10},callback:v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':'$'+Math.round(v/1e3)+'K'},grid:{color:'rgba(255,255,255,.04)'}}}}});
+  // 평가금액 추이 (로그/선형 토글은 LOG_SCALE)
+  drawBtAsset();
   // 기간별 테이블 (월간/주간 토글)
   setBtGran(BT_GRAN);
   document.getElementById('btWarn').innerHTML=R.warns.join('<br>');
   document.getElementById('btResults').scrollIntoView({behavior:'smooth',block:'start'});
 }
+function drawBtAsset(){
+  const R=BT_RES; if(!R) return;
+  const ac=document.getElementById('btAssetChart'); if(!ac) return;
+  if(btAssetC)btAssetC.destroy();
+  const g=ac.getContext('2d'); const grad=g.createLinearGradient(0,0,0,300);
+  grad.addColorStop(0,'rgba(45,212,191,.28)'); grad.addColorStop(1,'rgba(45,212,191,0)');
+  const bmDs=R.bms.map(nm=>({label:nm+' 동일적립',data:R.days.map(x=>x.bm[nm]),borderColor:(ALLOC_COLORS[nm]||'#8a93a8')+'cc',borderWidth:1.4,pointRadius:0,tension:.1,fill:false}));
+  const usdTick=v=>v>=1e9?'$'+(v/1e9).toFixed(v/1e9>=10?0:1)+'B':v>=1e6?'$'+(v/1e6).toFixed(v/1e6>=10?0:1)+'M':v>=1e3?'$'+Math.round(v/1e3)+'K':'$'+Math.round(v);
+  const logCb=v=>{ if(v<=0)return ''; const f=Math.pow(10,Math.floor(Math.log10(v)+1e-9)); const m=Math.round(v/f); return (m===1||m===2||m===5)?usdTick(v):''; };
+  const yAxis = LOG_SCALE
+    ? {type:'logarithmic',ticks:{color:'#717da3',font:{size:10},callback:logCb},grid:{color:'rgba(255,255,255,.04)'}}
+    : {ticks:{color:'#717da3',font:{size:10},callback:usdTick},grid:{color:'rgba(255,255,255,.04)'}};
+  btAssetC=new Chart(ac,{type:'line',data:{labels:R.days.map(x=>x.date),datasets:[
+    {label:'평가금액',data:R.days.map(x=>x.val),borderColor:'#2dd4bf',backgroundColor:grad,borderWidth:2,pointRadius:0,tension:.1,fill:!LOG_SCALE},
+    ...bmDs,
+    {label:'투자원금',data:R.days.map(x=>x.invested),borderColor:'#3b82f6',borderWidth:1.6,pointRadius:0,tension:.1,fill:false,borderDash:[5,4]}
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
+    plugins:{legend:{labels:{color:'#717da3',boxWidth:12,font:{size:11}}},
+      tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmtUSD(c.parsed.y)}}},
+    scales:{x:{ticks:{color:'#717da3',maxTicksLimit:8,font:{size:10}},grid:{color:'rgba(255,255,255,.03)'}}, y:yAxis}}});
+}
+function toggleLogScale(){ LOG_SCALE=!LOG_SCALE; const b=document.getElementById('btLogToggle'); if(b) b.textContent=LOG_SCALE?'선형으로':'로그로'; drawBtAsset(); }
 
 /* ===================== 전략 모달 ===================== */
 function renderModalRegimes(){
