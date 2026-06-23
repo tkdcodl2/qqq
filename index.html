@@ -803,6 +803,7 @@ const SCHD_ANCH=[['1999-03-05',96],['1999-12-31',100],['2000-03-31',98],['2000-0
  ['2010-12-31',192],['2011-06-24',200],['2011-09-30',180],['2011-12-30',206]];
 function synthesizeMissing(md){
   if(!md.length) return md;
+  for(const r of md){ if(r.synthetic===true||r.synthetic==='true') r.synth=true; } // DB에 미리 넣은 합성행(옵션 B) 플래그 반영 — 값이 이미 차 있으면 아래 채우기 루프는 자동 skip(재계산 없음). synthetic 컬럼이 없는 환경에선 무해(기존대로 동작)
   const ffr=d=>(FFR_Y[+d.slice(0,4)]??3.0)/100;
   // 레버리지 역방향 합성: P[i-1]=P[i]/(1+L·r−비용/252)
   for(const [col,L] of [['tqqq',3],['qld',2]]){
@@ -957,7 +958,7 @@ function computeSeries(md,P,EX){
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
 let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null, BT_GRAN='month';
-const APP_VERSION='9.5';
+const APP_VERSION='9.6';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 
