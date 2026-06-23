@@ -503,11 +503,16 @@ details.sandbox .stage-edit{background:var(--surface)}
           <p class="note" style="margin-bottom:10px">여기서 바꾼 값은 <b>백테스트에만</b> 쓰이고 실제 전략(대시보드)에는 영향이 없습니다. 결과가 마음에 들면 결과 화면의 <b>“이 설정을 실제 전략에 적용”</b> 버튼으로 반영하세요.</p>
           <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
             <button class="btn ghost" style="padding:8px 14px;font-size:13px" onclick="btLoadLive()">현재 실제 설정 불러오기</button>
+            <button class="btn ghost" style="padding:8px 14px;font-size:13px" onclick="btSetDefault()">현재 설정을 기본값으로</button>
             <button class="btn ghost" style="padding:8px 14px;font-size:13px" onclick="btResetDefault()">초기화</button>
           </div>
           <div class="abar-label">단계 사용 / 파라미터</div>
           <div id="wEditorBt"></div>
           <div id="pEditorBt" class="pgrid"></div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)">
+            <button class="btn primary" onclick="runBacktest()">백테스트 실행</button>
+            <span class="muted" style="font-size:12px">파라미터를 바꾼 뒤 바로 여기서 실행하세요.</span>
+          </div>
         </div>
       </details>
     </div>
@@ -567,6 +572,7 @@ details.sandbox .stage-edit{background:var(--surface)}
     <div id="pEditor" class="pgrid"></div>
     <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
       <button class="btn primary" style="flex:1;min-width:160px" onclick="saveStrategyUI()">저장 후 적용</button>
+      <button class="btn ghost" onclick="stratSetDefault()">기본값으로 지정</button>
       <button class="btn ghost" onclick="resetStrategyUI()">초기화</button>
       <button class="btn ghost" onclick="closeModal('settingsModal')">취소</button>
     </div>
@@ -958,7 +964,7 @@ function computeSeries(md,P,EX){
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
 let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null, BT_GRAN='month';
-const APP_VERSION='9.6';
+const APP_VERSION='9.7';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 
@@ -1637,6 +1643,25 @@ function collectStrat(pfx){
   const ex={}; [3,4,5,6].forEach(reg=>{ const el=document.getElementById('ex_'+pfx+reg); if(el){ if(!el.checked) ex[reg]=1; } else if((STRAT.ex||{})[reg]) ex[reg]=1; });
   return {params:p, ex};
 }
+/* ===== 사용자 지정 기본값: '초기화' 버튼이 복원할 값. 이 기기(localStorage)에 저장 ===== */
+const UD_KEY='adca_userDefault';
+function getUserDefault(){
+  try{ const s=JSON.parse(localStorage.getItem(UD_KEY)||'null'); if(!s||!s.params) return null;
+    const p={}; for(const k in DEFAULT_STRAT.params){ const v=parseFloat(s.params[k]); p[k]=isNaN(v)?DEFAULT_STRAT.params[k]:v; }
+    return {params:p, ex:Object.assign({},s.ex||{})};
+  }catch(e){ return null; }
+}
+function setUserDefault(S){ try{ localStorage.setItem(UD_KEY, JSON.stringify(S)); }catch(e){} }
+function btSetDefault(){
+  if(!document.getElementById('p_bt_'+PARAM_DEF[0][0])){ flash('샌드박스를 먼저 펼쳐 주세요'); return; }
+  const S=collectStrat('bt_'); if(!S) return; setUserDefault(S);
+  flash('현재 샌드박스 값을 기본값으로 지정했습니다 — 이제 “초기화”는 이 값으로 복원됩니다 (이 기기에 저장)');
+}
+function stratSetDefault(){
+  if(!document.getElementById('p_'+PARAM_DEF[0][0])){ return; }
+  const S=collectStrat(''); if(!S) return; setUserDefault(S);
+  const n=document.getElementById('stratSaveNote'); if(n) n.textContent='현재 값을 기본값으로 지정했습니다. 이제 “초기화”를 누르면 이 값으로 복원됩니다. (이 기기에 저장)';
+}
 function openSettings(){
   renderStratEditor();
   document.getElementById('stratSaveNote').textContent='';
@@ -1651,9 +1676,10 @@ async function saveStrategyUI(){
   flash('전략 설정이 적용되었습니다');
 }
 function resetStrategyUI(){
-  STRAT=JSON.parse(JSON.stringify(DEFAULT_STRAT));
+  const ud=getUserDefault();
+  STRAT = ud ? JSON.parse(JSON.stringify(ud)) : JSON.parse(JSON.stringify(DEFAULT_STRAT));
   renderStratEditor();
-  document.getElementById('stratSaveNote').textContent='초기화(심플 래더 기본값)했습니다. “저장 후 적용”을 눌러 확정하세요.';
+  document.getElementById('stratSaveNote').textContent=(ud?'내가 지정한 기본값':'심플 래더 초기값')+'으로 초기화했습니다. “저장 후 적용”을 눌러 확정하세요.';
 }
 function showSyncWarn(html){
   let b=document.getElementById('syncWarn');
@@ -1730,7 +1756,7 @@ function renderBtSandbox(S){
   renderStratEditorInto('bt_','wEditorBt','pEditorBt',BT_STRAT);
 }
 function btLoadLive(){ renderBtSandbox(STRAT); flash('현재 실제 설정을 샌드박스로 불러왔습니다'); }
-function btResetDefault(){ renderBtSandbox(DEFAULT_STRAT); flash('샌드박스를 초기화(심플 래더 기본값)했습니다'); }
+function btResetDefault(){ const ud=getUserDefault(); renderBtSandbox(ud||DEFAULT_STRAT); flash(ud?'샌드박스를 내가 지정한 기본값으로 초기화했습니다':'샌드박스를 초기화(심플 래더 기본값)했습니다'); }
 async function applyBtStrategy(){
   if(!BT_RES||!BT_RES.strat){ flash('먼저 백테스트를 실행하세요'); return; }
   STRAT=JSON.parse(JSON.stringify(BT_RES.strat));
