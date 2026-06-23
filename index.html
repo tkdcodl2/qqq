@@ -964,7 +964,7 @@ function computeSeries(md,P,EX){
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
 let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null, BT_GRAN='month';
-const APP_VERSION='9.7';
+const APP_VERSION='9.8';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 
@@ -999,6 +999,7 @@ async function init(){
   RAW_MD = synthesizeMissing(await getMarketData());
   SETTINGS = await getSettings();
   loadStrategy(SETTINGS);                 // 사용자 전략 설정(비중·파라미터) 적용 후 단계 계산
+  loadUserDefault(SETTINGS);              // 사용자 지정 기본값(초기화 복원값) 로드: 클라우드 우선 → 로컬
   SERIES = computeSeries(RAW_MD);
   CUR = SERIES[SERIES.length-1];
   FXNOW = (CUR && CUR.fx) ? +CUR.fx : 1380;
@@ -1643,24 +1644,43 @@ function collectStrat(pfx){
   const ex={}; [3,4,5,6].forEach(reg=>{ const el=document.getElementById('ex_'+pfx+reg); if(el){ if(!el.checked) ex[reg]=1; } else if((STRAT.ex||{})[reg]) ex[reg]=1; });
   return {params:p, ex};
 }
-/* ===== 사용자 지정 기본값: '초기화' 버튼이 복원할 값. 이 기기(localStorage)에 저장 ===== */
+/* ===== 사용자 지정 기본값: '초기화' 버튼이 복원할 값. Supabase(settings.default_strategy) + localStorage 동기화 ===== */
 const UD_KEY='adca_userDefault';
-function getUserDefault(){
-  try{ const s=JSON.parse(localStorage.getItem(UD_KEY)||'null'); if(!s||!s.params) return null;
-    const p={}; for(const k in DEFAULT_STRAT.params){ const v=parseFloat(s.params[k]); p[k]=isNaN(v)?DEFAULT_STRAT.params[k]:v; }
-    return {params:p, ex:Object.assign({},s.ex||{})};
-  }catch(e){ return null; }
+let USER_DEFAULT_CACHE=null;            // 로드 시 클라우드/로컬에서 채움
+function normUD(s){
+  if(!s||!s.params) return null;
+  const p={}; for(const k in DEFAULT_STRAT.params){ const v=parseFloat(s.params[k]); p[k]=isNaN(v)?DEFAULT_STRAT.params[k]:v; }
+  return {params:p, ex:Object.assign({},s.ex||{})};
 }
-function setUserDefault(S){ try{ localStorage.setItem(UD_KEY, JSON.stringify(S)); }catch(e){} }
+function loadUserDefault(settings){       // init 에서 호출: 클라우드 우선 → 로컬
+  let s=null;
+  if(settings && settings.default_strategy) s=settings.default_strategy;
+  if(!s){ try{ s=JSON.parse(localStorage.getItem(UD_KEY)||'null'); }catch(e){} }
+  USER_DEFAULT_CACHE=s||null;
+  if(USER_DEFAULT_CACHE){ try{ localStorage.setItem(UD_KEY, JSON.stringify(USER_DEFAULT_CACHE)); }catch(e){} }
+}
+function getUserDefault(){
+  const c=normUD(USER_DEFAULT_CACHE); if(c) return c;
+  try{ return normUD(JSON.parse(localStorage.getItem(UD_KEY)||'null')); }catch(e){ return null; }
+}
+async function setUserDefault(S){
+  USER_DEFAULT_CACHE=S;
+  try{ localStorage.setItem(UD_KEY, JSON.stringify(S)); }catch(e){}
+  if(DEMO) return;
+  const {error}=await sb.from('settings').upsert({id:1, default_strategy:S});
+  if(error){ console.warn('default_strategy 저장 실패',error);
+    showSyncWarn('⚠ 기본값이 <b>Supabase에 저장되지 않았습니다</b>(이 기기에만 저장). 한 번만 SQL Editor에서 실행하세요:<br><span style="font-family:ui-monospace,monospace;background:rgba(0,0,0,.3);padding:2px 6px;border-radius:5px;display:inline-block;margin-top:5px">alter table settings add column if not exists default_strategy jsonb;</span>');
+  } else { clearSyncWarn(); }
+}
 function btSetDefault(){
   if(!document.getElementById('p_bt_'+PARAM_DEF[0][0])){ flash('샌드박스를 먼저 펼쳐 주세요'); return; }
   const S=collectStrat('bt_'); if(!S) return; setUserDefault(S);
-  flash('현재 샌드박스 값을 기본값으로 지정했습니다 — 이제 “초기화”는 이 값으로 복원됩니다 (이 기기에 저장)');
+  flash('현재 샌드박스 값을 기본값으로 지정했습니다 (Supabase 동기화) — 이제 “초기화”는 이 값으로 복원됩니다');
 }
 function stratSetDefault(){
   if(!document.getElementById('p_'+PARAM_DEF[0][0])){ return; }
   const S=collectStrat(''); if(!S) return; setUserDefault(S);
-  const n=document.getElementById('stratSaveNote'); if(n) n.textContent='현재 값을 기본값으로 지정했습니다. 이제 “초기화”를 누르면 이 값으로 복원됩니다. (이 기기에 저장)';
+  const n=document.getElementById('stratSaveNote'); if(n) n.textContent='현재 값을 기본값으로 지정했습니다 (Supabase 동기화). 이제 “초기화”를 누르면 이 값으로 복원됩니다.';
 }
 function openSettings(){
   renderStratEditor();
