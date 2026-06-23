@@ -503,7 +503,8 @@ details.sandbox .stage-edit{background:var(--surface)}
           <p class="note" style="margin-bottom:10px">여기서 바꾼 값은 <b>백테스트에만</b> 쓰이고 실제 전략(대시보드)에는 영향이 없습니다. 결과가 마음에 들면 결과 화면의 <b>“이 설정을 실제 전략에 적용”</b> 버튼으로 반영하세요.</p>
           <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
             <button class="btn ghost" style="padding:8px 14px;font-size:13px" onclick="btLoadLive()">현재 실제 설정 불러오기</button>
-            <button class="btn ghost" style="padding:8px 14px;font-size:13px" onclick="btLoadOpt()">전체기간 최적값 불러오기</button>
+            <button class="btn ghost" style="padding:8px 14px;font-size:13px" onclick="btLoadEff()">효율형 최적 불러오기</button>
+            <button class="btn ghost" style="padding:8px 14px;font-size:13px" onclick="btLoadOpt()">균형형 최적 불러오기</button>
             <button class="btn ghost" style="padding:8px 14px;font-size:13px" onclick="btSetDefault()">현재 설정을 기본값으로</button>
             <button class="btn ghost" style="padding:8px 14px;font-size:13px" onclick="btResetDefault()">초기화</button>
           </div>
@@ -847,8 +848,11 @@ const DEFAULT_STRAT={
   params:{rsiHi:70, matDays:260, matATH:98, maniaExt:18, maniaRsi:70, confirmDays:20, stepOut:10, stepIn:10, dipStart:8, dipFull:30, exitThrust:15, thrustIn:20, dipReWeeks:6, dipReDD:22, dipReThrust:10, targetVol:55, volDays:10},
   ex:{}   // 단계 끄기: {3:1 과열, 4:1 광기, 5:1 급락, 6:1 이탈} — 전략 모달 체크박스로 토글
 };
-// 전체기간(1999~2026) 최적 탐색 결과 — 드로다운을 사용자 수준 이상으로 묶고 IRR 최대화. IRR/MDD 동반 개선(전기간 −71%→−59%, 29%→38%)이나 14개 파라미터를 과거에 적합시킨 값. 기본값 아님, 실험·검토용 프리셋.
-const OPT_FULL={params:{rsiHi:70,matDays:320,matATH:97,maniaExt:28,maniaRsi:0,confirmDays:28,stepOut:25,stepIn:12,dipStart:14,dipFull:34,exitThrust:22,thrustIn:25,dipReWeeks:10,dipReDD:26,dipReThrust:15,targetVol:65,volDays:10}, ex:{}};
+// 전체기간(1999~2026) 전역탐색 프리셋 (효율 = IRR/|MDD| 기준). 모두 과거 적합값·기본값 아님.
+//  효율형(저낙폭): 전기간 IRR 36.9% / MDD −47.6% / 효율 0.775 — 위험 대비 수익 최고
+//  균형형        : 전기간 IRR 39.0% / MDD −54.5% / 효율 0.715 — IRR 조금 더, 낙폭 조금 더
+const OPT_EFF ={params:{rsiHi:70,matDays:360,matATH:98,maniaExt:28,maniaRsi:0,confirmDays:16,stepOut:30,stepIn:6,dipStart:14,dipFull:45,exitThrust:22,thrustIn:30,dipReWeeks:12,dipReDD:26,dipReThrust:15,targetVol:75,volDays:5}, ex:{}};
+const OPT_FULL={params:{rsiHi:70,matDays:360,matATH:98,maniaExt:28,maniaRsi:0,confirmDays:16,stepOut:30,stepIn:10,dipStart:16,dipFull:30,exitThrust:22,thrustIn:30,dipReWeeks:12,dipReDD:26,dipReThrust:15,targetVol:65,volDays:5}, ex:{}};
 const PARAM_DEF=[
   ['rsiHi','과열 트림 ① 주간 RSI','이상','주간 RSI(14)가 이 값 이상인 주는 트림 (기본 70)'],
   ['matDays','과열 트림 ② 성숙 천장 기간','거래일','200일선 위 연속 X일 이상이고… (기본 260 ≈ 1년)'],
@@ -967,7 +971,7 @@ function computeSeries(md,P,EX){
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
 let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null, BT_GRAN='month';
-const APP_VERSION='9.9';
+const APP_VERSION='9.11';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 
@@ -1779,7 +1783,8 @@ function renderBtSandbox(S){
   renderStratEditorInto('bt_','wEditorBt','pEditorBt',BT_STRAT);
 }
 function btLoadLive(){ renderBtSandbox(STRAT); flash('현재 실제 설정을 샌드박스로 불러왔습니다'); }
-function btLoadOpt(){ renderBtSandbox(OPT_FULL); flash('전체기간(1999~2026) 최적 탐색값을 불러왔습니다 — 14개 파라미터를 과거에 적합시킨 값이니 실험·검토용으로 보세요'); }
+function btLoadOpt(){ renderBtSandbox(OPT_FULL); flash('균형형 최적(전기간 IRR 39.0% / MDD −54.5% / 효율 0.715)을 불러왔습니다 — 과거 적합값, 검토용'); }
+function btLoadEff(){ renderBtSandbox(OPT_EFF); flash('효율형 최적(전기간 IRR 36.9% / MDD −47.6% / 효율 0.775)을 불러왔습니다 — 위험 대비 수익 최고, 과거 적합값'); }
 function btResetDefault(){ const ud=getUserDefault(); renderBtSandbox(ud||DEFAULT_STRAT); flash(ud?'샌드박스를 내가 지정한 기본값으로 초기화했습니다':'샌드박스를 초기화(심플 래더 기본값)했습니다'); }
 async function applyBtStrategy(){
   if(!BT_RES||!BT_RES.strat){ flash('먼저 백테스트를 실행하세요'); return; }
