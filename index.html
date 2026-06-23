@@ -971,7 +971,11 @@ function computeSeries(md,P,EX){
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
 let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null, BT_GRAN='month', LOG_SCALE=true;
-const APP_VERSION='9.12';
+const IS_MOBILE=()=> (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) || window.innerWidth<=768;
+if(window.Chart && IS_MOBILE()){ Chart.defaults.animation=false; }   // 모바일: 차트 애니메이션 끔(성능)
+// 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
+function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
+const APP_VERSION='9.13';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 
@@ -1139,7 +1143,9 @@ function renderPriceChart(){
 }
 /* 단계 그라데이션 가격 차트 (대시보드·백테스트 공용) */
 function buildRegimeChart(ctx,s){
-  const n=s.length;
+  const mob=IS_MOBILE();
+  if(mob) s=decimate(s,500);          // 모바일: 점을 ~500개로 줄여 렌더 부하↓ (회귀색·라인 다소 거칠어짐)
+  let n=s.length;
   function regimeGradient(c){
     const chart=c.chart, area=chart.chartArea, xs=chart.scales&&chart.scales.x;
     if(!area||!xs||!chart.ctx.createLinearGradient) return '#ffffff';
@@ -1170,7 +1176,7 @@ function buildRegimeChart(ctx,s){
   }
   const lastCol = REG_LINE[(s[n-1]||{}).regime] || '#2dd4bf';
   const hexRgba=(hex,a)=>{const m=hex.replace('#','');const r=parseInt(m.slice(0,2),16),g=parseInt(m.slice(2,4),16),b=parseInt(m.slice(4,6),16);return `rgba(${r},${g},${b},${a})`;};
-  const REDUCE = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const REDUCE = mob || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const PULSE_PERIOD = 4200;   // 전체 주기(ms)
   const PULSE_TRAVEL = 1500;   // 펄스가 라인을 가로지르는 시간(ms)
   // 끝점 발광 마커(정적) + 라인을 따라 몇 초마다 쭉 지나가는 전기 펄스
@@ -1938,18 +1944,19 @@ function drawBtAsset(){
   const R=BT_RES; if(!R) return;
   const ac=document.getElementById('btAssetChart'); if(!ac) return;
   if(btAssetC)btAssetC.destroy();
+  const days = IS_MOBILE()?decimate(R.days,500):R.days;   // 모바일: 자산곡선 점을 ~500개로 줄임
   const g=ac.getContext('2d'); const grad=g.createLinearGradient(0,0,0,300);
   grad.addColorStop(0,'rgba(45,212,191,.28)'); grad.addColorStop(1,'rgba(45,212,191,0)');
-  const bmDs=R.bms.map(nm=>({label:nm+' 동일적립',data:R.days.map(x=>x.bm[nm]),borderColor:(ALLOC_COLORS[nm]||'#8a93a8')+'cc',borderWidth:1.4,pointRadius:0,tension:.1,fill:false}));
+  const bmDs=R.bms.map(nm=>({label:nm+' 동일적립',data:days.map(x=>x.bm[nm]),borderColor:(ALLOC_COLORS[nm]||'#8a93a8')+'cc',borderWidth:1.4,pointRadius:0,tension:.1,fill:false}));
   const usdTick=v=>v>=1e9?'$'+(v/1e9).toFixed(v/1e9>=10?0:1)+'B':v>=1e6?'$'+(v/1e6).toFixed(v/1e6>=10?0:1)+'M':v>=1e3?'$'+Math.round(v/1e3)+'K':'$'+Math.round(v);
   const logCb=v=>{ if(v<=0)return ''; const f=Math.pow(10,Math.floor(Math.log10(v)+1e-9)); const m=Math.round(v/f); return (m===1||m===2||m===5)?usdTick(v):''; };
   const yAxis = LOG_SCALE
     ? {type:'logarithmic',ticks:{color:'#717da3',font:{size:10},callback:logCb},grid:{color:'rgba(255,255,255,.04)'}}
     : {ticks:{color:'#717da3',font:{size:10},callback:usdTick},grid:{color:'rgba(255,255,255,.04)'}};
-  btAssetC=new Chart(ac,{type:'line',data:{labels:R.days.map(x=>x.date),datasets:[
-    {label:'평가금액',data:R.days.map(x=>x.val),borderColor:'#2dd4bf',backgroundColor:grad,borderWidth:2,pointRadius:0,tension:.1,fill:!LOG_SCALE},
+  btAssetC=new Chart(ac,{type:'line',data:{labels:days.map(x=>x.date),datasets:[
+    {label:'평가금액',data:days.map(x=>x.val),borderColor:'#2dd4bf',backgroundColor:grad,borderWidth:2,pointRadius:0,tension:.1,fill:!LOG_SCALE},
     ...bmDs,
-    {label:'투자원금',data:R.days.map(x=>x.invested),borderColor:'#3b82f6',borderWidth:1.6,pointRadius:0,tension:.1,fill:false,borderDash:[5,4]}
+    {label:'투자원금',data:days.map(x=>x.invested),borderColor:'#3b82f6',borderWidth:1.6,pointRadius:0,tension:.1,fill:false,borderDash:[5,4]}
   ]},options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
     plugins:{legend:{labels:{color:'#717da3',boxWidth:12,font:{size:11}}},
       tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmtUSD(c.parsed.y)}}},
