@@ -556,7 +556,7 @@ details.sandbox .stage-edit{background:var(--surface)}
   <div class="modal" style="max-width:880px">
     <span class="close" onclick="closeModal('settingsModal')">×</span>
     <h2>전략 설정</h2>
-    <p class="note"><b>4종목 레버리지 사다리</b> 전략의 핵심 파라미터입니다. <b>저장하면 대시보드 판정·목표 비중과 백테스트에 즉시 적용</b>됩니다. 과거 데이터에 맞춘 과도한 미세조정은 과최적화 위험이 있습니다.</p>
+    <p class="note">심플 래더의 파라미터 7개입니다. <b>저장하면 대시보드 판정·목표 비중과 백테스트에 즉시 적용</b>됩니다. 과거 데이터에 맞춘 과도한 미세조정은 과최적화 위험이 있습니다.</p>
     <div class="section-title" style="margin-top:14px"><span class="dot"></span>단계 사용 / 파라미터</div>
     <div id="wEditor"></div>
     <div id="pEditor" class="pgrid"></div>
@@ -572,32 +572,40 @@ details.sandbox .stage-edit{background:var(--surface)}
 <div class="modal-overlay" id="strategyModal">
   <div class="modal">
     <span class="close" onclick="closeModal('strategyModal')">&times;</span>
-    <h2>4종목 레버리지 사다리 (수익형)</h2>
-    <p class="note" style="margin-bottom:16px"><b>철학: 200일선에서 위로 벌어질수록(과열) 미리 레버리지를 낮추고, 싸질수록(저평가) 레버리지를 높인다.</b> 200일선 이격을 기준으로 <b>TQQQ(3배) → QLD(2배) → QQQ(1배) → SCHD</b>를 연속적으로 오갑니다. 고점권에선 폭락 전에 미리 사다리를 내려 피해를 줄이고, 저점권에선 사다리를 올려 반등을 크게 먹습니다. 단, 추세가 확실히 깨지면(200일선 아래 25거래일) <b>전량 SCHD로 탈출</b>해 "떨어지는 칼"을 끝까지 잡지 않고, 반등이 확인되면 사다리로 복귀합니다.</p>
+    <h2>심플 래더 전략 (v7.5)</h2>
+    <p class="note" style="margin-bottom:16px"><b>철학: 평소엔 기계적으로 TQQQ 100% 적립.</b> 고점과 저점은 못 맞추니 — <b>천장 신호가 켜진 주마다 10%p씩만</b> SCHD로 미리 덜어내고, 추세가 확실히 깨졌을 때만 전량 피신, 회복이 확인되면 <b>매주 10%p씩 분할 재진입</b>합니다. 판단은 일주일에 한 번, 동작도 한 번뿐입니다.</p>
 
-    <div class="section-title" style="font-size:16px"><span class="dot"></span>구간(연속 비중)</div>
+    <div class="section-title" style="font-size:16px"><span class="dot"></span>5가지 상태</div>
     <div id="modalRegimes"></div>
 
-    <div class="section-title" style="font-size:16px;margin-top:18px"><span class="dot"></span>규칙 — 매주 마지막 거래일 종가로 판단 (200일선 이격 기준)</div>
+    <div class="section-title" style="font-size:16px;margin-top:18px"><span class="dot"></span>규칙 — 매주 마지막 거래일 종가로 딱 4가지만 봅니다</div>
     <div class="tbl-scroll"><table style="font-size:12.5px;min-width:520px">
-      <thead><tr><th>200일선 이격</th><th>목표 비중</th><th>의미</th></tr></thead>
+      <thead><tr><th>신호</th><th>조건 (QQQ 기준)</th><th>동작</th></tr></thead>
       <tbody>
-        <tr><td class="mono" style="color:#2dd4bf"><b>+10% 이하</b></td><td class="mono">TQQQ 100%</td><td>저평가/저점 부근 — 가장 공격적</td></tr>
-        <tr><td class="mono">+10% ~ +18%</td><td class="mono">TQQQ↔QLD 보간</td><td>정상~약과열 — 3배에서 2배로</td></tr>
-        <tr><td class="mono">+18% ~ +27%</td><td class="mono">QLD↔QQQ 보간</td><td>과열 — 2배에서 1배로</td></tr>
-        <tr><td class="mono">+27% ~ +35%</td><td class="mono">QQQ↔SCHD 보간</td><td>고점권 — 1배에서 방어로</td></tr>
-        <tr><td class="mono" style="color:#f59e0b"><b>+35% 이상</b></td><td class="mono">SCHD 100%</td><td>극단 과열 — 폭락 전 전량 방어</td></tr>
-        <tr><td class="mono" style="color:#3b82f6"><b>추세 이탈</b></td><td class="mono">SCHD 100%</td><td>200일선 아래 25거래일 연속 → 탈출(이격 무관)</td></tr>
+        <tr><td class="tkr" style="color:#f59e0b">과열</td><td>주간 RSI(14) ≥ <b>70</b> <b>또는</b> 성숙 천장(200일선 위 <b>1년+</b> & 전고점 <b>98%</b> 이내)</td><td class="mono">매주 TQQQ −10%p → SCHD</td></tr>
+        <tr><td class="tkr" style="color:#f43f5e">광기</td><td>200일선 이격 <b>+20%</b> & 주간 RSI <b>75↑</b> & 고점권(−3% 이내)</td><td class="mono">즉시 전량 SCHD. 해제: 고점 −3% 회복 / 추세 회복(200일선 +1% & 50일선 동반) → 매주 +10%p 점진 복귀</td></tr>
+        <tr><td class="tkr" style="color:#fb6f3c">급락</td><td>50일 고점 대비 <b>−8% ~ −30%</b> (코로나·관세형 급락)</td><td class="mono">낙폭에 비례해 TQQQ 상한을 매주 하향 (−30%에서 0%) — 급락 한 달이면 주 단위 4번에 나눠 피신</td></tr>
+        <tr><td class="tkr" style="color:#3b82f6">이탈</td><td>200일선 아래 <b>20거래일(≈4주) 연속</b></td><td class="mono">전량 SCHD</td></tr>
+        <tr><td class="tkr" style="color:#2dd4bf">복귀</td><td>위 신호가 모두 꺼짐. 이탈 후엔 ①200일선 <b>+1%</b> 재돌파(50일선 동반) <b>또는</b> ②저점 <b>+15%</b> 추력 & 50일선 위 (V반등 캡처, 차트 ▲ 표시)</td><td class="mono">추력 복귀는 매주 <b>+20%p</b> 가속, 그 외 매주 +10%p (100%까지)</td></tr>
       </tbody>
     </table></div>
-    <p class="note" style="margin:8px 0 0"><b>실행.</b> 매주 적립일에 대시보드의 목표 비중(TQQQ·QLD·QQQ·SCHD %)을 확인하고, 신규 적립금을 그 비중대로 매수합니다. 목표가 바뀐 주에는 보유분도 한 번 맞춥니다. 비중이 연속적이라 리밸런싱이 잦을 수 있습니다(대부분 소액 조정).</p>
+    <p class="note" style="margin:8px 0 0"><b>실행.</b> 매주 적립일에 대시보드의 목표 TQQQ 비중을 확인하고, 신규 적립금은 목표 비중대로 매수합니다. 목표가 지난주와 달라졌으면(최대 10%p) 보유분도 한 번 맞춥니다. 대시보드의 "+N주 매수/매도"가 그 차이를 주수로 환산한 값입니다. 매매는 많아야 주 1회, 대부분 전체 자산의 10%만 움직입니다.</p>
 
-    <div class="section-title" style="font-size:16px;margin-top:18px"><span class="dot"></span>참고 — 주간 근사 백테스트 ($100,000 + 매월 $1,000)</div>
-    <p class="note">주간 백테스트에서 이 사다리(수익형)는 <b>2011년 이후 약 $35M / MDD −59%</b>, <b>전체기간(1999~) MDD −70%대 초반</b>으로, 단순 모멘텀(트림 없는 추세추종)보다 <b>수익은 높고 MDD는 낮았습니다.</b> 위로 과열될수록 미리 디레버리징해 폭락 진입을 가볍게 만든 덕입니다.</p>
-    <p class="note" style="margin-top:8px">⚠️ 사다리 임계값(이격 +35%/+10%)은 과거에 맞춘 값이라 <b>과최적화 위험</b>이 있습니다. "싸질수록 레버리지 ↑"는 닷컴·2008 같은 장기 하락장에선 추세 이탈 탈출이 늦으면 손실이 커질 수 있습니다(그래서 추세 이탈 규칙이 안전판). 2010년 이전은 합성·주봉 데이터, 거래비용·세금 미반영. <b>정확한 수치는 아래 「백테스트」 탭에서 실데이터(일봉)로, 시작일 2011-01-01부터 직접 확인하세요.</b></p>
-    <p class="note" style="margin-top:10px">⚠️ 천장 회피(이격 <b>+20%</b> & 주간 RSI <b>70</b>)는 닷컴 천장 같은 '명백한 과열'에 맞춰진 규칙이라, 과열 신호 없이 오는 폭락엔 효과가 약할 수 있습니다(<b>과최적화 주의</b>). 추세확인(25거래일)·복귀추력(15%)도 표본 의존성이 있으니, 인앱 백테스트에서 주변 설정으로 견고성을 확인하세요. 2011년 이전은 합성·근사(주간) 데이터이며, 거래비용·세금·슬리피지는 미반영이라 세후 실제 수익은 더 낮습니다.</p>
+    <div class="section-title" style="font-size:16px;margin-top:18px"><span class="dot"></span>시뮬레이션 결과 (1999–2026 주간 근사, $100,000 + 매주 $250, 수수료 0.05%)</div>
+    <div class="tbl-scroll"><table style="min-width:520px">
+      <thead><tr><th>구간</th><th>심플 래더 (IRR/MDD)</th><th>참고: 직전 해제(추력)</th><th>TQQQ 단독</th></tr></thead>
+      <tbody>
+        <tr><td>닷컴 붕괴 00–03</td><td class="mono up">+10.0% / −55%</td><td class="mono">+12.1% / −56%</td><td class="mono down">−31% / −99%</td></tr>
+        <tr><td>금융위기 07–10</td><td class="mono up">+18.6% / −62%</td><td class="mono">+18.6% / −62%</td><td class="mono down">−2.3% / −88%</td></tr>
+        <tr><td>2022 약세장</td><td class="mono up">+38.5% / −22%</td><td class="mono">+38.5% / −22%</td><td class="mono down">−7.9% / −73%</td></tr>
+        <tr><td>2010–2019</td><td class="mono up">+38.8% / −40%</td><td class="mono">+38.8% / −40%</td><td class="mono">+39.5% / −53%</td></tr>
+        <tr><td>2019–2026</td><td class="mono up">+58.5% / −31%</td><td class="mono">+57.4% / −31%</td><td class="mono">+51.9% / −78%</td></tr>
+        <tr><td><b>전체 2000–2026</b></td><td class="mono up"><b>+31.4% / −70% ($201.8M)</b></td><td class="mono">+31.4% / −70% ($198.9M)</td><td class="mono">+25.9% / −99% ($68.3M)</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note" style="margin-top:10px">⚠️ 위 수치는 <b>주간 근사 데이터 + in-sample 파라미터</b> 기준입니다(확인 4주/RSI 70/10%p는 그리드 탐색 결과 — 주변 설정도 IRR 25~34%로 견고하지만 표본 의존성이 있습니다). 광기는 <b>이격 +20% & 주간 RSI 75 동시</b>에 발동(2000.3 닷컴 천장·1999말·최근 고점 포착; 구 이격25는 27년간 사실상 2회만), 해제는 <b>고점 −3% 회복 또는 추세 회복(200일선 +1% & 50일선 동반) 시 매주 +10%p 점진 복귀</b>로 바꿨습니다. 직전(−8%+7% 추력 즉시 재진입) 대비 코로나·2025형 급락 천장의 회복을 더 깨끗하게 먹어 19–26·코로나가 개선되지만(전체 $198.9M→$201.8M), 다구간 약세장(닷컴)에서는 회복을 늦게 확인해 +12.1%→+10.0%로 약간 손해 보는 트레이드오프가 있습니다. 성숙 천장은 "강할 때 파는" 신호라 95~99년식 수년 폭주장에선 상승분을 일부 놓칠 수 있고, MDD −70%는 실전에서 견디기 매우 어려운 수준입니다. 인앱 백테스트(실데이터 일봉)로 직접 재확인하세요.</p>
 
-    <div class="disclaim">⚠️ 본 자료는 과거 데이터 기반 시뮬레이션이며 투자 조언이 아닙니다. 과거 성과가 미래를 보장하지 않으며, 레버리지 ETF는 변동성 끌림(decay)과 -90% 이상의 실제 손실 위험이 있고, 본 전략의 전체기간 MDD는 -70%대로 실전에서 견디기 매우 어려운 수준입니다. 모든 투자 책임은 본인에게 있습니다.</div>
+    <div class="disclaim">⚠️ 본 자료는 과거 데이터 기반 시뮬레이션이며 투자 조언이 아닙니다. 과거 성과가 미래를 보장하지 않으며, 레버리지 ETF는 변동성 끌림(decay)과 -90% 이상의 실제 손실 위험이 있고, 본 전략의 MDD -58%는 실전에서 견디기 매우 어려운 수준입니다. 모든 투자 책임은 본인에게 있습니다.</div>
   </div>
 </div>
 
@@ -614,7 +622,7 @@ details.sandbox .stage-edit{background:var(--surface)}
         <option value="deposit">입금</option><option value="withdrawal">출금</option></select></div>
     </div>
     <div class="row2" id="secRow1">
-      <div class="field"><label>종목</label><select id="f_ticker" onchange="onTickerChange()"><option>TQQQ</option><option>QLD</option><option>QQQ</option><option>SCHD</option></select></div>
+      <div class="field"><label>종목</label><select id="f_ticker" onchange="onTickerChange()"><option>TQQQ</option><option>SCHD</option></select></div>
       <div class="field"><label>수량</label><input id="f_qty" type="number" step="any" oninput="calcAmount()"></div>
     </div>
     <div class="row2" id="secRow2">
@@ -768,12 +776,11 @@ async function syncAutoMonthly(){
   for(const r of auto){ if(!manualSet.has(r.ym)) await saveMonthly(r); }  // 수기 편집한 달은 보존
 }
 
-/* ===================== 전략 엔진 v9: 모멘텀 천장회피 (TQQQ ↔ SCHD) =====================
-   상승추세(200일선 위)에선 TQQQ 100%를 트림 없이 유지. 천장 징후(이격+과매수)나
-   추세 이탈(200일선 아래 연속) 시 전량 SCHD로 즉시 회피, 저점 반등 확인되면 TQQQ 100%로 한 번에 복귀.
-   분할 복귀·낙폭 거버너 없음(이진 전환). 엔진 구조는 유지하고 기본 파라미터로 이 동작을 구현합니다. */
+/* ===================== 전략 엔진 v7.0: 심플 래더 (TQQQ ↔ SCHD) =====================
+   평소엔 TQQQ 100% 적립. 과열·성숙 천장에서 매주 일부만 SCHD로 덜어내고,
+   추세가 확실히 깨지면 전량 SCHD, 회복이 확인되면 매주 일부씩 되돌립니다. */
 const REG_NAME={2:'적립',1:'복귀',3:'과열',4:'광기',5:'급락',6:'이탈'};
-const REG_BUY ={2:'TQQQ',1:'QLD',3:'QQQ',4:'SCHD',5:'SCHD',6:'SCHD'};
+const REG_BUY ={2:'TQQQ',1:'TQQQ',3:'SCHD',4:'SCHD',5:'SCHD',6:'SCHD'};
 /* ===================== 합성 근사 (v6.4): TQQQ/QLD/SCHD 상장 이전 구간 채움 ===================== */
 /* QLD(2006-06)·TQQQ(2010-02)·SCHD(2011-10) 상장 이전을 QQQ 일별 수익률에서 역방향 합성.
    레버리지 일복리(일별이라 변동성 잠식 자동 반영) − 보수 0.95%/년 − 금융비용 (L−1)(FFR+0.4%)/년.
@@ -822,39 +829,44 @@ function synthesizeMissing(md){
   return md;
 }
 
-/* v11: 4종목 레버리지 사다리(수익형) — 추세 위에서 200일선 이격이 클수록(과열) TQQQ→QLD→QQQ→SCHD로 미리 디레버리징,
-   이격이 작거나 저평가면 TQQQ로 공격. 추세 붕괴 시 전량 SCHD 탈출, 반등 시 재진입. 천장회피·거버너·트림 없음. */
+/* v7.0: 심플 래더 — 파라미터 7개가 전부입니다 */
 const DEFAULT_STRAT={
-  v:11,
-  // 사다리: ladHi 35(=200일선 +35% 이상이면 전량 SCHD) / ladLo 10(=+10% 이하이면 전량 TQQQ), 그 사이는 QLD·QQQ로 선형 보간.
-  // mania·trim·governor OFF(maniaExt 999, rsiHi 999, dipStart 0). confirmDays 25(≈5주), exitThrust 15.
-  params:{rsiHi:999, matDays:999999, matATH:98, maniaExt:999, maniaRsi:70, confirmDays:25, stepOut:100, stepIn:100, dipStart:0, dipFull:28, exitThrust:15, thrustIn:100, dipReWeeks:0, dipReDD:22, dipReThrust:10, ladHi:35, ladLo:10},
-  ex:{}   // 단계 끄기: {6:1 이탈}
+  params:{rsiHi:70, matDays:260, matATH:98, maniaExt:18, maniaRsi:70, confirmDays:20, stepOut:10, stepIn:10, dipStart:8, dipFull:30, exitThrust:15, thrustIn:20, dipReWeeks:6, dipReDD:22, dipReThrust:10, targetVol:55, volDays:20},
+  ex:{}   // 단계 끄기: {3:1 과열, 4:1 광기, 5:1 급락, 6:1 이탈} — 전략 모달 체크박스로 토글
 };
 const PARAM_DEF=[
-  ['ladHi','사다리 상단 (전량 SCHD) 이격','%','200일선 대비 +X% 이상이면 전량 SCHD(가장 방어적). 과열·천장 근처에서 미리 디레버리징 (기본 35). 작을수록 더 일찍·많이 방어'],
-  ['ladLo','사다리 하단 (전량 TQQQ) 이격','%','200일선 대비 +X% 이하이면 전량 TQQQ(가장 공격적). 저평가/저점 근처에서 풀레버리지 (기본 10). 이 둘 사이는 QLD·QQQ로 선형 보간'],
-  ['confirmDays','추세 이탈 확인','거래일','200일선 아래 연속 X거래일이면 전량 SCHD 탈출 (기본 25 ≈ 5주). 작을수록 빨리 피신하지만 휩쏘 증가'],
-  ['exitThrust','저점 반등 복귀','%','이탈 후 저점 대비 +X% 반등 & 50일선 위면 사다리로 즉시 복귀 (기본 15)'],
+  ['rsiHi','과열 트림 ① 주간 RSI','이상','주간 RSI(14)가 이 값 이상인 주는 트림 (기본 70)'],
+  ['matDays','과열 트림 ② 성숙 천장 기간','거래일','200일선 위 연속 X일 이상이고… (기본 260 ≈ 1년)'],
+  ['matATH','과열 트림 ② 성숙 천장 고점권','%','…전고점의 X% 이상인 주는 트림 (기본 98)'],
+  ['stepOut','트림 속도','%p/주','트림 신호가 켜진 주마다 TQQQ→SCHD로 옮기는 비중 (기본 10)'],
+  ['maniaExt','광기 이격','%','200일선 이격 +X% & (다음 RSI 조건 동시 충족) & 고점권(−3% 이내) → 즉시 전량 SCHD. 해제: 고점 −3% 회복 또는 추세 회복(200일선 +1% & 50일선 동반) → 매주 +10%p 점진 복귀 (기본 20)'],
+  ['maniaRsi','광기 RSI','이상','광기 발동에 함께 요구하는 주간 RSI(14) 하한. 이격만으로는 상승 도중에도 떴던 문제를 보정 — 이격+과매수가 동시일 때만 진짜 천장으로 판단 (기본 75, 0=RSI 조건 끔=이격만)'],
+  ['confirmDays','추세 이탈 확인','거래일','200일선 아래 연속 X거래일이면 전량 SCHD (기본 20 ≈ 4주)'],
+  ['stepIn','복귀 속도','%p/주','신호가 없는 주마다 TQQQ 100%로 되돌리는 비중. 추세 회복(200일선 +1% 재돌파) 후 분할 재진입에도 사용 (기본 10)'],
+  ['dipStart','급락 거버너 시작','%','50일 고점 대비 −X%부터 TQQQ 상한을 매주 단계적으로 낮춤 (기본 8, 0=끔)'],
+  ['dipFull','급락 거버너 전량','%','50일 고점 대비 −X%에서 TQQQ 상한 0%(전량 SCHD). 낙폭이 줄면 상한도 풀려 복귀 드리프트가 재개 (기본 30)'],
+  ['exitThrust','이탈 회복 ② 추력','%','이탈 후 저점 대비 +X% 반등 & 50일선 위면 200일선 회복을 기다리지 않고 복귀 시작 — V반등 캡처 (기본 15, 0=끔)'],
+  ['thrustIn','추력 복귀 속도','%p/주','추력 복귀 후 100% 도달(또는 트림 신호)까지 매주 옮기는 비중 — 일반 복귀(stepIn)보다 빠르게 V반등을 캡처 (기본 20)'],
+  ['dipReWeeks','얕은급락 판정 주수','주','이탈이 이 주수보다 짧으면 "얕고 빠른 급락(코로나·2025형)"으로 보고 빠른 복귀를 적용. 이보다 길어지면 약세장(닷컴·2022형)으로 보고 신중한 기존 복귀 (기본 6, 0=끔=항상 기존 방식)'],
+  ['dipReDD','얕은급락 판정 낙폭','%','이탈 직전 고점 대비 저점 낙폭이 이 값 이내면 "얕은 급락"으로 판정(위 주수 조건과 함께). 더 깊으면 약세장으로 보고 신중 복귀 (기본 22)'],
+  ['dipReThrust','얕은급락 추력','%','얕은 급락으로 판정되면 이탈 직전 실제 저점(50일 저점) 대비 +X% 반등 시 즉시 복귀 — 기준점이 진짜 바닥이라 더 빨리 잡음. V반등을 놓치지 않게 일반 추력(exitThrust)보다 낮게 (기본 10)'],
+  ['targetVol','변동성 상한 (하이브리드)','%','목표 연변동성. TQQQ 상한 = min(목표변동성 ÷ (3×최근 변동성), 100%)을 래더 비중 위에 덧씌움 — 시장이 출렁이면 TQQQ를 자동으로 줄여(→SCHD) 낙폭을 막음. 낮을수록 방어적·수익↓, 높을수록 래더에 근접. 0=끔(순수 래더). (기본 55 ≈ IRR~40%·MDD~−60% 목표)'],
+  ['volDays','변동성 측정 일수 (하이브리드)','거래일','위 변동성 상한을 계산할 때 쓰는 최근 변동성의 측정 기간. 작을수록 코로나·관세형 초고속 급락에 더 빨리 반응해 낙폭을 줄임(대신 잔잔한 흔들림에 다소 민감). (기본 20, 빠른 대응=10)'],
 ];
 let STRAT=JSON.parse(JSON.stringify(DEFAULT_STRAT));
-const tgtOf=r=>{ if(r&&r.wv) return r.wv.slice(); const w=(r&&r.w!=null)?r.w:1; return [w,0,0,1-w]; };   // [TQQQ,QLD,QQQ,SCHD]
+const tgtOf=r=>{ const w=(r&&r.w!=null)?r.w:1; return [w,0,0,1-w]; };   // [TQQQ,QLD,QQQ,SCHD]
 const REG_SUB={
-  2:'공격 구간 — 200일선 이격이 작거나 저평가(저점 부근). 사다리가 TQQQ 비중을 최대로 끌어올립니다.',
-  1:'중립 구간 — 다소 과열. 사다리가 QLD·QQQ 중심으로 레버리지를 절반쯤 낮춥니다.',
-  3:'디레버리지(과열) 구간 — 200일선에서 크게 벌어진 고점권. 폭락 전에 미리 QQQ·SCHD로 비중을 내려 둡니다.',
-  4:'(미사용) 천장 회피(mania)는 이 전략에서 꺼져 있습니다.',
-  5:'(미사용) 급락 거버너는 이 전략에서 꺼져 있습니다.',
-  6:'추세 이탈 — 200일선 아래 25거래일 연속 = 추세 붕괴. 전량 SCHD로 피신. 저점 +15% 반등 또는 200일선 재돌파 시 사다리로 즉시 복귀.'
+  2:'추세 위 + 신호 없음. TQQQ 100%를 들고 매주 기계적으로 적립합니다. 대부분의 시간을 여기서 보냅니다.',
+  1:'트림·방어가 끝나고 TQQQ 100%로 돌아가는 중. 매주 복귀 속도(기본 10%p)만큼 SCHD→TQQQ로 옮깁니다. 이탈 후 저점 +15% 추력으로 복귀한 경우(차트 ▲)는 매주 +20%p로 가속해 V반등을 캡처합니다. 적립도 같은 목표 비중으로.',
+  3:'주간 RSI 70 이상 또는 성숙 천장(200일선 위 1년+ & 전고점 98% 이내). 고점을 못 맞추는 대신 매주 10%p씩 미리 덜어냅니다. 신호가 꺼지면 즉시 복귀 시작.',
+  4:'200일선 이격 +20% & 주간 RSI 75 이상(이격과 과매수가 동시인 진짜 천장 — 2000.3 닷컴·1999말형). 전량 SCHD로 피신. 해제는 고점 −3% 회복(빠른 V반등) 또는 추세 회복(200일선 +1% 재돌파 & 50일선 동반) 시 — 둘 다 매주 +10%p로 점진 복귀하므로 다구간 약세장의 베어 반등에 한 방에 물리지 않습니다.',
+  5:'우상향 중 갑작스러운 급락(2020.3 코로나·2025.4 관세형). 50일 고점 대비 −8%부터 낙폭에 비례해 TQQQ 상한을 매주 끌어내려 −30%에서 전량 SCHD. 낙폭이 줄면 상한이 풀려 자동 복귀합니다.',
+  6:'200일선 아래 20거래일 연속 = 추세 붕괴 확정. 전량 SCHD로 통과합니다. 복귀는 ①200일선 +1% 재돌파(50일선 동반) 또는 ②이탈 후 저점 +15% 추력 & 50일선 위(V반등 캡처 — 이후 매주 20%p 가속 복귀, 재이탈 판정은 20거래일 새로 카운트, 차트에 ▲ 표시) — 둘 중 빠른 쪽.'
 };
 const REG_COLOR={2:'green',1:'green',3:'gold',4:'red',5:'red',6:'blue'};
 const REG_LINE={2:'#e8eefb',1:'#2dd4bf',3:'#f59e0b',4:'#f43f5e',5:'#fb6f3c',6:'#3b82f6'};  // 적립=화이트·복귀=진청록·과열=앰버·광기=로즈레드·급락=코랄·이탈=블루
 
-/* 모바일 성능: 차트 렌더 애니메이션 전역 OFF (긴 데이터에서 매 프레임 전체 점 재그리기 방지) */
-try{ if(window.Chart){ Chart.defaults.animation=false; if(Chart.defaults.animations){ Chart.defaults.animations.colors=false; Chart.defaults.animations.x=false; Chart.defaults.animations.y=false; } Chart.defaults.transitions={active:{animation:{duration:0}},resize:{animation:{duration:0}}}; } }catch(e){}
 function sma(arr,n,i){ if(i<n-1)return NaN; let s=0; for(let k=i-n+1;k<=i;k++)s+=arr[k]; return s/n; }
-const LADDER_ANCH=[[0,0,0,1],[0,0,1,0],[0,1,0,0],[1,0,0,0]];   // r: 0=SCHD, 1/3=QQQ, 2/3=QLD, 1=TQQQ  (벡터 순서 [TQQQ,QLD,QQQ,SCHD])
-function ladderVec(r){ r=Math.min(1,Math.max(0,r)); const s=r*3, i=Math.min(2,Math.floor(s)), f=s-i, a=LADDER_ANCH[i], b=LADDER_ANCH[i+1]; return [a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f, a[2]+(b[2]-a[2])*f, a[3]+(b[3]-a[3])*f]; }
 function computeSeries(md,P,EX){
   P=P||STRAT.params; EX=EX||STRAT.ex||{};
   const q=md.map(r=>+r.qqq);
@@ -865,8 +877,16 @@ function computeSeries(md,P,EX){
     out[i].ext200=isNaN(out[i].sma200)?0:q[i]/out[i].sma200-1;
     let h=q[i], lo=q[i]; for(let k=Math.max(0,i-49);k<i;k++){ if(q[k]>h)h=q[k]; if(q[k]<lo)lo=q[k]; }
     out[i].hi50=h; out[i].ddr50=q[i]/h-1; out[i].lo50=Math.min(lo,q[i]); }
+  // 실현 변동성(연율, volDays 기준) — 하이브리드 변동성 상한용
+  { const VD=Math.max(2, Math.round(P.volDays||20));
+    for(let i=0;i<out.length;i++){
+      if(i<VD){ out[i].rvol=NaN; continue; }
+      let m=0; for(let k=i-VD+1;k<=i;k++) m+=(q[k]/q[k-1]-1); m/=VD;
+      let v=0; for(let k=i-VD+1;k<=i;k++){ const rr=q[k]/q[k-1]-1; v+=(rr-m)*(rr-m); } v/=VD;
+      out[i].rvol=Math.sqrt(v)*Math.sqrt(252);
+    } }
   // 주간 RSI(14, Wilder) — 완결된 주 종가 기준. 모든 판정·스텝은 주 1회(주 마감 시).
-  let cur=1.0, on=true, sticky=false, tP=0, tL=1e18, above=0, below=0, eLow=1e18, fast=false, exitWk=0, exitAth=0; let curV=[1,0,0,0];
+  let cur=1.0, curEff=1.0, on=true, sticky=false, tP=0, tL=1e18, above=0, below=0, eLow=1e18, fast=false, exitWk=0, exitAth=0;
   let curWk=null, prevClose=null, g=0, l=0, nWk=0, rsiW=NaN;
   const pushWeek=c=>{ if(prevClose!=null){ const ch=c-prevClose, up=Math.max(ch,0), dn=Math.max(-ch,0);
       nWk++;
@@ -876,7 +896,7 @@ function computeSeries(md,P,EX){
   const trimSig=(o,qi)=> !EX[3] && ((!isNaN(rsiW)&&rsiW>=P.rsiHi) || (o.above>=P.matDays && qi>=o.ath*(P.matATH/100)));
   for(let i=0;i<out.length;i++){
     const o=out[i];
-    if(isNaN(o.sma200)){ o.w=1; o.wv=[1,0,0,0]; o.regime=2; o.rsiW=rsiW; o.above=0; o.below=0; o.up=1; continue; }
+    if(isNaN(o.sma200)){ o.w=cur; o.regime=2; o.rsiW=rsiW; o.above=0; o.below=0; o.up=1; continue; }
     above = q[i]>=o.sma200 ? above+1 : 0;
     below = q[i]< o.sma200 ? below+1 : 0;
     o.above=above; o.below=below;
@@ -903,20 +923,27 @@ function computeSeries(md,P,EX){
           out[i].thrust=true;                                                             // 차트 표시용
         }
       }
-      // 4종목 사다리: 추세 위에서 200일선 이격이 클수록(과열) TQQQ→QLD→QQQ→SCHD로 내려가고, 이격이 작거나 음수(저평가)면 TQQQ로 올라간다.
-      if(sticky||!on){ curV=[0,0,0,1]; fast=false; }   // 천장 회피/추세 이탈 → 전량 SCHD
+      if(sticky||!on){ cur=0; fast=false; }
       else {
-        const e=p.ext200;
-        const r=Math.min(1,Math.max(0,(P.ladHi/100 - e)/((P.ladHi-P.ladLo)/100)));
-        curV=ladderVec(r);
+        if(trimSig(p,pc)){ cur=Math.max(0, cur-P.stepOut/100); fast=false; }              // 매주 트림
+        else cur=Math.min(1, cur+(fast&&P.thrustIn>0?P.thrustIn:P.stepIn)/100);           // 매주 복귀 (추력 후 가속)
+        if(cur>=1) fast=false;
+        if(P.dipStart>0 && !EX[5]){                                                       // 급락 거버너 (50일 고점 낙폭 기반 상한)
+          const cap=Math.min(1,Math.max(0,(P.dipFull+p.ddr50*100)/(P.dipFull-P.dipStart)));
+          cur=Math.min(cur,cap);
+        }
       }
-      cur=Math.round(curV[0]*100)/100;
+      cur=Math.round(cur*100)/100;
+      // 하이브리드 변동성 상한(오버레이): 래더 비중 cur 위에 cap을 덧씌워 실효 TQQQ 비중 curEff 산출 — 깎인 분은 SCHD로. 래더 cur(기저)은 그대로 드리프트 유지.
+      let volCap=1;
+      if((P.targetVol||0)>0 && !isNaN(p.rvol) && p.rvol>0) volCap=Math.min(1,(P.targetVol/100)/(3*p.rvol));
+      curEff=Math.round(Math.min(cur,volCap)*100)/100;
       curWk=wk;
     }
-    o.rsiW=rsiW; o.wv=curV.slice(); o.w=curV[0]; o.up=on?1:0; o.sticky=sticky; o.fast=0;
-    o.trim=false; o.dip=false;
-    // 국면(색): 천장4 / 이탈6 / 공격(TQQQ우위)2 / 중립1 / 디레버리지(과열)3
-    o.regime = sticky?4 : (!on?6 : (curV[0]>=0.66?2 : (curV[0]>=0.34?1 : 3)));
+    o.rsiW=rsiW; o.wBase=cur; o.w=curEff; o.volCapped=(curEff<cur-1e-9)?1:0; o.up=on?1:0; o.sticky=sticky; o.fast=(on&&!sticky&&fast&&cur<1)?1:0;
+    o.trim=on&&!sticky&&trimSig(o,q[i]);
+    o.dip=on&&!sticky&&!EX[5]&&P.dipStart>0&&o.ddr50<=-P.dipStart/100;
+    o.regime = sticky?4 : (!on?6 : (o.dip?5 : (o.trim?3 : (cur<1?1:2))));
   }
   return out;
 }
@@ -925,7 +952,7 @@ function computeSeries(md,P,EX){
 try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.ChartZoom);}catch(e){}
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
 let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null;
-const APP_VERSION='11.0';   // 전략 v11 (4종목 레버리지 사다리)
+const APP_VERSION='9.3';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 
@@ -956,7 +983,7 @@ const schdPx=row=>(row&&row.schd!=null&&!isNaN(+row.schd))?+row.schd:SCHD_FALLBA
 
 /* ===================== 초기화 ===================== */
 async function init(){
-  document.getElementById('appVer').textContent='v'+APP_VERSION+' · 전략 v'+((typeof DEFAULT_STRAT!=='undefined'&&DEFAULT_STRAT.v)||'');
+  document.getElementById('appVer').textContent='v'+APP_VERSION;
   RAW_MD = synthesizeMissing(await getMarketData());
   SETTINGS = await getSettings();
   loadStrategy(SETTINGS);                 // 사용자 전략 설정(비중·파라미터) 적용 후 단계 계산
@@ -1028,7 +1055,7 @@ function renderIndicators(r){
   + indCard('200일선 이격','('+(ext>=0?'+':'')+(ext*100).toFixed(1)+'%)', (ext>=P.maniaExt/100&&maniaHot)?'down':(ext>=P.maniaExt/100?'neutral':'up'), ext>=P.maniaExt/100?(maniaHot?('광기 발동권(이격+'+P.maniaExt+'% & RSI'+P.maniaRsi+'↑ 동시) — 전량 방어'):('이격 +'+P.maniaExt+'% 초과지만 RSI '+P.maniaRsi+' 미만 — 광기 아님')):'광기 기준(+'+P.maniaExt+'%) 미만')
   + indCard('고점대비 낙폭', (dd*100).toFixed(1)+'%', dd<=-0.15?'down':(dd<=-0.05?'neutral':'up'), 'ATH $'+r.ath.toFixed(0))
   + indCard('50일 고점 낙폭', (r.ddr50*100).toFixed(1)+'%', r.ddr50<=-P.dipStart/100?'down':'up', r.ddr50<=-P.dipStart/100?('급락 거버너 작동 (−'+P.dipStart+'%~−'+P.dipFull+'%)'):'급락 거버너 기준(−'+P.dipStart+'%) 위')
-  + indCard('목표 비중', (()=>{const v=(r.wv)||[r.w,0,0,1-r.w];return ['TQQQ','QLD','QQQ','SCHD'].map((n,k)=>v[k]>0.005?n+' '+Math.round(v[k]*100)+'%':null).filter(Boolean).join(' · ')||'—';})(), r.w>=0.66?'up':(r.w<=0.34?'down':'neutral'), '200일선 이격 사다리 · 매주 한 번만 조정')
+  + indCard('목표 TQQQ 비중', Math.round(r.w*100)+'%', r.w>=1?'up':(r.w<=0?'down':'neutral'), 'SCHD '+Math.round((1-r.w)*100)+'% · 매주 한 번만 조정')
   + indCard('현재 단계', (r.regime===1&&r.fast)?'복귀(추력발동)':REG_NAME[r.regime], REG_COLOR[r.regime]==='red'?'down':REG_COLOR[r.regime]==='gold'?'neutral':'up', '매수 1순위: '+REG_BUY[r.regime]);
 }
 function allocBar(title,pairs,emptyMsg,faded){
@@ -1039,7 +1066,7 @@ function allocBar(title,pairs,emptyMsg,faded){
   return `<div class="abar-row"><div class="abar-label">${title}</div><div class="abar${faded?' faded':''}">${inner}</div></div>`;
 }
 function renderAllocBars(){
-  const wv=(CUR&&CUR.wv)?CUR.wv:[(CUR&&CUR.w!=null)?CUR.w:1,0,0,0]; const w=wv[0], t={TQQQ:wv[0], QLD:wv[1], QQQ:wv[2], SCHD:wv[3]};   // 4종목 사다리
+  const w=CUR.w, t={TQQQ:w, SCHD:1-w};       // 2종목 래더
   const stockVal = CUR_PORT?CUR_PORT.val:null;
   const stockTot = CUR_PORT?CUR_PORT.total:0;
   const hasCur = stockTot>0.0001;
@@ -1124,7 +1151,6 @@ function buildRegimeChart(ctx,s){
   const lastCol = REG_LINE[(s[n-1]||{}).regime] || '#2dd4bf';
   const hexRgba=(hex,a)=>{const m=hex.replace('#','');const r=parseInt(m.slice(0,2),16),g=parseInt(m.slice(2,4),16),b=parseInt(m.slice(4,6),16);return `rgba(${r},${g},${b},${a})`;};
   const REDUCE = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const PULSE_ANIM = false;    // 라인 펄스 애니메이션 OFF — 모바일 발열·성능(매 프레임 전체 차트 재그리기 방지). 끝점 정적 마커는 유지.
   const PULSE_PERIOD = 4200;   // 전체 주기(ms)
   const PULSE_TRAVEL = 1500;   // 펄스가 라인을 가로지르는 시간(ms)
   // 끝점 발광 마커(정적) + 라인을 따라 몇 초마다 쭉 지나가는 전기 펄스
@@ -1134,7 +1160,7 @@ function buildRegimeChart(ctx,s){
       const meta=chart.getDatasetMeta(0); if(!meta||!meta.data||!meta.data.length) return;
       const pts=meta.data, area=chart.chartArea, c=chart.ctx;
       // ── 1) 라인 따라 흐르는 전기 펄스 ──
-      if(!REDUCE && PULSE_ANIM){
+      if(!REDUCE){
         // 이 차트가 속한 탭이 보일 때만 펄스 루프
         const cid=chart.canvas.id;
         const tabId = cid==='btPriceChart' ? 'tab-bt' : 'tab-dash';
@@ -1590,7 +1616,7 @@ function renderStratEditorInto(pfx, wId, pId, S){
   if(we){
     const ex=S.ex||{};
     we.innerHTML='<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:4px 0 10px"><span class="muted" style="font-size:11.5px">단계 사용:</span>'
-      +[6].map(reg=>`<label style="display:inline-flex;align-items:center;gap:5px;font-size:12.5px;cursor:pointer;color:${REG_LINE[reg]}"><input type="checkbox" id="ex_${pfx}${reg}" ${ex[reg]?'':'checked'} style="width:15px;height:15px;accent-color:var(--accent)">${REG_NAME[reg]}</label>`).join('')
+      +[3,5,4,6].map(reg=>`<label style="display:inline-flex;align-items:center;gap:5px;font-size:12.5px;cursor:pointer;color:${REG_LINE[reg]}"><input type="checkbox" id="ex_${pfx}${reg}" ${ex[reg]?'':'checked'} style="width:15px;height:15px;accent-color:var(--accent)">${REG_NAME[reg]}</label>`).join('')
       +'<span class="muted" style="font-size:11px">(적립·복귀는 항상 켜짐)</span></div>';
   }
   document.getElementById(pId).innerHTML=PARAM_DEF.map(([k,lab,unit,hint])=>
@@ -1601,10 +1627,9 @@ function renderStratEditorInto(pfx, wId, pId, S){
 function renderStratEditor(){ renderStratEditorInto('','wEditor','pEditor',STRAT); }
 /* 에디터(접두사 pfx)에서 파라미터 수집 */
 function collectStrat(pfx){
-  const p=Object.assign({}, DEFAULT_STRAT.params);   // 숨김 파라미터는 기본값 유지 (이진 설정 보존)
-  PARAM_DEF.forEach(([k])=>{ const el=document.getElementById('p_'+pfx+k); if(!el) return; const v=parseFloat(el.value); if(!isNaN(v)) p[k]=v; });
+  const p={}; PARAM_DEF.forEach(([k])=>{ const v=parseFloat(document.getElementById('p_'+pfx+k).value); p[k]=isNaN(v)?DEFAULT_STRAT.params[k]:v; });
   const ex={}; [3,4,5,6].forEach(reg=>{ const el=document.getElementById('ex_'+pfx+reg); if(el){ if(!el.checked) ex[reg]=1; } else if((STRAT.ex||{})[reg]) ex[reg]=1; });
-  return {v:DEFAULT_STRAT.v, params:p, ex};
+  return {params:p, ex};
 }
 function openSettings(){
   renderStratEditor();
@@ -1622,7 +1647,7 @@ async function saveStrategyUI(){
 function resetStrategyUI(){
   STRAT=JSON.parse(JSON.stringify(DEFAULT_STRAT));
   renderStratEditor();
-  document.getElementById('stratSaveNote').textContent='초기화(4종목 사다리 기본값)했습니다. “저장 후 적용”을 눌러 확정하세요.';
+  document.getElementById('stratSaveNote').textContent='초기화(심플 래더 기본값)했습니다. “저장 후 적용”을 눌러 확정하세요.';
 }
 async function persistStrategy(){
   try{ localStorage.setItem('adca_strategy', JSON.stringify(STRAT)); }catch(e){}
@@ -1634,7 +1659,7 @@ function loadStrategy(settings){
   let s=null;
   if(settings && settings.strategy) s=settings.strategy;
   if(!s){ try{ s=JSON.parse(localStorage.getItem('adca_strategy')||'null'); }catch(e){} }
-  if(s && s.v===DEFAULT_STRAT.v && s.params){
+  if(s && s.params){
     const sp=s.params;
     // 구버전(<v8.9, 광기 RSI 게이트 도입 전) 저장본 마이그레이션:
     // maniaRsi 키가 없으면 당시 기본 maniaExt(25)가 새 RSI 게이트와 결합돼 '이격25 & RSI75'가 되어
@@ -1646,7 +1671,7 @@ function loadStrategy(settings){
       if(legacyMania && (k==='maniaExt'||k==='maniaRsi')) v=NaN;   // 신규 기본값으로 강제
       p[k]=isNaN(v)?DEFAULT_STRAT.params[k]:v;
     }
-    STRAT={v:DEFAULT_STRAT.v, params:p, ex:Object.assign({},s.ex||{})};
+    STRAT={params:p, ex:Object.assign({},s.ex||{})};
   }
 }
 function applyStrategy(){
@@ -1682,7 +1707,7 @@ function renderBtSandbox(S){
   renderStratEditorInto('bt_','wEditorBt','pEditorBt',BT_STRAT);
 }
 function btLoadLive(){ renderBtSandbox(STRAT); flash('현재 실제 설정을 샌드박스로 불러왔습니다'); }
-function btResetDefault(){ renderBtSandbox(DEFAULT_STRAT); flash('샌드박스를 초기화(4종목 사다리 기본값)했습니다'); }
+function btResetDefault(){ renderBtSandbox(DEFAULT_STRAT); flash('샌드박스를 초기화(심플 래더 기본값)했습니다'); }
 async function applyBtStrategy(){
   if(!BT_RES||!BT_RES.strat){ flash('먼저 백테스트를 실행하세요'); return; }
   STRAT=JSON.parse(JSON.stringify(BT_RES.strat));
@@ -1722,20 +1747,20 @@ function runBacktest(){
   const buyAll=(amt,t,p)=>{ for(let k=0;k<4;k++){ const a=amt*t[k]; if(a>0&&p[k]>0&&isFinite(p[k])) sh[k]+=a*(1-fee)/p[k]; }
     bms.forEach(nm=>{ const q=p[BM_IDX[nm]]; if(q>0&&isFinite(q)) bsh[nm]+=amt*(1-fee)/q; }); };   // 같은 현금흐름으로 각 비교 지수 매수
   for(let i=i0;i<=i1;i++){
-    const r=SER[i], p=px(r), t=(r.wv?r.wv:[r.w,0,0,1-r.w]);
+    const r=SER[i], p=px(r), t=[r.w,0,0,1-r.w];
     if(r.schd==null||isNaN(+r.schd)) schdMiss++;
     if(r.synth) synthDays++;
     if(i>i0){ const ym=r.date.slice(0,7), dr=r.qqq/SER[i-1].qqq-1;
       const a=volA[ym]||(volA[ym]={n:0,s:0,s2:0}); a.n++; a.s+=dr; a.s2+=dr*dr; }
     if(i===i0){
       if(init0>0){ invested+=init0; flows.push({t:yrs(r.date),v:-init0}); buyAll(init0,t,p); rebals++; }
-      lastReg=t.join(','); lastWk=wkKey(r.date); lastYm=r.date.slice(0,7);
+      lastReg=r.w; lastWk=wkKey(r.date); lastYm=r.date.slice(0,7);
     } else {
       const ym=r.date.slice(0,7), wk=wkKey(r.date);
       const due = cad==='daily' || (cad==='weekly'&&wk!==lastWk) || (cad==='monthly'&&ym!==lastYm);
       if(due&&contrib>0){ invested+=contrib; flows.push({t:yrs(r.date),v:-contrib}); buyAll(contrib,t,p); }
       lastWk=wk; lastYm=ym;
-      if(t.join(',')!==lastReg){                    // 목표 비중(4종목) 변경 → 리밸런싱 (주 1회 이하)
+      if(r.w!==lastReg){                            // 목표 비중 변경 → 리밸런싱 (주 1회 이하)
         const vals=sh.map((q,k)=>q*p[k]); const tot=vals.reduce((a,b)=>a+b,0);
         if(tot>0){
           let traded=0; for(let k=0;k<4;k++) traded+=Math.abs(t[k]*tot-vals[k]);
@@ -1743,7 +1768,7 @@ function runBacktest(){
           sh=t.map((w,k)=> p[k]>0&&isFinite(p[k]) ? net*w/p[k] : 0);
           rebals++;
         }
-        lastReg=t.join(',');
+        lastReg=r.w;
       }
     }
     const val=sh.reduce((a,q,k)=>a+q*p[k],0);
