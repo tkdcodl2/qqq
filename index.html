@@ -975,7 +975,7 @@ const IS_MOBILE=()=> (window.matchMedia && window.matchMedia('(max-width: 768px)
 if(window.Chart && IS_MOBILE()){ Chart.defaults.animation=false; }   // 모바일: 차트 애니메이션 끔(성능)
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='10.4';
+const APP_VERSION='10.5';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 
@@ -1834,8 +1834,8 @@ function runBacktest(){
   for(let i=i0;i<=i1;i++){
     const r=SER[i], p=px(r), t=[r.w,0,0,1-r.w], _wk=wkKey(r.date);
     { const _ym=r.date.slice(0,7), _q=+r.qqq;
-      const pa=pxA[_ym]||(pxA[_ym]={open:_q,hi:_q,lo:_q}); pa.hi=Math.max(pa.hi,_q); pa.lo=Math.min(pa.lo,_q);
-      const pw=pxW[_wk]||(pxW[_wk]={open:_q,hi:_q,lo:_q}); pw.hi=Math.max(pw.hi,_q); pw.lo=Math.min(pw.lo,_q); }
+      const pa=pxA[_ym]||(pxA[_ym]={open:_q,close:_q}); pa.close=_q;
+      const pw=pxW[_wk]||(pxW[_wk]={open:_q,close:_q}); pw.close=_q; }
     if(r.schd==null||isNaN(+r.schd)) schdMiss++;
     if(r.synth) synthDays++;
     if(i>i0){ const ym=r.date.slice(0,7), dr=r.qqq/SER[i-1].qqq-1;
@@ -1876,8 +1876,8 @@ function runBacktest(){
     if(months[ym]) months[ym].vol = a.n>=2 ? Math.sqrt(Math.max(0,(a.s2-a.s*a.s/a.n)/(a.n-1))*252) : null; }
   for(const wk in volW){ const a=volW[wk];
     if(weeks[wk]) weeks[wk].vol = a.n>=2 ? Math.sqrt(Math.max(0,(a.s2-a.s*a.s/a.n)/(a.n-1))*252) : null; }
-  for(const ym in pxA){ if(months[ym]){ const a=pxA[ym]; months[ym].pxUp=a.hi/a.open-1; months[ym].pxDn=a.lo/a.open-1; } }
-  for(const wk in pxW){ if(weeks[wk]){ const a=pxW[wk]; weeks[wk].pxUp=a.hi/a.open-1; weeks[wk].pxDn=a.lo/a.open-1; } }
+  { let pc=null; for(const ym in pxA){ const a=pxA[ym]; if(months[ym]) months[ym].pxChg=(pc!=null?a.close/pc:a.close/a.open)-1; pc=a.close; } }
+  { let pw=null; for(const wk in pxW){ const a=pxW[wk]; if(weeks[wk]) weeks[wk].pxChg=(pw!=null?a.close/pw:a.close/a.open)-1; pw=a.close; } }
   if(synthDays>0) warns.push('⚠️ 기간 중 '+synthDays.toLocaleString()+'거래일은 합성 근사 데이터입니다 (QLD 2006-06 / TQQQ 2010-02 / SCHD 2011-10 상장 이전 — 레버리지 일복리·비용 모델 + SCHD 분기앵커 보간). 해당 구간 결과는 근사치로만 보세요.');
   if(schdMiss>0) warns.push('⚠️ 기간 중 '+schdMiss+'일은 SCHD 시세가 없어 고정가($'+SCHD_FALLBACK+', 수익률 0%·현금성)로 처리했습니다 (SCHD 2011-10 상장).');
   warns.push('⚠️ 일봉 종가 기준 근사 시뮬레이션입니다. 배당·세금·슬리피지·환율 미반영이며, 과거 성과는 미래 수익을 보장하지 않습니다. 투자 조언이 아닙니다.');
@@ -1897,7 +1897,7 @@ function renderBtTable(){
   const rows=isW?(R.weeks||[]):R.months;
   document.getElementById('btMonthlyHead').innerHTML=
     '<th>'+(isW?'주 (마감일)':'년월')+'</th>'
-    + '<th title="기간 시가 대비 장중 최고(+)·최저(−)">QQQ ±변동 ('+(isW?'주':'월')+')</th>'
+    + '<th title="기간 QQQ 등락률 (직전 기간 종가 대비, 첫 기간은 기간내)">QQQ 변동 ('+(isW?'주':'월')+')</th>'
     + '<th>단계('+(isW?'주말':'월말')+')</th><th>TQQQ 목표</th><th>평가금액</th><th>TQQQ</th><th>SCHD</th><th>누적수익률</th>'
     + R.bms.map(nm=>'<th>'+nm+' 누적 (동일적립)</th>').join('');
   document.getElementById('btMonthlyBody').innerHTML=rows.map(m=>{
@@ -1905,8 +1905,8 @@ function renderBtTable(){
     const cell=v=>{ const wt=m.val>0?v/m.val:0; return v>0.5?fmtUSD(v)+' <span class="muted">('+Math.round(wt*100)+'%)</span>':'—'; };
     const bmTds=R.bms.map(nm=>{ const bcum=m.invested>0?(m.bm[nm]||0)/m.invested-1:0;
       return `<td class="mono ${cum>=bcum?'muted':'neutral'}">${pct(bcum)}</td>`; }).join('');
-    const rng = (m.pxUp!=null&&m.pxDn!=null)
-      ? `<span class="up">+${(m.pxUp*100).toFixed(1)}%</span> <span class="muted">/</span> <span class="down">${(m.pxDn*100).toFixed(1)}%</span>`
+    const rng = (m.pxChg!=null)
+      ? `<span class="${m.pxChg>=0?'up':'down'}">${m.pxChg>=0?'+':''}${(m.pxChg*100).toFixed(1)}%</span>`
       : '—';
     return `<tr><td class="tkr">${m.label}</td>
       <td class="mono" style="font-size:11.5px;white-space:nowrap">${rng}</td>
