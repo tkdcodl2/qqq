@@ -975,7 +975,7 @@ const IS_MOBILE=()=> (window.matchMedia && window.matchMedia('(max-width: 768px)
 if(window.Chart && IS_MOBILE()){ Chart.defaults.animation=false; }   // 모바일: 차트 애니메이션 끔(성능)
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='9.13';
+const APP_VERSION='10.4';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 
@@ -1823,6 +1823,7 @@ function runBacktest(){
   let schdMiss=0, synthDays=0, sh=[0,0,0,0], invested=0, rebals=0, peak=0, mdd=0;
   const bsh={}, bmPeak={}, bmMdd={}; bms.forEach(k=>{bsh[k]=0;bmPeak[k]=0;bmMdd[k]=0;});   // 선택된 비교 지수별 동일적립 주수·MDD
   const volA={}, volW={};   // QQQ 일수익률 집계 (월/주 변동성)
+  const pxA={}, pxW={};     // QQQ 기간내 시가/고가/저가 (월/주 ± 변동폭)
   const days=[], months={}, weeks={};
   const t0=new Date(SER[i0].date+'T00:00:00Z').getTime();
   const yrs=d=>(new Date(d+'T00:00:00Z').getTime()-t0)/31557600000;
@@ -1832,6 +1833,9 @@ function runBacktest(){
     bms.forEach(nm=>{ const q=p[BM_IDX[nm]]; if(q>0&&isFinite(q)) bsh[nm]+=amt*(1-fee)/q; }); };   // 같은 현금흐름으로 각 비교 지수 매수
   for(let i=i0;i<=i1;i++){
     const r=SER[i], p=px(r), t=[r.w,0,0,1-r.w], _wk=wkKey(r.date);
+    { const _ym=r.date.slice(0,7), _q=+r.qqq;
+      const pa=pxA[_ym]||(pxA[_ym]={open:_q,hi:_q,lo:_q}); pa.hi=Math.max(pa.hi,_q); pa.lo=Math.min(pa.lo,_q);
+      const pw=pxW[_wk]||(pxW[_wk]={open:_q,hi:_q,lo:_q}); pw.hi=Math.max(pw.hi,_q); pw.lo=Math.min(pw.lo,_q); }
     if(r.schd==null||isNaN(+r.schd)) schdMiss++;
     if(r.synth) synthDays++;
     if(i>i0){ const ym=r.date.slice(0,7), dr=r.qqq/SER[i-1].qqq-1;
@@ -1872,6 +1876,8 @@ function runBacktest(){
     if(months[ym]) months[ym].vol = a.n>=2 ? Math.sqrt(Math.max(0,(a.s2-a.s*a.s/a.n)/(a.n-1))*252) : null; }
   for(const wk in volW){ const a=volW[wk];
     if(weeks[wk]) weeks[wk].vol = a.n>=2 ? Math.sqrt(Math.max(0,(a.s2-a.s*a.s/a.n)/(a.n-1))*252) : null; }
+  for(const ym in pxA){ if(months[ym]){ const a=pxA[ym]; months[ym].pxUp=a.hi/a.open-1; months[ym].pxDn=a.lo/a.open-1; } }
+  for(const wk in pxW){ if(weeks[wk]){ const a=pxW[wk]; weeks[wk].pxUp=a.hi/a.open-1; weeks[wk].pxDn=a.lo/a.open-1; } }
   if(synthDays>0) warns.push('⚠️ 기간 중 '+synthDays.toLocaleString()+'거래일은 합성 근사 데이터입니다 (QLD 2006-06 / TQQQ 2010-02 / SCHD 2011-10 상장 이전 — 레버리지 일복리·비용 모델 + SCHD 분기앵커 보간). 해당 구간 결과는 근사치로만 보세요.');
   if(schdMiss>0) warns.push('⚠️ 기간 중 '+schdMiss+'일은 SCHD 시세가 없어 고정가($'+SCHD_FALLBACK+', 수익률 0%·현금성)로 처리했습니다 (SCHD 2011-10 상장).');
   warns.push('⚠️ 일봉 종가 기준 근사 시뮬레이션입니다. 배당·세금·슬리피지·환율 미반영이며, 과거 성과는 미래 수익을 보장하지 않습니다. 투자 조언이 아닙니다.');
@@ -1890,22 +1896,26 @@ function renderBtTable(){
   const isW=BT_GRAN==='week';
   const rows=isW?(R.weeks||[]):R.months;
   document.getElementById('btMonthlyHead').innerHTML=
-    '<th>'+(isW?'주 (마감일)':'년월')+'</th><th>단계('+(isW?'주말':'월말')+')</th><th>TQQQ 목표</th><th>평가금액</th><th>TQQQ</th><th>SCHD</th><th>누적수익률</th>'
-    + R.bms.map(nm=>'<th>'+nm+' 누적 (동일적립)</th>').join('')
-    + '<th>QQQ 변동성 ('+(isW?'주':'월')+', 연환산)</th>';
+    '<th>'+(isW?'주 (마감일)':'년월')+'</th>'
+    + '<th title="기간 시가 대비 장중 최고(+)·최저(−)">QQQ ±변동 ('+(isW?'주':'월')+')</th>'
+    + '<th>단계('+(isW?'주말':'월말')+')</th><th>TQQQ 목표</th><th>평가금액</th><th>TQQQ</th><th>SCHD</th><th>누적수익률</th>'
+    + R.bms.map(nm=>'<th>'+nm+' 누적 (동일적립)</th>').join('');
   document.getElementById('btMonthlyBody').innerHTML=rows.map(m=>{
     const cum=m.invested>0?m.val/m.invested-1:0;
     const cell=v=>{ const wt=m.val>0?v/m.val:0; return v>0.5?fmtUSD(v)+' <span class="muted">('+Math.round(wt*100)+'%)</span>':'—'; };
     const bmTds=R.bms.map(nm=>{ const bcum=m.invested>0?(m.bm[nm]||0)/m.invested-1:0;
       return `<td class="mono ${cum>=bcum?'muted':'neutral'}">${pct(bcum)}</td>`; }).join('');
+    const rng = (m.pxUp!=null&&m.pxDn!=null)
+      ? `<span class="up">+${(m.pxUp*100).toFixed(1)}%</span> <span class="muted">/</span> <span class="down">${(m.pxDn*100).toFixed(1)}%</span>`
+      : '—';
     return `<tr><td class="tkr">${m.label}</td>
+      <td class="mono" style="font-size:11.5px;white-space:nowrap">${rng}</td>
       <td><span class="chip" style="font-size:12px;color:${REG_LINE[m.regime]};background:${REG_LINE[m.regime]}26">${REG_NAME[m.regime]}</span></td>
       <td class="mono">${Math.round((m.w!=null?m.w:1)*100)}%</td>
       <td class="mono">${fmtUSD(m.val)}</td>
       <td class="mono">${cell(m.vals[0])}</td><td class="mono">${cell(m.vals[3])}</td>
       <td class="mono ${cum>=0?'up':'down'}">${pct(cum)}</td>
-      ${bmTds}
-      <td class="mono ${m.vol!=null&&m.vol>=0.30?'down':m.vol!=null&&m.vol>=0.20?'neutral':'muted'}">${m.vol!=null?(m.vol*100).toFixed(0)+'%':'—'}</td></tr>`;
+      ${bmTds}</tr>`;
   }).join('');
 }
 function renderBtResults(){
