@@ -447,6 +447,17 @@ details.sandbox .stage-edit{background:var(--surface)}
         <table style="margin-top:6px"><thead><tr><th>전략</th><th>배수</th><th>MDD</th><th>IRR</th></tr></thead>
         <tbody id="cadTable"></tbody></table>
       </div>
+      <div class="card" style="grid-column:1/-1">
+        <div class="section-title"><span class="dot"></span>세금 · 매매수수료 <span class="muted" style="font-weight:400;font-size:12px">(해외주식 · 백테스트 평가금액에 반영)</span></div>
+        <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:12px;margin-top:6px">
+          <div class="field"><label>연 비과세 한도 (원)</label><input id="cfgExempt" type="text" inputmode="numeric" value="2,500,000" oninput="fmtField('cfgExempt')"></div>
+          <div class="field"><label>초과수익 세율 (%)</label><input id="cfgRate" type="number" step="0.1" value="22"></div>
+          <div class="field"><label>매매수수료 (%) <span class="muted">토스증권 기준</span></label><input id="cfgFee" type="number" step="0.01" value="0.1"></div>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;cursor:pointer"><input type="checkbox" id="cfgTaxOn" checked style="width:auto;margin:0"> 백테스트 평가금액에 <b>세금 반영</b> (연 250만원 비과세, 초과분 22%, 연 단위 손익통산)</label>
+        <button class="btn primary" style="margin-top:12px" onclick="saveTaxcfgUI()">세금·수수료 설정 저장</button>
+        <p class="note" style="margin-top:10px">매년 <b>(실현이익 − 실현손실) 합계</b>가 비과세 한도를 넘으면 초과분에 세율을 매겨 평가금액에서 차감합니다(손실은 같은 해 이익과 상계, 이월 없음). 환율은 시세의 USD/KRW(없으면 1,380)로 환산합니다. <b>벤치마크(동일적립)는 매도가 없어 세전</b>으로 표시됩니다. 설정은 Supabase <code>settings.taxcfg</code>에 저장됩니다(컬럼 없으면 이 기기에만 저장·하단 안내).</p>
+    </div>
     </div>
   </section>
 
@@ -585,8 +596,8 @@ details.sandbox .stage-edit{background:var(--surface)}
 <div class="modal-overlay" id="strategyModal">
   <div class="modal">
     <span class="close" onclick="closeModal('strategyModal')">&times;</span>
-    <h2>심플 래더 전략 (v7.5)</h2>
-    <p class="note" style="margin-bottom:16px"><b>철학: 평소엔 기계적으로 TQQQ 100% 적립.</b> 고점과 저점은 못 맞추니 — <b>천장 신호가 켜진 주마다 10%p씩만</b> SCHD로 미리 덜어내고, 추세가 확실히 깨졌을 때만 전량 피신, 회복이 확인되면 <b>매주 10%p씩 분할 재진입</b>합니다. 판단은 일주일에 한 번, 동작도 한 번뿐입니다.</p>
+    <h2>TQQQ 래더 전략 — 균형형 최적 (디폴트)</h2>
+    <p class="note" style="margin-bottom:16px"><b>철학: 평소엔 기계적으로 TQQQ 100% 적립.</b> 고점·저점은 못 맞추니 — <b>과열 신호가 켜진 주마다 30%p씩</b> SCHD로 미리 덜어내고, 추세가 확실히 깨졌을 때만 전량 피신, 회복이 확인되면 <b>매주 10%p씩(추력 복귀는 30%p) 분할 재진입</b>합니다. 여기에 <b>변동성 상한</b>을 덧씌워 시장이 출렁이면 TQQQ를 자동으로 줄입니다. 판단·동작은 일주일에 한 번뿐입니다.</p>
 
     <div class="section-title" style="font-size:16px"><span class="dot"></span>5가지 상태</div>
     <div id="modalRegimes"></div>
@@ -595,28 +606,29 @@ details.sandbox .stage-edit{background:var(--surface)}
     <div class="tbl-scroll"><table style="font-size:12.5px;min-width:520px">
       <thead><tr><th>신호</th><th>조건 (QQQ 기준)</th><th>동작</th></tr></thead>
       <tbody>
-        <tr><td class="tkr" style="color:#f59e0b">과열</td><td>주간 RSI(14) ≥ <b>70</b> <b>또는</b> 성숙 천장(200일선 위 <b>1년+</b> & 전고점 <b>98%</b> 이내)</td><td class="mono">매주 TQQQ −10%p → SCHD</td></tr>
-        <tr><td class="tkr" style="color:#f43f5e">광기</td><td>200일선 이격 <b>+20%</b> & 주간 RSI <b>75↑</b> & 고점권(−3% 이내)</td><td class="mono">즉시 전량 SCHD. 해제: 고점 −3% 회복 / 추세 회복(200일선 +1% & 50일선 동반) → 매주 +10%p 점진 복귀</td></tr>
-        <tr><td class="tkr" style="color:#fb6f3c">급락</td><td>50일 고점 대비 <b>−8% ~ −30%</b> (코로나·관세형 급락)</td><td class="mono">낙폭에 비례해 TQQQ 상한을 매주 하향 (−30%에서 0%) — 급락 한 달이면 주 단위 4번에 나눠 피신</td></tr>
-        <tr><td class="tkr" style="color:#3b82f6">이탈</td><td>200일선 아래 <b>20거래일(≈4주) 연속</b></td><td class="mono">전량 SCHD</td></tr>
-        <tr><td class="tkr" style="color:#2dd4bf">복귀</td><td>위 신호가 모두 꺼짐. 이탈 후엔 ①200일선 <b>+1%</b> 재돌파(50일선 동반) <b>또는</b> ②저점 <b>+15%</b> 추력 & 50일선 위 (V반등 캡처, 차트 ▲ 표시)</td><td class="mono">추력 복귀는 매주 <b>+20%p</b> 가속, 그 외 매주 +10%p (100%까지)</td></tr>
+        <tr><td class="tkr" style="color:#f59e0b">과열</td><td>주간 RSI(14) ≥ <b>70</b> <b>또는</b> 성숙 천장(200일선 위 <b>360거래일(≈1.4년)</b> & 전고점 <b>98%</b> 이내)</td><td class="mono">매주 TQQQ <b>−30%p</b> → SCHD</td></tr>
+        <tr><td class="tkr" style="color:#f43f5e">광기</td><td>200일선 이격 <b>+28%</b> & 고점권(−3% 이내) <span class="muted">(RSI 동반조건 없음 — 이격 단독)</span></td><td class="mono">즉시 전량 SCHD. 해제: 고점 −3% 회복 / 추세 회복(200일선 +1% & 50일선 동반) → 매주 +10%p 점진 복귀</td></tr>
+        <tr><td class="tkr" style="color:#fb6f3c">급락</td><td>50일 고점 대비 <b>−16% ~ −30%</b> (코로나·관세형 급락)</td><td class="mono">낙폭에 비례해 TQQQ 상한을 매주 하향 (−30%에서 0%)</td></tr>
+        <tr><td class="tkr" style="color:#3b82f6">이탈</td><td>200일선 아래 <b>16거래일(≈3주) 연속</b></td><td class="mono">전량 SCHD</td></tr>
+        <tr><td class="tkr" style="color:#2dd4bf">복귀</td><td>위 신호가 모두 꺼짐. 이탈 후엔 ①200일선 <b>+1%</b> 재돌파(50일선 동반) <b>또는</b> ②저점 <b>+22%</b> 추력 & 50일선 위 (V반등 캡처, 차트 ▲ 표시)</td><td class="mono">추력 복귀는 매주 <b>+30%p</b> 가속, 그 외 매주 +10%p (100%까지)</td></tr>
+        <tr><td class="tkr" style="color:#8b5cf6">변동성 상한</td><td>최근 <b>5거래일</b> 실현변동성 기준 (하이브리드 오버레이)</td><td class="mono">TQQQ 상한 = min(목표 <b>65%</b> ÷ (3×최근변동성), 100%)를 래더 위에 덧씌움 — 출렁이면 자동 축소→SCHD</td></tr>
       </tbody>
     </table></div>
     <p class="note" style="margin:8px 0 0"><b>실행.</b> 매주 적립일에 대시보드의 목표 TQQQ 비중을 확인하고, 신규 적립금은 목표 비중대로 매수합니다. 목표가 지난주와 달라졌으면(최대 10%p) 보유분도 한 번 맞춥니다. 대시보드의 "+N주 매수/매도"가 그 차이를 주수로 환산한 값입니다. 매매는 많아야 주 1회, 대부분 전체 자산의 10%만 움직입니다.</p>
 
-    <div class="section-title" style="font-size:16px;margin-top:18px"><span class="dot"></span>시뮬레이션 결과 (1999–2026 주간 근사, $100,000 + 매주 $250, 수수료 0.05%)</div>
+    <div class="section-title" style="font-size:16px;margin-top:18px"><span class="dot"></span>시뮬레이션 결과 (실데이터 일봉, $100,000 + 매월 $1,000, 수수료 0.05%, <b style="color:#fbbf24">세금 미반영=세전</b>)</div>
     <div class="tbl-scroll"><table style="min-width:520px">
-      <thead><tr><th>구간</th><th>심플 래더 (IRR/MDD)</th><th>참고: 직전 해제(추력)</th><th>TQQQ 단독</th></tr></thead>
+      <thead><tr><th>구간</th><th>균형형 최적 (IRR/MDD)</th><th>최종가치</th><th>TQQQ 단독 (IRR/MDD)</th></tr></thead>
       <tbody>
-        <tr><td>닷컴 붕괴 00–03</td><td class="mono up">+10.0% / −55%</td><td class="mono">+12.1% / −56%</td><td class="mono down">−31% / −99%</td></tr>
-        <tr><td>금융위기 07–10</td><td class="mono up">+18.6% / −62%</td><td class="mono">+18.6% / −62%</td><td class="mono down">−2.3% / −88%</td></tr>
-        <tr><td>2022 약세장</td><td class="mono up">+38.5% / −22%</td><td class="mono">+38.5% / −22%</td><td class="mono down">−7.9% / −73%</td></tr>
-        <tr><td>2010–2019</td><td class="mono up">+38.8% / −40%</td><td class="mono">+38.8% / −40%</td><td class="mono">+39.5% / −53%</td></tr>
-        <tr><td>2019–2026</td><td class="mono up">+58.5% / −31%</td><td class="mono">+57.4% / −31%</td><td class="mono">+51.9% / −78%</td></tr>
-        <tr><td><b>전체 2000–2026</b></td><td class="mono up"><b>+31.4% / −70% ($201.8M)</b></td><td class="mono">+31.4% / −70% ($198.9M)</td><td class="mono">+25.9% / −99% ($68.3M)</td></tr>
+        <tr><td>닷컴 00–03</td><td class="mono up">+25.2% / −41%</td><td class="mono">$321K</td><td class="mono down">−33% / −99%</td></tr>
+        <tr><td>금융위기 07–10</td><td class="mono up">+52.3% / −50%</td><td class="mono">$658K</td><td class="mono down">+0.1% / −93%</td></tr>
+        <tr><td>2022 약세장(단년)</td><td class="mono down">−21.8% / −27%</td><td class="mono">$88K</td><td class="mono down">−80% / −75%</td></tr>
+        <tr><td>2010–2019</td><td class="mono up">+44.9% / −47%</td><td class="mono">$5.3M</td><td class="mono">+45% / −58%</td></tr>
+        <tr><td>2019–2026</td><td class="mono up">+56.3% / −38%</td><td class="mono">$3.5M</td><td class="mono">+46% / −81%</td></tr>
+        <tr><td><b>전체 1999–2026</b></td><td class="mono up"><b>+38.4% / −55%</b></td><td class="mono"><b>$972M</b></td><td class="mono">+22% / −99%</td></tr>
       </tbody>
     </table></div>
-    <p class="note" style="margin-top:10px">⚠️ 위 수치는 <b>주간 근사 데이터 + in-sample 파라미터</b> 기준입니다(확인 4주/RSI 70/10%p는 그리드 탐색 결과 — 주변 설정도 IRR 25~34%로 견고하지만 표본 의존성이 있습니다). 광기는 <b>이격 +20% & 주간 RSI 75 동시</b>에 발동(2000.3 닷컴 천장·1999말·최근 고점 포착; 구 이격25는 27년간 사실상 2회만), 해제는 <b>고점 −3% 회복 또는 추세 회복(200일선 +1% & 50일선 동반) 시 매주 +10%p 점진 복귀</b>로 바꿨습니다. 직전(−8%+7% 추력 즉시 재진입) 대비 코로나·2025형 급락 천장의 회복을 더 깨끗하게 먹어 19–26·코로나가 개선되지만(전체 $198.9M→$201.8M), 다구간 약세장(닷컴)에서는 회복을 늦게 확인해 +12.1%→+10.0%로 약간 손해 보는 트레이드오프가 있습니다. 성숙 천장은 "강할 때 파는" 신호라 95~99년식 수년 폭주장에선 상승분을 일부 놓칠 수 있고, MDD −70%는 실전에서 견디기 매우 어려운 수준입니다. 인앱 백테스트(실데이터 일봉)로 직접 재확인하세요.</p>
+    <p class="note" style="margin-top:10px">⚠️ 위 수치는 <b>균형형 최적</b> 파라미터(과열 트림 −30%p · 성숙천장 360일 · 광기 이격 +28% 단독 · 이탈 16거래일 · 추력 +22%/+30%p · 변동성 상한 65%/5일)를 <b>전체 1999–2026 구간에 맞춰 탐색</b>한 결과입니다. 효율(IRR/|MDD|)을 끌어올리려 방어를 강화한 설정이라 <b>표본 의존성·과최적화 위험</b>이 있어 파라미터를 조금만 바꿔도 수치가 흔들립니다. <b>2022 단년</b>은 연초 고점에서 시작해 IRR은 마이너스지만 MDD는 −27%로 TQQQ(−75%)의 1/3 수준으로 방어합니다(방어형 전략의 본질). 2010년 이전 레버리지 데이터는 <b>합성 근사</b>, MDD −55%는 실전에서 견디기 매우 어려운 수준이며, 위 수치는 <b>세금·환율 미반영(세전)</b>입니다 — 설정에서 세금(연 250만원 비과세·초과분 22%)·매매수수료를 켜면 평가금액이 크게 낮아집니다(잦은 리밸런싱의 양도세 드래그). 인앱 백테스트(샌드박스)로 각 구간·설정을 직접 재확인하세요.</p>
 
     <div class="disclaim">⚠️ 본 자료는 과거 데이터 기반 시뮬레이션이며 투자 조언이 아닙니다. 과거 성과가 미래를 보장하지 않으며, 레버리지 ETF는 변동성 끌림(decay)과 -90% 이상의 실제 손실 위험이 있고, 본 전략의 MDD -58%는 실전에서 견디기 매우 어려운 수준입니다. 모든 투자 책임은 본인에게 있습니다.</div>
   </div>
@@ -845,21 +857,20 @@ function synthesizeMissing(md){
 
 /* v7.0: 심플 래더 — 파라미터 7개가 전부입니다 */
 const DEFAULT_STRAT={
-  params:{rsiHi:70, matDays:260, matATH:98, maniaExt:18, maniaRsi:70, confirmDays:20, stepOut:10, stepIn:10, dipStart:8, dipFull:30, exitThrust:15, thrustIn:20, dipReWeeks:6, dipReDD:22, dipReThrust:10, targetVol:55, volDays:10},
+  params:{rsiHi:70, matDays:360, matATH:98, maniaExt:28, confirmDays:16, stepOut:30, stepIn:10, dipStart:16, dipFull:30, exitThrust:22, thrustIn:30, dipReWeeks:12, dipReDD:26, dipReThrust:15, targetVol:65, volDays:5},  // 균형형 최적 (광기RSI 제거)
   ex:{}   // 단계 끄기: {3:1 과열, 4:1 광기, 5:1 급락, 6:1 이탈} — 전략 모달 체크박스로 토글
 };
 // 전체기간(1999~2026) 전역탐색 프리셋 (효율 = IRR/|MDD| 기준). 모두 과거 적합값·기본값 아님.
 //  효율형(저낙폭): 전기간 IRR 36.9% / MDD −47.6% / 효율 0.775 — 위험 대비 수익 최고
 //  균형형        : 전기간 IRR 39.0% / MDD −54.5% / 효율 0.715 — IRR 조금 더, 낙폭 조금 더
-const OPT_EFF ={params:{rsiHi:70,matDays:360,matATH:98,maniaExt:28,maniaRsi:0,confirmDays:16,stepOut:30,stepIn:6,dipStart:14,dipFull:45,exitThrust:22,thrustIn:30,dipReWeeks:12,dipReDD:26,dipReThrust:15,targetVol:75,volDays:5}, ex:{}};
-const OPT_FULL={params:{rsiHi:70,matDays:360,matATH:98,maniaExt:28,maniaRsi:0,confirmDays:16,stepOut:30,stepIn:10,dipStart:16,dipFull:30,exitThrust:22,thrustIn:30,dipReWeeks:12,dipReDD:26,dipReThrust:15,targetVol:65,volDays:5}, ex:{}};
+const OPT_EFF ={params:{rsiHi:70,matDays:360,matATH:98,maniaExt:28,confirmDays:16,stepOut:30,stepIn:6,dipStart:14,dipFull:45,exitThrust:22,thrustIn:30,dipReWeeks:12,dipReDD:26,dipReThrust:15,targetVol:75,volDays:5}, ex:{}};
+const OPT_FULL={params:{rsiHi:70,matDays:360,matATH:98,maniaExt:28,confirmDays:16,stepOut:30,stepIn:10,dipStart:16,dipFull:30,exitThrust:22,thrustIn:30,dipReWeeks:12,dipReDD:26,dipReThrust:15,targetVol:65,volDays:5}, ex:{}};
 const PARAM_DEF=[
   ['rsiHi','과열 트림 ① 주간 RSI','이상','주간 RSI(14)가 이 값 이상인 주는 트림 (기본 70)'],
   ['matDays','과열 트림 ② 성숙 천장 기간','거래일','200일선 위 연속 X일 이상이고… (기본 260 ≈ 1년)'],
   ['matATH','과열 트림 ② 성숙 천장 고점권','%','…전고점의 X% 이상인 주는 트림 (기본 98)'],
   ['stepOut','트림 속도','%p/주','트림 신호가 켜진 주마다 TQQQ→SCHD로 옮기는 비중 (기본 10)'],
-  ['maniaExt','광기 이격','%','200일선 이격 +X% & (다음 RSI 조건 동시 충족) & 고점권(−3% 이내) → 즉시 전량 SCHD. 해제: 고점 −3% 회복 또는 추세 회복(200일선 +1% & 50일선 동반) → 매주 +10%p 점진 복귀 (기본 20)'],
-  ['maniaRsi','광기 RSI','이상','광기 발동에 함께 요구하는 주간 RSI(14) 하한. 이격만으로는 상승 도중에도 떴던 문제를 보정 — 이격+과매수가 동시일 때만 진짜 천장으로 판단 (기본 75, 0=RSI 조건 끔=이격만)'],
+  ['maniaExt','광기 이격','%','200일선 이격이 +X% 이상이고 고점권(−3% 이내)이면 즉시 전량 SCHD(천장 방어). 해제: 고점 −3% 회복 또는 추세 회복(200일선 +1% & 50일선 동반) → 매주 분할 복귀 (기본 28)'],
   ['confirmDays','추세 이탈 확인','거래일','200일선 아래 연속 X거래일이면 전량 SCHD (기본 20 ≈ 4주)'],
   ['stepIn','복귀 속도','%p/주','신호가 없는 주마다 TQQQ 100%로 되돌리는 비중. 추세 회복(200일선 +1% 재돌파) 후 분할 재진입에도 사용 (기본 10)'],
   ['dipStart','급락 거버너 시작','%','50일 고점 대비 −X%부터 TQQQ 상한을 매주 단계적으로 낮춤 (기본 8, 0=끔)'],
@@ -928,7 +939,7 @@ function computeSeries(md,P,EX){
         tP=Math.max(tP,pc); tL=Math.min(tL,pc);
         if(pc>=tP*0.97) sticky=false;                                             // 해제①: 고점 −3% 회복 (빠른 V반등)
         else if(pc>p.sma200*1.01 && p.sma50>=p.sma200*0.99) sticky=false;         // 해제②: 추세 회복(200일선 +1% & 50일선 동반) — 점진 복귀(cur=0 유지 → 매주 드리프트)
-      } else if(!EX[4] && p.ext200>=P.maniaExt/100 && (P.maniaRsi<=0 || (!isNaN(rsiW)&&rsiW>=P.maniaRsi)) && p.dd>=-0.03){ sticky=true; tP=pc; tL=pc; cur=0; }
+      } else if(!EX[4] && p.ext200>=P.maniaExt/100 && p.dd>=-0.03){ sticky=true; tP=pc; tL=pc; cur=0; }   // 광기: 이격 단독 판정
       if(on && !EX[6] && p.below>=P.confirmDays){ on=false; eLow=p.lo50; fast=false; exitWk=0; exitAth=p.ath; }  // 추세 붕괴 확정 — 기준점을 이탈 직전 실제 저점(50일 저점)으로
       else if(!on){
         exitWk++;
@@ -972,10 +983,12 @@ try{if(window.ChartZoom&&window.Chart&&Chart.register)Chart.register(window.Char
 let SERIES=[], RAW_MD=[], CUR=null, SETTINGS=null, priceChart=null, allocChart=null, CUR_ALLOC=null, CUR_PORT=null, assetChart=null, CUR_CASH=0, TRADES_CACHE=[];
 let btPriceC=null, btAssetC=null, BT_RES=null, BT_STRAT=null, BT_GRAN='month', LOG_SCALE=true;
 const IS_MOBILE=()=> (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) || window.innerWidth<=768;
+let TAXCFG={exempt:2500000, rate:22, fee:0.1, on:true};   // 해외주식 양도세·매매수수료 설정
+const TAXCFG_KEY='adca_taxcfg';
 if(window.Chart && IS_MOBILE()){ Chart.defaults.animation=false; }   // 모바일: 차트 애니메이션 끔(성능)
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='10.5';
+const APP_VERSION='10.6';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 
@@ -1011,11 +1024,13 @@ async function init(){
   SETTINGS = await getSettings();
   loadStrategy(SETTINGS);                 // 사용자 전략 설정(비중·파라미터) 적용 후 단계 계산
   loadUserDefault(SETTINGS);              // 사용자 지정 기본값(초기화 복원값) 로드: 클라우드 우선 → 로컬
+  loadTaxcfg(SETTINGS);                   // 세금·수수료 설정 로드: 클라우드 우선 → 로컬
   SERIES = computeSeries(RAW_MD);
   CUR = SERIES[SERIES.length-1];
   FXNOW = (CUR && CUR.fx) ? +CUR.fx : 1380;
   document.getElementById('cadenceSel').value = SETTINGS.cadence;
   document.getElementById('contribInput').value = Number(SETTINGS.contribution_amount||0).toLocaleString('ko-KR');
+  applyTaxcfgToUI();
   renderDashboard();
   renderModalRegimes();
   onCadenceChange();
@@ -1070,13 +1085,13 @@ function renderIndicators(r){
   const above = r.qqq>=r.sma200;
   const mat = r.above>=P.matDays && r.qqq>=r.ath*(P.matATH/100);
   const rsiTrim = !isNaN(r.rsiW)&&r.rsiW>=P.rsiHi;
-  const maniaHot = (P.maniaRsi<=0) || (!isNaN(r.rsiW)&&r.rsiW>=P.maniaRsi);   // 광기 RSI 동반조건
+  const maniaHot = true;   // 광기는 이격 단독 판정
   g.innerHTML =
     indCard('QQQ 종가','$'+r.qqq.toFixed(2),'', r.date)
   + indCard('200일선','$'+r.sma200.toFixed(2), above?'up':'down', above?('가격이 위 · '+r.above+'일 연속'):('아래 '+r.below+'일 / 이탈 확정 '+P.confirmDays+'일'))
   + indCard('주간 RSI(14)', isNaN(r.rsiW)?'—':r.rsiW.toFixed(0), rsiTrim?'down':'up', rsiTrim?('트림 기준('+P.rsiHi+') 이상 — 매주 '+P.stepOut+'%p 트림'):('트림 기준 '+P.rsiHi+' 미만'))
   + indCard('성숙 천장', mat?'발동':'아님', mat?'down':'up', '200일선 위 '+r.above+'/'+P.matDays+'일 · 전고점 대비 '+(r.qqq/r.ath*100).toFixed(1)+'% (기준 '+P.matATH+'%)')
-  + indCard('200일선 이격','('+(ext>=0?'+':'')+(ext*100).toFixed(1)+'%)', (ext>=P.maniaExt/100&&maniaHot)?'down':(ext>=P.maniaExt/100?'neutral':'up'), ext>=P.maniaExt/100?(maniaHot?('광기 발동권(이격+'+P.maniaExt+'% & RSI'+P.maniaRsi+'↑ 동시) — 전량 방어'):('이격 +'+P.maniaExt+'% 초과지만 RSI '+P.maniaRsi+' 미만 — 광기 아님')):'광기 기준(+'+P.maniaExt+'%) 미만')
+  + indCard('200일선 이격','('+(ext>=0?'+':'')+(ext*100).toFixed(1)+'%)', (ext>=P.maniaExt/100&&maniaHot)?'down':(ext>=P.maniaExt/100?'neutral':'up'), ext>=P.maniaExt/100?('광기 발동권(이격 +'+P.maniaExt+'% 초과) — 전량 방어'):('광기 기준(+'+P.maniaExt+'%) 미만'))
   + indCard('고점대비 낙폭', (dd*100).toFixed(1)+'%', dd<=-0.15?'down':(dd<=-0.05?'neutral':'up'), 'ATH $'+r.ath.toFixed(0))
   + indCard('50일 고점 낙폭', (r.ddr50*100).toFixed(1)+'%', r.ddr50<=-P.dipStart/100?'down':'up', r.ddr50<=-P.dipStart/100?('급락 거버너 작동 (−'+P.dipStart+'%~−'+P.dipFull+'%)'):'급락 거버너 기준(−'+P.dipStart+'%) 위')
   + indCard('목표 TQQQ 비중', Math.round(r.w*100)+'%', r.w>=1?'up':(r.w<=0?'down':'neutral'), 'SCHD '+Math.round((1-r.w)*100)+'% · 매주 한 번만 조정')
@@ -1695,6 +1710,34 @@ function stratSetDefault(){
   const S=collectStrat(''); if(!S) return; setUserDefault(S);
   const n=document.getElementById('stratSaveNote'); if(n) n.textContent='현재 값을 기본값으로 지정했습니다 (Supabase 동기화). 이제 “초기화”를 누르면 이 값으로 복원됩니다.';
 }
+function TAX_EX_DISP(){ const e=(TAXCFG&&+TAXCFG.exempt)||0; return e>=10000?(Math.round(e/10000)+'만원'):(e.toLocaleString('ko-KR')+'원'); }
+function loadTaxcfg(settings){
+  let t=null;
+  if(settings && settings.taxcfg) t=settings.taxcfg;
+  if(!t){ try{ t=JSON.parse(localStorage.getItem(TAXCFG_KEY)||'null'); }catch(e){} }
+  if(t){ TAXCFG={ exempt:(+t.exempt||2500000), rate:(t.rate!=null?+t.rate:22), fee:(t.fee!=null?+t.fee:0.1), on:(t.on!==false) }; }
+  try{ localStorage.setItem(TAXCFG_KEY, JSON.stringify(TAXCFG)); }catch(e){}
+}
+function applyTaxcfgToUI(){
+  const set=(id,v)=>{ const e=document.getElementById(id); if(e) e.value=v; };
+  set('cfgExempt', Number(TAXCFG.exempt||0).toLocaleString('ko-KR'));
+  set('cfgRate', TAXCFG.rate); set('cfgFee', TAXCFG.fee);
+  const on=document.getElementById('cfgTaxOn'); if(on) on.checked=TAXCFG.on!==false;
+  const bf=document.getElementById('bt_fee'); if(bf) bf.value=TAXCFG.fee;   // 백테스트 거래비용 기본값 = 설정 수수료
+}
+async function saveTaxcfgUI(){
+  const num=id=>{ const e=document.getElementById(id); return e? (parseFloat(String(e.value).replace(/[^0-9.\-]/g,''))||0) : 0; };
+  TAXCFG={ exempt:num('cfgExempt'), rate:num('cfgRate'), fee:num('cfgFee'), on:(document.getElementById('cfgTaxOn')||{checked:true}).checked };
+  try{ localStorage.setItem(TAXCFG_KEY, JSON.stringify(TAXCFG)); }catch(e){}
+  applyTaxcfgToUI();
+  flash('세금·수수료 설정을 저장했습니다');
+  if(BT_RES) runBacktest();   // 결과가 떠 있으면 즉시 재계산
+  if(DEMO) return;
+  const {error}=await sb.from('settings').upsert({id:1, taxcfg:TAXCFG});
+  if(error){ console.warn('taxcfg 저장 실패',error);
+    showSyncWarn('⚠ 세금·수수료 설정이 <b>Supabase에 저장되지 않았습니다</b>(이 기기에만 저장). 한 번만 SQL Editor에서 실행하세요:<br><span style="font-family:ui-monospace,monospace;background:rgba(0,0,0,.3);padding:2px 6px;border-radius:5px;display:inline-block;margin-top:5px">alter table settings add column if not exists taxcfg jsonb;</span>');
+  } else { clearSyncWarn(); }
+}
 function openSettings(){
   renderStratEditor();
   document.getElementById('stratSaveNote').textContent='';
@@ -1712,7 +1755,7 @@ function resetStrategyUI(){
   const ud=getUserDefault();
   STRAT = ud ? JSON.parse(JSON.stringify(ud)) : JSON.parse(JSON.stringify(DEFAULT_STRAT));
   renderStratEditor();
-  document.getElementById('stratSaveNote').textContent=(ud?'내가 지정한 기본값':'심플 래더 초기값')+'으로 초기화했습니다. “저장 후 적용”을 눌러 확정하세요.';
+  document.getElementById('stratSaveNote').textContent=(ud?'내가 지정한 기본값':'균형형 최적 기본값')+'으로 초기화했습니다. “저장 후 적용”을 눌러 확정하세요.';
 }
 function showSyncWarn(html){
   let b=document.getElementById('syncWarn');
@@ -1791,7 +1834,7 @@ function renderBtSandbox(S){
 function btLoadLive(){ renderBtSandbox(STRAT); flash('현재 실제 설정을 샌드박스로 불러왔습니다'); }
 function btLoadOpt(){ renderBtSandbox(OPT_FULL); flash('균형형 최적(전기간 IRR 39.0% / MDD −54.5% / 효율 0.715)을 불러왔습니다 — 과거 적합값, 검토용'); }
 function btLoadEff(){ renderBtSandbox(OPT_EFF); flash('효율형 최적(전기간 IRR 36.9% / MDD −47.6% / 효율 0.775)을 불러왔습니다 — 위험 대비 수익 최고, 과거 적합값'); }
-function btResetDefault(){ const ud=getUserDefault(); renderBtSandbox(ud||DEFAULT_STRAT); flash(ud?'샌드박스를 내가 지정한 기본값으로 초기화했습니다':'샌드박스를 초기화(심플 래더 기본값)했습니다'); }
+function btResetDefault(){ const ud=getUserDefault(); renderBtSandbox(ud||DEFAULT_STRAT); flash(ud?'샌드박스를 내가 지정한 기본값으로 초기화했습니다':'샌드박스를 초기화(균형형 최적 기본값)했습니다'); }
 async function applyBtStrategy(){
   if(!BT_RES||!BT_RES.strat){ flash('먼저 백테스트를 실행하세요'); return; }
   STRAT=JSON.parse(JSON.stringify(BT_RES.strat));
@@ -1821,6 +1864,10 @@ function runBacktest(){
   const BM_IDX={TQQQ:0,QLD:1,QQQ:2,SCHD:3};
   const bms=['QQQ','QLD','TQQQ','SCHD'].filter(k=>{const e=document.getElementById('bt_bm_'+k);return e&&e.checked;});
   let schdMiss=0, synthDays=0, sh=[0,0,0,0], invested=0, rebals=0, peak=0, mdd=0;
+  const cost=[0,0,0,0]; let realizedYr=0, taxPaidUSD=0, curYear=null;   // 세금: 자산별 평균취득원가·연 실현손익(원)·누적세금($)
+  const TAX_ON=(TAXCFG&&TAXCFG.on!==false), TAX_EX=(TAXCFG&&+TAXCFG.exempt)||0, TAX_RATE=((TAXCFG&&+TAXCFG.rate)||0)/100, FXFB=(typeof FXNOW==='number'&&FXNOW>100)?FXNOW:1380;
+  const fxOf=r=>(r&&r.fx&&+r.fx>100)?+r.fx:FXFB;
+  const settleTax=(yfx,p)=>{ if(!TAX_ON){ realizedYr=0; return; } const taxK=Math.max(0, realizedYr-TAX_EX)*TAX_RATE; realizedYr=0; if(taxK>0){ const taxUSD=taxK/yfx; const v=sh.reduce((a,q,k)=>a+q*p[k],0); if(v>0&&taxUSD>0&&taxUSD<v){ const fct=(v-taxUSD)/v; for(let k=0;k<4;k++){ sh[k]*=fct; cost[k]*=fct; } taxPaidUSD+=taxUSD; } } };
   const bsh={}, bmPeak={}, bmMdd={}; bms.forEach(k=>{bsh[k]=0;bmPeak[k]=0;bmMdd[k]=0;});   // 선택된 비교 지수별 동일적립 주수·MDD
   const volA={}, volW={};   // QQQ 일수익률 집계 (월/주 변동성)
   const pxA={}, pxW={};     // QQQ 기간내 시가/고가/저가 (월/주 ± 변동폭)
@@ -1829,13 +1876,14 @@ function runBacktest(){
   const yrs=d=>(new Date(d+'T00:00:00Z').getTime()-t0)/31557600000;
   const flows=[];
   let lastReg=null, lastWk=null, lastYm=null;
-  const buyAll=(amt,t,p)=>{ for(let k=0;k<4;k++){ const a=amt*t[k]; if(a>0&&p[k]>0&&isFinite(p[k])) sh[k]+=a*(1-fee)/p[k]; }
+  const buyAll=(amt,t,p)=>{ for(let k=0;k<4;k++){ const a=amt*t[k]; if(a>0&&p[k]>0&&isFinite(p[k])){ sh[k]+=a*(1-fee)/p[k]; cost[k]+=a; } }
     bms.forEach(nm=>{ const q=p[BM_IDX[nm]]; if(q>0&&isFinite(q)) bsh[nm]+=amt*(1-fee)/q; }); };   // 같은 현금흐름으로 각 비교 지수 매수
   for(let i=i0;i<=i1;i++){
     const r=SER[i], p=px(r), t=[r.w,0,0,1-r.w], _wk=wkKey(r.date);
     { const _ym=r.date.slice(0,7), _q=+r.qqq;
       const pa=pxA[_ym]||(pxA[_ym]={open:_q,close:_q}); pa.close=_q;
       const pw=pxW[_wk]||(pxW[_wk]={open:_q,close:_q}); pw.close=_q; }
+    if(i>i0){ const _yr=r.date.slice(0,4); if(_yr!==curYear){ settleTax(fxOf(r), p); curYear=_yr; } }   // 연 경계: 직전 연도 세금 정산
     if(r.schd==null||isNaN(+r.schd)) schdMiss++;
     if(r.synth) synthDays++;
     if(i>i0){ const ym=r.date.slice(0,7), dr=r.qqq/SER[i-1].qqq-1;
@@ -1843,7 +1891,7 @@ function runBacktest(){
       const aw=volW[_wk]||(volW[_wk]={n:0,s:0,s2:0}); aw.n++; aw.s+=dr; aw.s2+=dr*dr; }
     if(i===i0){
       if(init0>0){ invested+=init0; flows.push({t:yrs(r.date),v:-init0}); buyAll(init0,t,p); rebals++; }
-      lastReg=r.w; lastWk=wkKey(r.date); lastYm=r.date.slice(0,7);
+      lastReg=r.w; lastWk=wkKey(r.date); lastYm=r.date.slice(0,7); curYear=r.date.slice(0,4);
     } else {
       const ym=r.date.slice(0,7), wk=wkKey(r.date);
       const due = cad==='daily' || (cad==='weekly'&&wk!==lastWk) || (cad==='monthly'&&ym!==lastYm);
@@ -1854,12 +1902,20 @@ function runBacktest(){
         if(tot>0){
           let traded=0; for(let k=0;k<4;k++) traded+=Math.abs(t[k]*tot-vals[k]);
           const net=tot-traded*fee;
-          sh=t.map((w,k)=> p[k]>0&&isFinite(p[k]) ? net*w/p[k] : 0);
+          const newSh=t.map((w,k)=> p[k]>0&&isFinite(p[k]) ? net*w/p[k] : 0);
+          const fxN=fxOf(r);
+          for(let k=0;k<4;k++){ if(!(p[k]>0&&isFinite(p[k]))) continue;
+            const avg = sh[k]>0 ? cost[k]/sh[k] : 0;
+            if(newSh[k] < sh[k]){ realizedYr += (sh[k]-newSh[k])*(p[k]-avg)*fxN; cost[k]=avg*newSh[k]; }   // 매도분 실현손익(원)
+            else { cost[k] += (newSh[k]-sh[k])*p[k]; }                                                     // 매수분 원가 추가
+          }
+          sh=newSh;
           rebals++;
         }
         lastReg=r.w;
       }
     }
+    if(i===i1){ settleTax(fxOf(r), p); }   // 마지막(미완) 연도분 정산 → 최종 세후
     const val=sh.reduce((a,q,k)=>a+q*p[k],0);
     const bm={}; bms.forEach(nm=>{ const v=bsh[nm]*p[BM_IDX[nm]]; bm[nm]=v;
       bmPeak[nm]=Math.max(bmPeak[nm],v); if(bmPeak[nm]>0) bmMdd[nm]=Math.min(bmMdd[nm],v/bmPeak[nm]-1); });
@@ -1876,12 +1932,12 @@ function runBacktest(){
     if(months[ym]) months[ym].vol = a.n>=2 ? Math.sqrt(Math.max(0,(a.s2-a.s*a.s/a.n)/(a.n-1))*252) : null; }
   for(const wk in volW){ const a=volW[wk];
     if(weeks[wk]) weeks[wk].vol = a.n>=2 ? Math.sqrt(Math.max(0,(a.s2-a.s*a.s/a.n)/(a.n-1))*252) : null; }
-  { let pc=null; for(const ym in pxA){ const a=pxA[ym]; if(months[ym]) months[ym].pxChg=(pc!=null?a.close/pc:a.close/a.open)-1; pc=a.close; } }
-  { let pw=null; for(const wk in pxW){ const a=pxW[wk]; if(weeks[wk]) weeks[wk].pxChg=(pw!=null?a.close/pw:a.close/a.open)-1; pw=a.close; } }
+  { let pc=null; for(const ym in pxA){ const a=pxA[ym]; if(months[ym]){ months[ym].pxChg=(pc!=null?a.close/pc:a.close/a.open)-1; months[ym].pxClose=a.close; } pc=a.close; } }
+  { let pw=null; for(const wk in pxW){ const a=pxW[wk]; if(weeks[wk]){ weeks[wk].pxChg=(pw!=null?a.close/pw:a.close/a.open)-1; weeks[wk].pxClose=a.close; } pw=a.close; } }
   if(synthDays>0) warns.push('⚠️ 기간 중 '+synthDays.toLocaleString()+'거래일은 합성 근사 데이터입니다 (QLD 2006-06 / TQQQ 2010-02 / SCHD 2011-10 상장 이전 — 레버리지 일복리·비용 모델 + SCHD 분기앵커 보간). 해당 구간 결과는 근사치로만 보세요.');
   if(schdMiss>0) warns.push('⚠️ 기간 중 '+schdMiss+'일은 SCHD 시세가 없어 고정가($'+SCHD_FALLBACK+', 수익률 0%·현금성)로 처리했습니다 (SCHD 2011-10 상장).');
-  warns.push('⚠️ 일봉 종가 기준 근사 시뮬레이션입니다. 배당·세금·슬리피지·환율 미반영이며, 과거 성과는 미래 수익을 보장하지 않습니다. 투자 조언이 아닙니다.');
-  BT_RES={i0,i1,s:SER.slice(i0,i1+1),strat:JSON.parse(JSON.stringify(S)),days,months:Object.values(months),weeks:Object.values(weeks),irr,mdd,rebals,invested:last.invested,final:last.val,bms,bm:last.bm,bmMdd,warns};
+  warns.push('⚠️ 일봉 종가 기준 근사 시뮬레이션입니다. 배당·슬리피지 미반영, 세금은 설정에 따라 평균취득가 기준으로 근사 반영(벤치마크는 매도 없으므로 세전). 과거 성과는 미래를 보장하지 않으며 투자 조언이 아닙니다.');
+  BT_RES={i0,i1,s:SER.slice(i0,i1+1),strat:JSON.parse(JSON.stringify(S)),days,months:Object.values(months),weeks:Object.values(weeks),irr,mdd,rebals,invested:last.invested,final:last.val,bms,bm:last.bm,bmMdd,tax:taxPaidUSD,warns};
   renderBtResults();
 }
 function setBtGran(g){
@@ -1897,18 +1953,20 @@ function renderBtTable(){
   const rows=isW?(R.weeks||[]):R.months;
   document.getElementById('btMonthlyHead').innerHTML=
     '<th>'+(isW?'주 (마감일)':'년월')+'</th>'
+    + '<th>QQQ 가격</th>'
     + '<th title="기간 QQQ 등락률 (직전 기간 종가 대비, 첫 기간은 기간내)">QQQ 변동 ('+(isW?'주':'월')+')</th>'
     + '<th>단계('+(isW?'주말':'월말')+')</th><th>TQQQ 목표</th><th>평가금액</th><th>TQQQ</th><th>SCHD</th><th>누적수익률</th>'
-    + R.bms.map(nm=>'<th>'+nm+' 누적 (동일적립)</th>').join('');
+    + R.bms.map(nm=>'<th>'+nm+' 평가금액 (동일적립)</th>').join('');
   document.getElementById('btMonthlyBody').innerHTML=rows.map(m=>{
     const cum=m.invested>0?m.val/m.invested-1:0;
     const cell=v=>{ const wt=m.val>0?v/m.val:0; return v>0.5?fmtUSD(v)+' <span class="muted">('+Math.round(wt*100)+'%)</span>':'—'; };
-    const bmTds=R.bms.map(nm=>{ const bcum=m.invested>0?(m.bm[nm]||0)/m.invested-1:0;
-      return `<td class="mono ${cum>=bcum?'muted':'neutral'}">${pct(bcum)}</td>`; }).join('');
+    const bmTds=R.bms.map(nm=>{ const bv=m.bm[nm]||0;
+      return `<td class="mono ${m.val>=bv?'muted':'neutral'}">${fmtUSD(bv)}</td>`; }).join('');
     const rng = (m.pxChg!=null)
       ? `<span class="${m.pxChg>=0?'up':'down'}">${m.pxChg>=0?'+':''}${(m.pxChg*100).toFixed(1)}%</span>`
       : '—';
     return `<tr><td class="tkr">${m.label}</td>
+      <td class="mono">${m.pxClose!=null?'$'+m.pxClose.toFixed(2):'—'}</td>
       <td class="mono" style="font-size:11.5px;white-space:nowrap">${rng}</td>
       <td><span class="chip" style="font-size:12px;color:${REG_LINE[m.regime]};background:${REG_LINE[m.regime]}26">${REG_NAME[m.regime]}</span></td>
       <td class="mono">${Math.round((m.w!=null?m.w:1)*100)}%</td>
@@ -1935,7 +1993,12 @@ function renderBtResults(){
   ];
   R.bms.forEach(nm=>{ const v=R.bm[nm]||0, br=R.invested>0?v/R.invested-1:0, bmd=R.bmMdd?R.bmMdd[nm]:null;
     cards.push([nm+' 동일적립 (지수)', fmtUSD(v), R.final>=v?'':'down',
-      '누적 '+pct(br)+(bmd!=null?' · MDD '+(bmd*100).toFixed(1)+'%':'')+' — 같은 현금흐름으로 '+nm+'만 매수']); });
+      '누적 '+pct(br)+(bmd!=null?' · MDD '+(bmd*100).toFixed(1)+'%':'')+' — 같은 현금흐름으로 '+nm+'만 매수 (세전)']); });
+  if(R.tax!=null && (TAXCFG&&TAXCFG.on!==false)){
+    cards.splice(6,0, R.tax>0
+      ? ['납부 세금(누적)', '−'+fmtUSD(R.tax), 'down', '연 '+(TAX_EX_DISP())+' 비과세·초과분 '+((TAXCFG&&TAXCFG.rate)||22)+'% · 평가금액에서 차감(세후)']
+      : ['납부 세금(누적)', '$0', '', '연 실현이익이 비과세 한도 이하']);
+  }
   document.getElementById('btSummary').innerHTML=cards.map(([l,v,c,sub])=>
     `<div class="card card-hov ${c==='up'?'green':c==='down'?'red':'blue'}"><div class="label">${l}</div><div class="big-num ${c}">${v}</div><div class="muted" style="font-size:10.5px;margin-top:3px">${sub}</div></div>`).join('');
   // 기간 단계 차트 (메인과 동일 렌더링)
