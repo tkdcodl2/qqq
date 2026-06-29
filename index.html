@@ -59,7 +59,7 @@ body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
 @keyframes auroraDrift{0%{transform:translate3d(0,0,0) scale(1)}100%{transform:translate3d(0,-22px,0) scale(1.08)}}
 @media(prefers-reduced-motion:reduce){body::before{animation:none}*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
 a{color:inherit;text-decoration:none}
-.wrap{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:0 20px 120px}
+.wrap{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:22px 20px 120px}
 .mono{font-family:var(--font-num);font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
 /* 차트 핀치/드래그 줌이 페이지 스크롤에 가로채이지 않도록 */
 #priceChart,#btPriceChart{touch-action:none}
@@ -80,7 +80,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(20px) saturate(140%
 .btn-strategy svg{width:15px;height:15px;opacity:.9}
 
 /* tabs */
-.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0 18px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;max-width:1240px;margin:0 auto;padding:2px 20px 12px}
 .tab-btn{font-family:var(--font-text);font-size:13px;font-weight:500;padding:9px 17px;border-radius:11px;border:1px solid var(--border);background:var(--surface);backdrop-filter:blur(10px);color:var(--muted);cursor:pointer;transition:.2s cubic-bezier(.4,0,.2,1)}
 .tab-btn:hover{color:var(--text);border-color:var(--border2)}
 .tab-btn.active{background:linear-gradient(135deg,var(--accent),var(--accent-d));color:#06120d;border-color:transparent;box-shadow:0 6px 20px -6px var(--glow)}
@@ -262,6 +262,9 @@ tbody tr:hover{background:rgba(255,255,255,.035)}
 .qt-preview .row .k{color:var(--muted)}
 .qt-preview .row .v{font-family:var(--font-num);font-weight:700}
 .qt-empty{color:var(--muted);text-align:center}
+.qty-pcts{display:flex;gap:6px;margin-top:8px}
+.qty-pcts button{flex:1;font-family:var(--font-text);font-weight:600;font-size:11.5px;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;transition:.15s}
+.qty-pcts button:hover{border-color:var(--border2);color:var(--accent);background:rgba(45,212,191,.08)}
 
 /* forms */
 .field{margin-bottom:14px}
@@ -369,15 +372,15 @@ details.sandbox .stage-edit{background:var(--surface)}
     <button class="btn-strategy" onclick="openSettings()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>설정</button>
     <button class="btn-strategy" onclick="openStrategy()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><polyline points="7 14 11 10 14 13 20 6"/></svg>전략</button>
   </div>
-</header>
-
-<div class="wrap">
-  <div class="tabs">
+  <nav class="tabs">
     <button class="tab-btn active" data-tab="dash" onclick="switchTab('dash')">대시보드</button>
     <button class="tab-btn" data-tab="trades" onclick="switchTab('trades')">매매이력</button>
     <button class="tab-btn" data-tab="setup" onclick="switchTab('setup')">적립설정</button>
     <button class="tab-btn" data-tab="bt" onclick="switchTab('bt')">백테스트</button>
-  </div>
+  </nav>
+</header>
+
+<div class="wrap">
 
   <!-- ===== DASHBOARD ===== -->
   <section id="tab-dash">
@@ -671,7 +674,7 @@ details.sandbox .stage-edit{background:var(--surface)}
     </div>
     <div class="row2" id="secRow1">
       <div class="field"><label>종목</label><select id="f_ticker" onchange="onTickerChange()"><option>TQQQ</option><option>SCHD</option></select></div>
-      <div class="field"><label>수량</label><input id="f_qty" type="number" step="any" oninput="calcAmount()"></div>
+      <div class="field"><label>수량 <span class="muted" id="qtyPctHint"></span></label><input id="f_qty" type="number" step="any" oninput="calcAmount()"><div class="qty-pcts" id="qtyPcts" style="display:none"><button type="button" onclick="qtyPct(0.1)">10%</button><button type="button" onclick="qtyPct(0.5)">50%</button><button type="button" onclick="qtyPct(1)">100%</button></div></div>
     </div>
     <div class="row2" id="secRow2">
       <div class="field"><label>단가 ($)</label><input id="f_price" type="number" step="any" oninput="calcAmount()"></div>
@@ -692,6 +695,7 @@ details.sandbox .stage-edit{background:var(--surface)}
     <span class="close" onclick="closeModal('qtModal')">&times;</span>
     <h2 id="qtTitle">매수</h2>
     <div class="qt-info" id="qtInfo"></div>
+    <div class="field" style="margin:14px 0 2px"><label>단가 ($) <span class="muted" id="qtFxHint">현재가 · 수정 가능</span></label><input id="f_qtPrice" type="number" step="any" inputmode="decimal" oninput="qtRecalc()"></div>
     <div class="qt-cap" id="qtCap">수량 비율 선택</div>
     <div class="qt-pcts">
       <button id="qtP10" onclick="qtPick(0.1)">10%</button>
@@ -1032,7 +1036,7 @@ const TAXCFG_KEY='adca_taxcfg';
 if(window.Chart && IS_MOBILE()){ Chart.defaults.animation=false; }   // 모바일: 차트 애니메이션 끔(성능)
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='10.8';
+const APP_VERSION='10.9';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 
@@ -1445,6 +1449,9 @@ function onTypeChange(){
   document.getElementById('realizedWrap').style.display=ty==='sell'?'block':'none';
   const amt=document.getElementById('f_amount'); amt.readOnly=!cash;
   document.getElementById('amtLabel').textContent=cash?'금액 (원)':'거래금액 (원, 자동계산)';
+  const showPct=(ty==='buy'||ty==='sell');
+  const qp=document.getElementById('qtyPcts'); if(qp)qp.style.display=showPct?'flex':'none';
+  const hint=document.getElementById('qtyPctHint'); if(hint)hint.textContent=showPct?(ty==='buy'?'· 가용현금 기준':'· 보유수량 기준'):'';
   if(!cash)calcAmount();
   if(ty==='sell')calcRealizedAuto();
 }
@@ -1575,46 +1582,49 @@ function openQuickTrade(ticker, side){
   const ov=document.getElementById('qtModal');
   ov.classList.remove('buy','sell'); ov.classList.add(side);
   document.getElementById('qtTitle').textContent = ticker+' '+(side==='buy'?'매수':'매도');
+  document.getElementById('f_qtPrice').value = price.toFixed(2);
+  document.getElementById('qtFxHint').textContent = '현재가 · 수정 가능 · 환율 '+Math.round(QT.fx).toLocaleString('ko-KR');
   const info=document.getElementById('qtInfo');
-  const priceLine=`<div class="r"><span class="k">현재가</span><span class="v">$${price.toFixed(2)} · ₩${Math.round(price*QT.fx).toLocaleString('ko-KR')}</span></div>`;
   if(side==='buy'){
     document.getElementById('qtCap').textContent='가용 현금 대비 매수 비율';
-    info.innerHTML = priceLine
-      + `<div class="r"><span class="k">가용 현금</span><span class="v">${won(QT.cash)} (${qtUSD(QT.cash)})</span></div>`;
+    info.innerHTML = `<div class="r"><span class="k">가용 현금</span><span class="v">${won(QT.cash)} (${qtUSD(QT.cash)})</span></div>`;
   } else {
-    const ev=QT.held*price*QT.fx;
     document.getElementById('qtCap').textContent='보유수량 대비 매도 비율';
-    info.innerHTML = priceLine
-      + `<div class="r"><span class="k">보유수량</span><span class="v">${qtNum(QT.held)}주</span></div>`
-      + `<div class="r"><span class="k">평가금액</span><span class="v">${won(ev)} (${qtUSD(ev)})</span></div>`;
+    info.innerHTML = `<div class="r"><span class="k">보유수량</span><span class="v">${qtNum(QT.held)}주</span></div>`;
   }
   ['qtP10','qtP50','qtP100'].forEach(id=>document.getElementById(id).classList.remove('on'));
   document.getElementById('qtPreview').innerHTML='<span class="qt-empty">비율을 선택하면 수량·금액이 계산됩니다.</span>';
   document.getElementById('qtConfirm').disabled=true;
   document.getElementById('qtModal').classList.add('open');
 }
+function qtCurPrice(){ const v=parseFloat((document.getElementById('f_qtPrice').value||'').toString().replace(/,/g,'')); return isFinite(v)&&v>0?v:0; }
 function qtPick(pct){
-  const {side,price,fx}=QT;
-  let qty=0;
-  if(side==='buy'){
-    const budget=QT.cash*pct;
-    qty=Math.floor(budget/(price*fx)*1e4)/1e4;   // 현금 초과 안 하도록 소수 4자리 내림
-  } else {
-    qty = pct>=1 ? QT.held : Math.floor(QT.held*pct*1e4)/1e4;
-  }
-  const amount=Math.round(qty*price*fx);
-  QT.qty=qty; QT.amount=amount; QT.pct=pct;
+  QT.pct=pct;
   ['qtP10','qtP50','qtP100'].forEach(id=>document.getElementById(id).classList.remove('on'));
   document.getElementById(pct>=1?'qtP100':pct>=0.5?'qtP50':'qtP10').classList.add('on');
+  qtRecalc();
+}
+function qtRecalc(){
+  const price=qtCurPrice(), fx=QT.fx; QT.price=price;
   const pv=document.getElementById('qtPreview');
+  if(!QT.pct) return;                                  // 아직 비율 미선택
+  if(!(price>0)){
+    pv.innerHTML='<span class="qt-empty">단가를 입력하세요.</span>';
+    document.getElementById('qtConfirm').disabled=true; return;
+  }
+  let qty=0;
+  if(QT.side==='buy'){ qty=Math.floor(QT.cash*QT.pct/(price*fx)*1e4)/1e4; }   // 현금 초과 방지(소수 4자리 내림)
+  else { qty = QT.pct>=1 ? QT.held : Math.floor(QT.held*QT.pct*1e4)/1e4; }
+  const amount=Math.round(qty*price*fx);
+  QT.qty=qty; QT.amount=amount;
   if(!(qty>0)){
-    pv.innerHTML='<span class="qt-empty">'+(side==='buy'?'가용 현금이 부족합니다.':'보유수량이 없습니다.')+'</span>';
+    pv.innerHTML='<span class="qt-empty">'+(QT.side==='buy'?'가용 현금이 부족합니다.':'보유수량이 없습니다.')+'</span>';
     document.getElementById('qtConfirm').disabled=true; return;
   }
   pv.innerHTML = `<div class="row"><span class="k">예상 수량</span><span class="v">${qtNum(qty)}주</span></div>`
     + `<div class="row"><span class="k">예상 금액</span><span class="v">${won(amount)} (${qtUSD(amount)})</span></div>`
-    + (side==='buy'?`<div class="row"><span class="k">매수 후 현금</span><span class="v">${won(QT.cash-amount)}</span></div>`
-                   :`<div class="row"><span class="k">매도 후 보유</span><span class="v">${qtNum(QT.held-qty)}주</span></div>`);
+    + (QT.side==='buy'?`<div class="row"><span class="k">매수 후 현금</span><span class="v">${won(QT.cash-amount)}</span></div>`
+                      :`<div class="row"><span class="k">매도 후 보유</span><span class="v">${qtNum(QT.held-qty)}주</span></div>`);
   document.getElementById('qtConfirm').disabled=false;
 }
 async function confirmQuickTrade(){
@@ -1632,6 +1642,26 @@ async function confirmQuickTrade(){
   flash(QT.ticker+' '+(QT.side==='buy'?'매수':'매도')+' '+qtNum(QT.qty)+'주 ('+won(QT.amount)+') 완료');
 }
 const TYPE_LABEL={buy:['매수','buy'],sell:['매도','sell'],div:['배당','div'],deposit:['입금','dep'],withdrawal:['출금','wd']};
+/* 매매입력 팝업: 수량 10/50/100% (매수=가용현금 기준, 매도=보유수량 기준) */
+function qtyPct(pct){
+  const ty=document.getElementById('f_type').value;
+  if(ty!=='buy'&&ty!=='sell')return;
+  const tk=document.getElementById('f_ticker').value;
+  const price=numv('f_price'), fx=numv('f_fx');
+  if(!(price>0)||!(fx>0)){ flash('단가·환율을 먼저 확인하세요'); return; }
+  let qty=0;
+  if(ty==='buy'){
+    const cash=CUR_CASH||0;
+    if(cash<=0){ flash('가용 현금이 없습니다'); return; }
+    qty=Math.floor(cash*pct/(price*fx)*1e4)/1e4;   // 현금 초과 방지(소수 4자리 내림)
+  } else {
+    const held=HOLD_QTY[tk]||0;
+    if(held<=0){ flash(tk+' 보유수량이 없습니다'); return; }
+    qty=pct>=1?held:Math.floor(held*pct*1e4)/1e4;
+  }
+  document.getElementById('f_qty').value=qty;
+  calcAmount();
+}
 async function renderTrades(){
   const ts=await getTrades();const b=document.getElementById('tradeBody');
   if(!ts.length){b.innerHTML='<tr><td colspan="8" class="muted t-empty" style="text-align:center;padding:30px">매매 내역이 없습니다. “+ 매매 입력”으로 추가하세요.</td></tr>';return;}
