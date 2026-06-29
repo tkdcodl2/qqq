@@ -265,6 +265,11 @@ tbody tr:hover{background:rgba(255,255,255,.035)}
 .qty-pcts{display:flex;gap:6px;margin-top:8px}
 .qty-pcts button{flex:1;font-family:var(--font-text);font-weight:600;font-size:11.5px;padding:7px 0;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;transition:.15s}
 .qty-pcts button:hover{border-color:var(--border2);color:var(--accent);background:rgba(45,212,191,.08)}
+/* v11.0: 종목 클릭 → TradingView 차트 */
+.tkr-link{cursor:pointer;border-bottom:1px dashed var(--border2);transition:.13s}
+.tkr-link:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.chart-actions{display:flex;gap:8px;align-items:center;margin-top:6px}
+.chart-sym{font-family:var(--font-num);font-size:11px;color:var(--muted);letter-spacing:.3px;margin-left:auto}
 
 /* forms */
 .field{margin-bottom:14px}
@@ -710,6 +715,17 @@ details.sandbox .stage-edit{background:var(--surface)}
   </div>
 </div>
 
+<!-- ===== CHART MODAL (v11.0) ===== -->
+<div class="modal-overlay" id="chartModal">
+  <div class="modal" style="max-width:920px">
+    <span class="close" onclick="closeChart()">&times;</span>
+    <h2 id="chartTitle">차트</h2>
+    <div class="chart-actions" id="chartActions"></div>
+    <div id="tvChartWrap" style="height:70vh;min-height:420px;margin-top:14px;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:rgba(8,11,22,1)"></div>
+    <p class="note" style="margin-top:10px;color:var(--muted)">실시간 시세·차트는 TradingView 제공. 차트 상단 검색창에서 다른 종목으로 바꿀 수 있습니다.</p>
+  </div>
+</div>
+
 <!-- ===== MONTHLY MODAL ===== -->
 <div class="modal-overlay" id="monthlyModal">
   <div class="modal" style="max-width:440px">
@@ -1036,7 +1052,7 @@ const TAXCFG_KEY='adca_taxcfg';
 if(window.Chart && IS_MOBILE()){ Chart.defaults.animation=false; }   // 모바일: 차트 애니메이션 끔(성능)
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='10.9';
+const APP_VERSION='11.0';
 let FXNOW=1380;
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
 
@@ -1571,6 +1587,35 @@ async function editTrade(id){
   onTypeChange();
 }
 /* ===== 현황 빠른 매수/매도 (v10.8) ===== */
+/* ===== TradingView 차트 팝업 (v11.0) ===== */
+const SYMBOL_MAP={QQQ:'NASDAQ:QQQ', QLD:'AMEX:QLD', TQQQ:'NASDAQ:TQQQ', SCHD:'AMEX:SCHD', SGOV:'NYSE:SGOV'};
+function tkrCell(t){ return SYMBOL_MAP[t] ? `<span class="tkr-link" onclick="openChart('${t}')" title="${t} 차트 보기">${t}</span>` : t; }
+function openChart(ticker){
+  const sym = SYMBOL_MAP[ticker] || ticker;
+  document.getElementById('chartTitle').textContent = ticker+' 차트';
+  document.getElementById('chartActions').innerHTML =
+      `<button class="mini-trade buy" onclick="closeChart();openQuickTrade('${ticker}','buy')">매수</button>`
+    + `<button class="mini-trade sell" onclick="closeChart();openQuickTrade('${ticker}','sell')">매도</button>`
+    + `<span class="chart-sym">${sym}</span>`;
+  const wrap=document.getElementById('tvChartWrap');
+  wrap.innerHTML='<div class="tradingview-widget-container" style="height:100%;width:100%"><div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div></div>';
+  const cfg={autosize:true, symbol:sym, interval:'D', timezone:'Asia/Seoul', theme:'dark', style:'1', locale:'kr',
+    backgroundColor:'rgba(8,11,22,1)', gridColor:'rgba(255,255,255,0.06)',
+    hide_side_toolbar:false, allow_symbol_change:true, withdateranges:true, calendar:false,
+    support_host:'https://www.tradingview.com'};
+  const s=document.createElement('script');
+  s.type='text/javascript';
+  s.src='https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+  s.async=true; s.innerHTML=JSON.stringify(cfg);
+  wrap.querySelector('.tradingview-widget-container').appendChild(s);
+  document.getElementById('chartModal').classList.add('open');
+}
+function closeChart(){
+  document.getElementById('chartModal').classList.remove('open');
+  const w=document.getElementById('tvChartWrap'); if(w) w.innerHTML='';   // 백그라운드 위젯 정리
+}
+document.getElementById('chartModal')?.addEventListener('click',e=>{ if(e.target&&e.target.id==='chartModal'){ const w=document.getElementById('tvChartWrap'); if(w) w.innerHTML=''; } });
+
 let QT={ticker:'',side:'buy',price:0,fx:0,cash:0,held:0,qty:0,amount:0,pct:0};
 function qtUSD(krw){ return '$'+(krw/(QT.fx||FXNOW)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function qtNum(q){ return (+q).toLocaleString('ko-KR',{maximumFractionDigits:4}); }
@@ -1667,7 +1712,7 @@ async function renderTrades(){
   if(!ts.length){b.innerHTML='<tr><td colspan="8" class="muted t-empty" style="text-align:center;padding:30px">매매 내역이 없습니다. “+ 매매 입력”으로 추가하세요.</td></tr>';return;}
   b.innerHTML=ts.map(t=>{const[lab,cls]=TYPE_LABEL[t.type]||['?',''];
     const cash=(t.type==='deposit'||t.type==='withdrawal');
-    return `<tr><td class="mono" data-l="날짜">${t.date}</td><td class="tkr" data-l="종목">${cash?'—':t.ticker}</td>
+    return `<tr><td class="mono" data-l="날짜">${t.date}</td><td class="tkr" data-l="종목">${cash?'—':tkrCell(t.ticker)}</td>
     <td style="text-align:right" data-l="구분"><span class="type-badge ${cls}">${lab}</span></td>
     <td class="mono" data-l="수량">${cash?'—':(+t.qty).toLocaleString('ko-KR',{maximumFractionDigits:1})}</td><td class="mono" data-l="단가">${cash?'—':'$'+(+t.price).toFixed(2)}</td>
     <td class="mono" data-l="금액(원)">${won(t.amount_krw)}</td>
@@ -1710,7 +1755,7 @@ async function renderProfit(){
   } else { CUR_ALLOC=null; CUR_PORT={total:0, val:{QQQ:0,QLD:0,TQQQ:0}}; }
   if(CUR) renderAllocBars(CUR.regime);
   const hb=document.getElementById('holdBody');
-  hb.innerHTML=rows.length?rows.map(r=>`<tr><td class="tkr">${r.k}</td><td class="mono">${(+r.qty).toLocaleString('ko-KR',{maximumFractionDigits:0})}</td>
+  hb.innerHTML=rows.length?rows.map(r=>`<tr><td class="tkr">${tkrCell(r.k)}</td><td class="mono">${(+r.qty).toLocaleString('ko-KR',{maximumFractionDigits:0})}</td>
     <td class="mono">$${r.avgUSD.toFixed(2)}</td>
     <td class="mono">$${r.price.toFixed(2)}</td>
     <td class="mono">${won(r.cost)}${usdSub(r.cost)}</td>
@@ -1782,7 +1827,7 @@ async function renderProfit(){
       const sellUSD=g.qty>0?g.sellKrw/g.qty/fxW:0;
       const ret=costKrw>0?g.pnl/costKrw:null;
       const c=g.pnl>=0?'up':'down';
-      return `<tr><td class="tkr">${g.k}</td><td class="mono">${(+g.qty).toLocaleString('ko-KR',{maximumFractionDigits:0})}</td>
+      return `<tr><td class="tkr">${tkrCell(g.k)}</td><td class="mono">${(+g.qty).toLocaleString('ko-KR',{maximumFractionDigits:0})}</td>
         <td class="mono">${g.ym}</td>
         <td class="mono">$${avgUSD.toFixed(2)}</td>
         <td class="mono">$${sellUSD.toFixed(2)}</td>
