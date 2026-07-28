@@ -681,7 +681,7 @@ details.sandbox .stage-edit{background:var(--surface)}
     </div>
     <div class="row2" id="secRow1">
       <div class="field"><label>종목</label><select id="f_ticker" onchange="onTickerChange()"><option>TQQQ</option><option>SCHD</option><option>SGOV</option></select></div>
-      <div class="field"><label>수량 <span class="muted" id="qtyPctHint"></span></label><input id="f_qty" type="number" step="any" oninput="calcAmount()"><div class="qty-pcts" id="qtyPcts" style="display:none"><button type="button" onclick="qtyPct(0.1)">10%</button><button type="button" onclick="qtyPct(0.5)">50%</button><button type="button" onclick="qtyPct(1)">100%</button></div></div>
+      <div class="field"><label>수량 <span class="muted" id="qtyPctHint"></span></label><input id="f_qty" type="number" step="any" oninput="calcAmount()"><div class="qty-pcts" id="qtyPcts" style="display:none"><button type="button" onclick="qtyPct(0.1,1)">10%</button><button type="button" onclick="qtyPct(0.5,1)">50%</button><button type="button" onclick="qtyPct(1,1)">100%</button></div></div>
     </div>
     <div class="row2" id="secRow2">
       <div class="field"><label>단가 ($)</label><input id="f_price" type="number" step="any" oninput="calcAmount()"></div>
@@ -690,7 +690,7 @@ details.sandbox .stage-edit{background:var(--surface)}
     <div class="field"><label id="amtLabel">거래금액 (원, 자동계산)</label><input id="f_amount" type="text" inputmode="numeric" readonly oninput="fmtField('f_amount')"></div>
     <div class="field" id="realizedWrap" style="display:none"><label>실현손익 (원, 자동계산·수정가능)</label><input id="f_realized" type="text" inputmode="numeric" value="0" oninput="fmtField('f_realized')"></div>
     <div style="display:flex;gap:10px;margin-top:6px">
-      <button class="btn primary" style="flex:1" onclick="submitTrade()">저장</button>
+      <button class="btn primary" style="flex:1" onclick="submitTrade()" title="Enter">저장</button>
       <button class="btn ghost" onclick="closeModal('tradeModal')">취소</button>
     </div>
   </div>
@@ -705,14 +705,14 @@ details.sandbox .stage-edit{background:var(--surface)}
     <div class="field" style="margin:14px 0 2px"><label>단가 ($) <span class="muted" id="qtFxHint">현재가 · 수정 가능</span></label><input id="f_qtPrice" type="number" step="any" inputmode="decimal" oninput="qtPriceEdit()"></div>
     <div class="qt-cap" id="qtCap">수량 비율 선택</div>
     <div class="qt-pcts">
-      <button id="qtP10" onclick="qtPick(0.1)">10%</button>
-      <button id="qtP50" onclick="qtPick(0.5)">50%</button>
-      <button id="qtP100" onclick="qtPick(1)">100%</button>
+      <button id="qtP10" onclick="qtPick(0.1,1)">10%</button>
+      <button id="qtP50" onclick="qtPick(0.5,1)">50%</button>
+      <button id="qtP100" onclick="qtPick(1,1)">100%</button>
     </div>
-    <div class="field" style="margin:10px 0 2px"><label>수량 (주) <span class="muted">비율 선택 또는 직접 입력·수정</span></label><input id="f_qtQty" type="number" step="any" inputmode="decimal" oninput="qtQtyEdit()"></div>
+    <div class="field" style="margin:10px 0 2px"><label>수량 (주) <span class="muted">비율 선택 또는 직접 입력 · Enter로 확정</span></label><input id="f_qtQty" type="number" step="any" inputmode="decimal" oninput="qtQtyEdit()"></div>
     <div class="qt-preview" id="qtPreview"><span class="qt-empty">비율을 선택하거나 수량을 입력하세요.</span></div>
     <div style="display:flex;gap:10px;margin-top:16px">
-      <button class="btn primary" id="qtConfirm" style="flex:1" onclick="confirmQuickTrade()" disabled>확정</button>
+      <button class="btn primary" id="qtConfirm" style="flex:1" onclick="confirmQuickTrade()" title="Enter" disabled>확정</button>
       <button class="btn ghost" onclick="closeModal('qtModal')">취소</button>
     </div>
   </div>
@@ -1677,7 +1677,7 @@ function openQuickTrade(ticker, side){
   document.getElementById('qtModal').classList.add('open');
 }
 function qtCurPrice(){ const v=parseFloat((document.getElementById('f_qtPrice').value||'').toString().replace(/,/g,'')); return isFinite(v)&&v>0?v:0; }
-function qtPick(pct){          // 비율 버튼: 수량을 계산해 입력칸에 채움 (이후 직접 수정 가능)
+function qtPick(pct, fromClick){   // 비율 버튼: 수량을 계산해 입력칸에 채움 (이후 직접 수정 가능)
   QT.pct=pct;
   ['qtP10','qtP50','qtP100'].forEach(id=>document.getElementById(id).classList.remove('on'));
   document.getElementById(pct>=1?'qtP100':pct>=0.5?'qtP50':'qtP10').classList.add('on');
@@ -1688,6 +1688,8 @@ function qtPick(pct){          // 비율 버튼: 수량을 계산해 입력칸�
   else { qty = pct>=1 ? QT.held : Math.floor(QT.held*pct*1e4)/1e4; }
   document.getElementById('f_qtQty').value=qty;
   qtRecalc();
+  // 비율 버튼 클릭 후 포커스가 버튼에 남으면 Enter가 버튼 재클릭이 되므로 수량칸으로 넘긴다(데스크톱만).
+  if(fromClick && enterDesktop()) enterFocus('f_qtQty');
 }
 function qtQtyEdit(){          // 수량 직접 수정: 비율 선택 해제 후 재계산 (v12.0)
   QT.pct=0;
@@ -1739,7 +1741,7 @@ async function confirmQuickTrade(){
 }
 const TYPE_LABEL={buy:['매수','buy'],sell:['매도','sell'],div:['배당','div'],deposit:['입금','dep'],withdrawal:['출금','wd']};
 /* 매매입력 팝업: 수량 10/50/100% (매수=가용현금 기준, 매도=보유수량 기준) */
-function qtyPct(pct){
+function qtyPct(pct, fromClick){
   const ty=document.getElementById('f_type').value;
   if(ty!=='buy'&&ty!=='sell')return;
   const tk=document.getElementById('f_ticker').value;
@@ -1757,6 +1759,7 @@ function qtyPct(pct){
   }
   document.getElementById('f_qty').value=qty;
   calcAmount();
+  if(fromClick && enterDesktop()) enterFocus('f_qty');   // 버튼에 포커스가 남아 Enter가 삼켜지는 것 방지
 }
 async function renderTrades(){
   const ts=await getTrades();const b=document.getElementById('tradeBody');
@@ -2343,11 +2346,63 @@ document.querySelectorAll('.modal-overlay').forEach(m=>{
   m.addEventListener('touchstart',e=>{downOnOverlay=(e.target===m);},{passive:true});
   m.addEventListener('click',e=>{if(e.target===m && downOnOverlay)m.classList.remove('open');downOnOverlay=false;});
 });
+/* ===================== Enter 키로 저장/확정 (v12.0 패치 §37) =====================
+   대시보드 빠른거래(qtModal)와 매매이력 매매입력(tradeModal) 양쪽에서 입력칸·선택칸에서
+   Enter → 저장/확정. 한글 IME 조합 확정 Enter(keyCode 229·isComposing)는 제외하고,
+   필수값이 비어 있으면 저장 대신 그 칸으로 포커스를 옮긴다. 버튼은 기본동작(클릭) 유지.   */
+function enterDesktop(){   // 터치기기에선 자동 포커스 이동 생략(모바일 키보드가 튀어오르는 것 방지)
+  return !(window.matchMedia && matchMedia('(hover:none)').matches);
+}
+let ENTER_BUSY=false;
+function enterOk(e){                                  // 순수 Enter 눌림인지 (IME·조합키·키반복 제외)
+  if(e.key!=='Enter' && e.keyCode!==13) return false;
+  if(e.isComposing || e.keyCode===229 || e.repeat) return false;
+  if(e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return false;
+  const tag=((e.target&&e.target.tagName)||'').toUpperCase();
+  return tag==='INPUT' || tag==='SELECT';
+}
+function enterFocus(id,msg){
+  const el=document.getElementById(id);
+  if(el){ el.focus(); if(el.select){ try{el.select();}catch(_){} } }
+  if(msg) flash(msg);
+}
+function enterRun(fn){                                // 엔터 연타로 중복 저장되는 것 방지
+  if(ENTER_BUSY) return;
+  ENTER_BUSY=true;
+  Promise.resolve().then(fn).catch(err=>console.error(err)).finally(()=>setTimeout(()=>{ENTER_BUSY=false;},600));
+}
+/* 매매이력 → 매매 입력/수정 팝업 */
 document.getElementById('tradeModal').addEventListener('keydown',e=>{
-  if(e.key==='Enter' && !e.isComposing && e.keyCode!==229){
-    const tag=(e.target.tagName||'').toUpperCase();
-    if(tag==='INPUT'||tag==='SELECT'){ e.preventDefault(); submitTrade(); }
+  if(!enterOk(e)) return;
+  e.preventDefault();
+  const ty=document.getElementById('f_type').value;
+  const cash=(ty==='deposit'||ty==='withdrawal');
+  if(!document.getElementById('f_date').value){ enterFocus('f_date','날짜를 입력하세요'); return; }
+  if(cash){
+    if(!numv('f_amount')){ enterFocus('f_amount','금액을 입력하세요'); return; }
+  } else {
+    if(!numv('f_qty')){ enterFocus('f_qty', e.target.id==='f_qty'?'수량을 입력하세요':''); return; }
+    if(!numv('f_price')){ enterFocus('f_price','단가를 입력하세요'); return; }
+    if(!numv('f_fx')){ enterFocus('f_fx','환율을 입력하세요'); return; }
   }
+  enterRun(submitTrade);
+});
+/* 대시보드 보유표·차트 → 빠른 매수/매도 팝업 */
+document.getElementById('qtModal').addEventListener('keydown',e=>{
+  if(!enterOk(e)) return;
+  e.preventDefault();
+  if(!(qtCurPrice()>0)){ enterFocus('f_qtPrice','단가를 입력하세요'); return; }
+  const qv=parseFloat((document.getElementById('f_qtQty').value||'').toString().replace(/,/g,''));
+  if(!(isFinite(qv)&&qv>0)){                          // 수량 미입력: 단가칸에서 눌렀으면 수량칸으로 이동
+    enterFocus('f_qtQty', e.target.id==='f_qtPrice'?'':'비율을 선택하거나 수량을 입력하세요');
+    return;
+  }
+  qtRecalc();                                          // 마지막 입력값 기준으로 검증·미리보기 갱신
+  if(document.getElementById('qtConfirm').disabled){
+    flash(QT.side==='buy'?'가용 현금을 초과했습니다 — 수량을 줄이세요':'보유수량을 초과했습니다 — 수량을 줄이세요');
+    return;
+  }
+  enterRun(confirmQuickTrade);
 });
 
 /* ===================== 탭 / 기타 ===================== */
