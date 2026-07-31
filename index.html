@@ -198,6 +198,21 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
   46%  {transform:translateX(125%);opacity:0}
   100% {transform:translateX(125%);opacity:0}}
 .abar.faded::before{animation-delay:2.8s}
+/* 차트 위를 지나가는 유리 반사 — 캔버스 재드로우 없이 CSS 합성만 사용 */
+.chart-glass{position:relative;overflow:hidden;border-radius:14px}
+.chart-glass::after{content:"";position:absolute;top:0;bottom:0;left:0;width:58%;z-index:2;pointer-events:none;mix-blend-mode:screen;
+  background:
+    linear-gradient(90deg,transparent 8%,rgba(255,255,255,.16) 36%,rgba(255,255,255,.44) 50%,rgba(255,255,255,.16) 64%,transparent 92%) no-repeat top/100% 1px,
+    linear-gradient(104deg,transparent 0%,rgba(100,210,255,.05) 20%,rgba(255,255,255,.09) 36%,rgba(255,255,255,.20) 50%,rgba(255,255,255,.09) 64%,rgba(255,186,140,.05) 80%,transparent 100%) no-repeat center/100% 100%;
+  transform:translateX(-100%);
+  animation:chartGlass 8.5s linear infinite}
+@keyframes chartGlass{
+  0%   {transform:translateX(-100%);opacity:0}
+  3%   {opacity:1}
+  42%  {opacity:1}
+  45%  {transform:translateX(173%);opacity:0}
+  100% {transform:translateX(173%);opacity:0}}
+@media(prefers-reduced-motion:reduce){.chart-glass::after{animation:none;opacity:0}}
 @media(prefers-reduced-motion:reduce){.abar::before{animation:none;opacity:0}}
 .abar-seg-t{position:relative;z-index:6;font-size:10px;font-weight:700;letter-spacing:-.01em;line-height:1;color:rgba(20,22,26,.9);margin-right:5px;text-shadow:0 .5px 0 rgba(255,255,255,.3)}
 .abar-seg-p{position:relative;z-index:6;font-family:var(--font-num);font-size:11px;font-weight:700;line-height:1;color:rgba(20,22,26,.9);text-shadow:0 .5px 0 rgba(255,255,255,.3);font-variant-numeric:tabular-nums}
@@ -438,7 +453,7 @@ details.sandbox .stage-edit{background:rgba(118,118,128,.14)}
       </div>
       <div class="card">
         <div class="section-title"><span class="dot"></span>월별 자산 추이</div>
-        <div style="height:300px"><canvas id="assetChart"></canvas></div>
+        <div class="chart-glass" style="height:300px"><canvas id="assetChart"></canvas></div>
       </div>
     </div>
 
@@ -1449,23 +1464,48 @@ function renderAssetChart(data){
   const labels=data.map(d=>monthLabel(d.ym));
   const principal=data.map(d=>+d.principal);
   const evalAmt=data.map(d=>+d.eval_amount);
-  const total=data.map(d=>(+d.eval_amount)+(+d.cash));
-  const g=ctx.getContext('2d'); const grad=g.createLinearGradient(0,0,0,300);
+  const divs=data.map(d=>+(d.div||0));                      // 월별 배당(원) — 있을 때만 막대로 표시
+  const hasDiv=divs.some(v=>v>0);
+  const maxDiv=Math.max(...divs,0);
+  const g=ctx.getContext('2d');
+  const grad=g.createLinearGradient(0,0,0,300);
   grad.addColorStop(0,'rgba(41,151,255,.26)'); grad.addColorStop(1,'rgba(41,151,255,0)');
-  assetChart=new Chart(ctx,{type:'line',data:{labels,datasets:[
-    {label:'평가금액',data:evalAmt,borderColor:'#2997ff',backgroundColor:grad,borderWidth:2,pointRadius:0,tension:.35,fill:true},
-    {label:'총자산',data:total,borderColor:'#32d46e',borderWidth:2,pointRadius:0,tension:.35,fill:false},
-    {label:'원금',data:principal,borderColor:'#98989d',borderWidth:2,pointRadius:0,tension:.35,fill:false,borderDash:[5,4]}
-  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
+  const gradP=g.createLinearGradient(0,0,0,300);            // 원금도 색을 넣어 눈에 띄게 (점선 → 실선+옅은 채움)
+  gradP.addColorStop(0,'rgba(255,179,64,.14)'); gradP.addColorStop(1,'rgba(255,179,64,0)');
+  const gradD=g.createLinearGradient(0,0,0,300);            // 배당 막대
+  gradD.addColorStop(0,'rgba(50,212,110,.85)'); gradD.addColorStop(1,'rgba(50,212,110,.30)');
+  const ds=[
+    {label:'평가금액',data:evalAmt,borderColor:'#2997ff',backgroundColor:grad,borderWidth:2.2,pointRadius:0,tension:.35,fill:true,order:1,yAxisID:'y'},
+    {label:'원금',data:principal,borderColor:'#ffb340',backgroundColor:gradP,borderWidth:2.2,pointRadius:0,tension:.35,fill:true,order:2,yAxisID:'y'}
+  ];
+  if(hasDiv) ds.push({type:'bar',label:'배당',data:divs,backgroundColor:gradD,borderColor:'#32d46e',borderWidth:1,
+    borderRadius:5,borderSkipped:false,maxBarThickness:26,order:3,yAxisID:'yDiv'});
+  const yDiv = hasDiv ? {position:'right',min:0,beginAtZero:true,
+      // 배당 축은 최대값의 약 3배로 잡아 막대가 아래쪽에만 머물게 (선 그래프를 가리지 않도록)
+      suggestedMax:Math.max(maxDiv*3.2,1),
+      grid:{display:false},border:{display:false},
+      ticks:{color:'#32d46e',font:{size:9},maxTicksLimit:4,
+        callback:v=>v<=0?'':(v>=1e4?Math.round(v/1e4).toLocaleString()+'만':Math.round(v).toLocaleString())}} : undefined;
+  assetChart=new Chart(ctx,{type:'line',data:{labels,datasets:ds},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
     plugins:{legend:{labels:{color:'#8e8e93',boxWidth:12,font:{size:11}}},
       tooltip:{callbacks:{label:c=>c.dataset.label+': '+won(c.parsed.y)}}},
-    scales:{x:{ticks:{color:'#8e8e93',maxTicksLimit:8,font:{size:10}},grid:{color:'rgba(255,255,255,.03)'}},
-            y:{min:0,beginAtZero:true,ticks:{color:'#8e8e93',font:{size:10},callback:v=>(Math.abs(v)/1e8>=1?(v/1e8).toFixed(1)+'억':Math.round(v/1e4).toLocaleString()+'만')},grid:{color:'rgba(255,255,255,.04)'}}}}});
+    scales:Object.assign({x:{ticks:{color:'#8e8e93',maxTicksLimit:8,font:{size:10}},grid:{color:'rgba(255,255,255,.03)'}},
+            y:{min:0,beginAtZero:true,ticks:{color:'#8e8e93',font:{size:10},callback:v=>(Math.abs(v)/1e8>=1?(v/1e8).toFixed(1)+'억':Math.round(v/1e4).toLocaleString()+'만')},grid:{color:'rgba(255,255,255,.04)'}}},
+            hasDiv?{yDiv}:{})}});
 }
 async function renderMonthly(){
   const list=await getMonthly();
-  const asc=[...list].sort((a,b)=>a.ym.localeCompare(b.ym));
-  const desc=[...list].sort((a,b)=>b.ym.localeCompare(a.ym));
+  // 매매이력의 배당을 월별로 합산해 차트에 넘긴다 (달러 입력이든 원화 입력이든 amount_krw 기준)
+  const divByYm={};
+  for(const t of (await getTrades())){
+    if(t.type!=='div') continue;
+    const ym=(t.date||'').slice(0,7); if(!ym) continue;
+    divByYm[ym]=(divByYm[ym]||0)+(+t.amount_krw||0);
+  }
+  const withDiv=list.map(r=>Object.assign({}, r, {div: divByYm[r.ym]||0}));
+  const asc=[...withDiv].sort((a,b)=>a.ym.localeCompare(b.ym));
+  const desc=[...withDiv].sort((a,b)=>b.ym.localeCompare(a.ym));
   const tb=document.getElementById('monthlyBody');
   tb.innerHTML = desc.length ? desc.map(r=>{
     const total=(+r.eval_amount)+(+r.cash);
