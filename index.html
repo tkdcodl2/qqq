@@ -178,18 +178,26 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
   transition:width 1.1s var(--ease);
   background-image:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.02) 46%,rgba(0,0,0,.18))}
 /* 넓고 부드러운 스페큘러 글라이드 (번개 대신 유리 위 빛의 이동) */
-.abar::before{content:"";position:absolute;top:0;bottom:0;left:0;width:55%;z-index:4;pointer-events:none;border-radius:inherit;mix-blend-mode:screen;
-  background:linear-gradient(100deg,transparent 0%,rgba(255,255,255,.10) 34%,rgba(255,255,255,.34) 50%,rgba(255,255,255,.10) 66%,transparent 100%);
-  filter:blur(2px);
-  transform:translateX(-140%);
-  animation:barSweep 7s var(--ease) infinite}
+/* 유리를 통과하는 프리즘 광선: 넓고 느린 본체 + 상·하 모서리 커스틱 + 옅은 색분산 */
+.abar::before{content:"";position:absolute;top:0;bottom:0;left:0;width:80%;z-index:4;pointer-events:none;border-radius:inherit;mix-blend-mode:screen;
+  background:
+    linear-gradient(90deg,transparent 6%,rgba(255,255,255,.30) 34%,rgba(255,255,255,.95) 50%,rgba(255,255,255,.30) 66%,transparent 94%) no-repeat top/100% 1.5px,
+    linear-gradient(90deg,transparent 14%,rgba(255,255,255,.14) 42%,rgba(255,255,255,.46) 50%,rgba(255,255,255,.14) 58%,transparent 86%) no-repeat bottom/100% 1px,
+    linear-gradient(104deg,transparent 0%,rgba(100,210,255,.06) 21%,rgba(255,255,255,.15) 36%,rgba(255,255,255,.44) 50%,rgba(255,255,255,.15) 64%,rgba(255,186,140,.06) 79%,transparent 100%) no-repeat center/100% 100%;
+  transform:translateX(-100%);
+  animation:barSweep 5.6s linear infinite}
 .abar::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:5;
-  background:linear-gradient(180deg,rgba(255,255,255,.13),transparent 40%,transparent 84%,rgba(255,255,255,.05))}
+  background:linear-gradient(180deg,rgba(255,255,255,.14),transparent 40%,transparent 84%,rgba(255,255,255,.05))}
+/* 이동 거리를 '막대에 들어오는 순간 → 빠져나가는 순간'으로 딱 맞추고 등속(linear)으로 지나가게 한다.
+   이전에는 ease-in-out이라 막대 밖에서 느리고 막대 위에서만 빨라져 존재감이 없었다.
+   → 막대 위 체류 2.6초(이전 체감 약 0.9초), 이후 3초 휴지 */
 @keyframes barSweep{
-  0%   {transform:translateX(-140%)}
-  34%  {transform:translateX(240%)}
-  100% {transform:translateX(240%)}}
-.abar.faded::before{animation-delay:3.4s}
+  0%   {transform:translateX(-100%);opacity:0}
+  3%   {opacity:1}
+  44%  {opacity:1}
+  46%  {transform:translateX(125%);opacity:0}
+  100% {transform:translateX(125%);opacity:0}}
+.abar.faded::before{animation-delay:2.8s}
 @media(prefers-reduced-motion:reduce){.abar::before{animation:none;opacity:0}}
 .abar-seg-t{position:relative;z-index:6;font-size:10px;font-weight:700;letter-spacing:-.01em;line-height:1;color:rgba(20,22,26,.9);margin-right:5px;text-shadow:0 .5px 0 rgba(255,255,255,.3)}
 .abar-seg-p{position:relative;z-index:6;font-family:var(--font-num);font-size:11px;font-weight:700;line-height:1;color:rgba(20,22,26,.9);text-shadow:0 .5px 0 rgba(255,255,255,.3);font-variant-numeric:tabular-nums}
@@ -1315,7 +1323,8 @@ function buildRegimeChart(ctx,s,lite){
   }
   const lastCol = REG_LINE[(s[n-1]||{}).regime] || '#2997ff';
   const hexRgba=(hex,a)=>{const m=hex.replace('#','');const r=parseInt(m.slice(0,2),16),g=parseInt(m.slice(2,4),16),b=parseInt(m.slice(4,6),16);return `rgba(${r},${g},${b},${a})`;};
-  const REDUCE = lite || mob || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);   // lite: 펄스 루프 없음
+  const REDUCE = lite || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);   // lite: 펄스 루프 없음
+  const PULSE_LIGHT = mob;     // 모바일: 펄스는 보이되 글로우 패스를 1회로 줄여 부담 완화
   const PULSE_PERIOD = 2400;   // 전체 주기(ms) — 짧을수록 자주 지나감
   const PULSE_TRAVEL = 1500;   // 펄스가 라인을 가로지르는 시간(ms)
   // 끝점 발광 마커(정적) + 라인을 따라 몇 초마다 쭉 지나가는 전기 펄스
@@ -1341,20 +1350,24 @@ function buildRegimeChart(ctx,s,lite){
             c.beginPath(); c.rect(area.left,area.top,area.right-area.left,area.bottom-area.top); c.clip();
             // 펄스 구간 점들만 밝게 덧그림
             c.lineJoin='round'; c.lineCap='round';
-            for(let pass=0; pass<2; pass++){
+            const passes = PULSE_LIGHT
+              ? [{blur:8, w:2.4, a:.95}]                          // 모바일: 1패스(그림자 블러 축소)
+              : [{blur:16, w:4, a:.9},{blur:0, w:1.6, a:1}];      // 데스크톱: 글로우 + 선명한 심선
+            for(const ps of passes){
               c.beginPath();
               let started=false;
               for(let i=0;i<pts.length;i++){
                 const x=pts[i].x;
                 const d=headX-x;                            // 머리보다 왼쪽이면 +
-                if(d>=0 && d<=tailLen){
+                if(d<0) break;                              // x 정렬이므로 머리 오른쪽은 볼 필요 없음
+                if(d<=tailLen){
                   if(!started){c.moveTo(x,pts[i].y);started=true;} else c.lineTo(x,pts[i].y);
                 }
               }
-              if(pass===0){ c.shadowColor='#ffffff'; c.shadowBlur=16; c.strokeStyle=hexRgba('#ffffff',.9); c.lineWidth=4; }
-              else { c.shadowBlur=0; c.strokeStyle='#ffffff'; c.lineWidth=1.6; }
+              c.shadowColor='#ffffff'; c.shadowBlur=ps.blur; c.strokeStyle=hexRgba('#ffffff',ps.a); c.lineWidth=ps.w;
               c.stroke();
             }
+            c.shadowBlur=0;
             // 머리 글로우 점
             let hy=null; for(let i=0;i<pts.length;i++){ if(pts[i].x<=headX) hy=pts[i].y; else break; }
             if(hy!=null){
