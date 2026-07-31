@@ -1268,10 +1268,11 @@ function setChartRange(d,btn){
   if(btn)btn.classList.add('on');
   renderPriceChart();
 }
+function killPulse(ch){ if(!ch) return; if(ch.$pulseRAF) cancelAnimationFrame(ch.$pulseRAF); if(ch.$pulseTO) clearTimeout(ch.$pulseTO); ch.$pulseReq=false; }
 function renderPriceChart(){
   const N=Math.min(CHART_RANGE||SERIES.length,SERIES.length); const s=SERIES.slice(-N);
   const ctx=document.getElementById('priceChart');
-  if(priceChart){ if(priceChart.$pulseRAF) cancelAnimationFrame(priceChart.$pulseRAF); priceChart.destroy(); }
+  if(priceChart){ killPulse(priceChart); priceChart.destroy(); }
   priceChart=buildRegimeChart(ctx,s);
   ctx.ondblclick=()=>{ if(priceChart&&priceChart.resetZoom) priceChart.resetZoom(); };
 }
@@ -1315,7 +1316,7 @@ function buildRegimeChart(ctx,s,lite){
   const lastCol = REG_LINE[(s[n-1]||{}).regime] || '#2997ff';
   const hexRgba=(hex,a)=>{const m=hex.replace('#','');const r=parseInt(m.slice(0,2),16),g=parseInt(m.slice(2,4),16),b=parseInt(m.slice(4,6),16);return `rgba(${r},${g},${b},${a})`;};
   const REDUCE = lite || mob || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);   // lite: 펄스 루프 없음
-  const PULSE_PERIOD = 4200;   // 전체 주기(ms)
+  const PULSE_PERIOD = 2400;   // 전체 주기(ms) — 짧을수록 자주 지나감
   const PULSE_TRAVEL = 1500;   // 펄스가 라인을 가로지르는 시간(ms)
   // 끝점 발광 마커(정적) + 라인을 따라 몇 초마다 쭉 지나가는 전기 펄스
   const glowPlugin = {
@@ -1363,9 +1364,16 @@ function buildRegimeChart(ctx,s,lite){
             }
             c.restore();
           }
-          // 펄스 진행 중이든 휴지든 다음 프레임 예약 (대시보드 보일 때만)
-          if(!chart.$pulseReq){ chart.$pulseReq=true;
-            chart.$pulseRAF=requestAnimationFrame(()=>{ chart.$pulseReq=false; if(chart.ctx) chart.draw(); }); }
+          // 다음 깨어날 시점 예약: 펄스 통과 중에는 매 프레임, 휴지 중에는 다음 펄스 시작까지 잠금
+          if(!chart.$pulseReq){
+            chart.$pulseReq=true;
+            const again=()=>{ chart.$pulseReq=false; if(chart.ctx) chart.draw(); };
+            if(phase<PULSE_TRAVEL){
+              chart.$pulseRAF=requestAnimationFrame(again);
+            } else {
+              chart.$pulseTO=setTimeout(()=>{ chart.$pulseRAF=requestAnimationFrame(again); }, Math.max(16, PULSE_PERIOD-phase));
+            }
+          }
         }
       }
       // ── 2) 끝점 정적 발광 마커 ──
@@ -2420,7 +2428,7 @@ function renderBtResults(){
     `<div class="card card-hov ${c==='up'?'green':c==='down'?'red':'blue'}"><div class="label">${l}</div><div class="big-num ${c}">${v}</div><div class="muted" style="font-size:10.5px;margin-top:3px">${sub}</div></div>`).join('');
   // 기간 단계 차트 (메인과 동일 렌더링)
   const pc=document.getElementById('btPriceChart');
-  if(btPriceC){ if(btPriceC.$pulseRAF) cancelAnimationFrame(btPriceC.$pulseRAF); btPriceC.destroy(); }
+  if(btPriceC){ killPulse(btPriceC); btPriceC.destroy(); }
   btPriceC=buildRegimeChart(pc, R.s, true);   // lite: 펄스·베지어·점별콜백 없이 렌더
   pc.ondblclick=()=>{ if(btPriceC&&btPriceC.resetZoom) btPriceC.resetZoom(); };
   // 평가금액 추이 (로그/선형 토글은 LOG_SCALE)
