@@ -179,39 +179,50 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
   background-image:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.02) 46%,rgba(0,0,0,.18))}
 /* 넓고 부드러운 스페큘러 글라이드 (번개 대신 유리 위 빛의 이동) */
 /* 유리를 통과하는 프리즘 광선: 넓고 느린 본체 + 상·하 모서리 커스틱 + 옅은 색분산 */
-.abar::before{content:"";position:absolute;top:0;bottom:0;left:0;width:80%;z-index:4;pointer-events:none;border-radius:inherit;mix-blend-mode:screen;
-  background:
-    linear-gradient(90deg,transparent 6%,rgba(255,255,255,.30) 34%,rgba(255,255,255,.95) 50%,rgba(255,255,255,.30) 66%,transparent 94%) no-repeat top/100% 1.5px,
-    linear-gradient(90deg,transparent 14%,rgba(255,255,255,.14) 42%,rgba(255,255,255,.46) 50%,rgba(255,255,255,.14) 58%,transparent 86%) no-repeat bottom/100% 1px,
-    linear-gradient(104deg,transparent 0%,rgba(100,210,255,.06) 21%,rgba(255,255,255,.15) 36%,rgba(255,255,255,.44) 50%,rgba(255,255,255,.15) 64%,rgba(255,186,140,.06) 79%,transparent 100%) no-repeat center/100% 100%;
-  transform:translateX(-100%);
+.abar::before{content:"";position:absolute;inset:0;z-index:4;pointer-events:none;border-radius:inherit;mix-blend-mode:screen;
+  background-repeat:no-repeat;
+  background-image:
+    linear-gradient(90deg,transparent 0%,rgba(255,255,255,.04) 12%,rgba(255,255,255,.14) 26%,rgba(255,255,255,.42) 40%,rgba(255,255,255,.88) 50%,rgba(255,255,255,.42) 60%,rgba(255,255,255,.14) 74%,rgba(255,255,255,.04) 88%,transparent 100%),
+    linear-gradient(90deg,transparent 0%,rgba(255,255,255,.02) 16%,rgba(255,255,255,.08) 30%,rgba(255,255,255,.22) 42%,rgba(255,255,255,.44) 50%,rgba(255,255,255,.22) 58%,rgba(255,255,255,.08) 70%,rgba(255,255,255,.02) 84%,transparent 100%),
+    linear-gradient(101deg,transparent 0%,rgba(100,210,255,.02) 10%,rgba(120,205,255,.05) 20%,rgba(255,255,255,.10) 30%,rgba(255,255,255,.19) 40%,rgba(255,255,255,.34) 48%,rgba(255,255,255,.40) 50%,rgba(255,255,255,.34) 52%,rgba(255,255,255,.19) 60%,rgba(255,255,255,.10) 70%,rgba(255,200,160,.05) 80%,rgba(255,186,140,.02) 90%,transparent 100%);
+  background-size:80% 1.5px,80% 1px,80% 100%;
+  background-position:-400% 0%,-400% 100%,-400% 0%;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.3) 4%,rgba(0,0,0,.8) 10%,#000 15%,#000 85%,rgba(0,0,0,.8) 90%,rgba(0,0,0,.3) 96%,transparent 100%);
+  mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.3) 4%,rgba(0,0,0,.8) 10%,#000 15%,#000 85%,rgba(0,0,0,.8) 90%,rgba(0,0,0,.3) 96%,transparent 100%);
+  will-change:background-position;
   animation:barSweep 5.6s linear infinite}
 .abar::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:5;
   background:linear-gradient(180deg,rgba(255,255,255,.14),transparent 40%,transparent 84%,rgba(255,255,255,.05))}
-/* 이동 거리를 '막대에 들어오는 순간 → 빠져나가는 순간'으로 딱 맞추고 등속(linear)으로 지나가게 한다.
-   이전에는 ease-in-out이라 막대 밖에서 느리고 막대 위에서만 빨라져 존재감이 없었다.
-   → 막대 위 체류 2.6초(이전 체감 약 0.9초), 이후 3초 휴지 */
+/* 막대도 같은 원리: 요소는 고정, 빛(배경)만 흘려보내고 좌우는 mask 로 먹인다.
+   등속(linear)으로 막대 위 체류 약 2.6초, 이후 약 3초 휴지 */
 @keyframes barSweep{
-  0%   {transform:translateX(-100%);opacity:0}
-  3%   {opacity:1}
-  44%  {opacity:1}
-  46%  {transform:translateX(125%);opacity:0}
-  100% {transform:translateX(125%);opacity:0}}
+  0%,4%    {background-position:-400% 0%,-400% 100%,-400% 0%}
+  50%,100% {background-position:500% 0%,500% 100%,500% 0%}}
 .abar.faded::before{animation-delay:2.8s}
 /* 차트 위를 지나가는 유리 반사 — 캔버스 재드로우 없이 CSS 합성만 사용 */
 .chart-glass{position:relative;overflow:hidden;border-radius:14px}
-.chart-glass::after{content:"";position:absolute;top:0;bottom:0;left:0;width:58%;z-index:2;pointer-events:none;mix-blend-mode:screen;
-  background:
-    linear-gradient(90deg,transparent 8%,rgba(255,255,255,.16) 36%,rgba(255,255,255,.44) 50%,rgba(255,255,255,.16) 64%,transparent 92%) no-repeat top/100% 1px,
-    linear-gradient(104deg,transparent 0%,rgba(100,210,255,.05) 20%,rgba(255,255,255,.09) 36%,rgba(255,255,255,.20) 50%,rgba(255,255,255,.09) 64%,rgba(255,186,140,.05) 80%,transparent 100%) no-repeat center/100% 100%;
-  transform:translateX(-100%);
-  animation:chartGlass 8.5s linear infinite}
+/* 이전 방식: 58% 폭의 박스를 translateX 로 밀고 overflow:hidden 으로 잘라냄
+   → 박스의 좌/우 변이 그대로 '칼자국' 경계선으로 보였다.
+   지금 방식: 요소는 컨테이너에 고정(inset:0)하고 배경(빛)만 background-position 으로 흘려보낸다.
+   컨테이너에 고정된 mask 가 좌우 가장자리를 항상 부드럽게 먹여주므로
+   빛이 들어오고 나가는 순간에도 잘린 단면이 생기지 않는다. */
+.chart-glass::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;mix-blend-mode:screen;
+  background-repeat:no-repeat;
+  background-image:
+    /* 상단 커스틱 하이라이트 */
+    linear-gradient(90deg,transparent 0%,rgba(255,255,255,.02) 14%,rgba(255,255,255,.07) 28%,rgba(255,255,255,.18) 40%,rgba(255,255,255,.34) 50%,rgba(255,255,255,.18) 60%,rgba(255,255,255,.07) 72%,rgba(255,255,255,.02) 86%,transparent 100%),
+    /* 본체: 스톱을 촘촘히 깔아 종형(bell) 감쇠 — 계단/띠 없이 사라진다 */
+    linear-gradient(101deg,transparent 0%,rgba(100,210,255,.012) 9%,rgba(120,205,255,.03) 18%,rgba(255,255,255,.055) 27%,rgba(255,255,255,.09) 36%,rgba(255,255,255,.145) 44%,rgba(255,255,255,.175) 50%,rgba(255,255,255,.145) 56%,rgba(255,255,255,.09) 64%,rgba(255,255,255,.055) 73%,rgba(255,200,160,.03) 82%,rgba(255,186,140,.012) 91%,transparent 100%);
+  background-size:64% 1px,64% 100%;
+  background-position:-178% 0%,-178% 0%;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.28) 5%,rgba(0,0,0,.75) 11%,#000 17%,#000 83%,rgba(0,0,0,.75) 89%,rgba(0,0,0,.28) 95%,transparent 100%);
+  mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.28) 5%,rgba(0,0,0,.75) 11%,#000 17%,#000 83%,rgba(0,0,0,.75) 89%,rgba(0,0,0,.28) 95%,transparent 100%);
+  will-change:background-position;
+  animation:chartGlass 9s linear infinite}
+/* 등속으로 한 번 지나가고(약 3.9초) 나머지는 화면 밖에서 대기 → opacity 를 껐다 켤 필요가 없다 */
 @keyframes chartGlass{
-  0%   {transform:translateX(-100%);opacity:0}
-  3%   {opacity:1}
-  42%  {opacity:1}
-  45%  {transform:translateX(173%);opacity:0}
-  100% {transform:translateX(173%);opacity:0}}
+  0%,3%    {background-position:-178% 0%,-178% 0%}
+  46%,100% {background-position:278% 0%,278% 0%}}
 @media(prefers-reduced-motion:reduce){.chart-glass::after{animation:none;opacity:0}}
 @media(prefers-reduced-motion:reduce){.abar::before{animation:none;opacity:0}}
 .abar-seg-t{position:relative;z-index:6;font-size:10px;font-weight:700;letter-spacing:-.01em;line-height:1;color:rgba(20,22,26,.9);margin-right:5px;text-shadow:0 .5px 0 rgba(255,255,255,.3)}
