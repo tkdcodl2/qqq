@@ -59,11 +59,13 @@
      명도를 중간대로 모아 어두운 면 위에서 색이 튀지 않게 한다. */
   --accent:#85a5c5;  --accent-d:#6f92b5;  --accent2:#35869d;
   --green:#8eb985;   --gold:#EBCB8B;      --violet:#bd96b5;   --orange:#e5a182;
-  /* 하락은 두 값으로 나눠 쓴다(지정 사양):
-       --red   #BF616A  넓은 조각·막대·채운 면
-       --red-t #dfa8b2  숫자·글자   ← 두 번째 참조 이미지에서 역추정한 값 */
-  --red:#BF616A;     --red-t:#dfa8b2;     --pink:#dfa8b2;
-  --up:var(--green); --down:var(--red-t);
+  /* 하락은 두 값으로 나눠 쓴다:
+       --red   #BF616A  넓은 조각·막대·채운 면 (첫 번째 사양)
+       --red-t #EF9A9A  숫자·글자          (지정값) */
+  --red:#BF616A;     --red-t:#EF9A9A;     --pink:#EF9A9A;
+  /* 상승/하락 숫자 — 지정값. 자산색(--green #8eb985)과는 별개의 역할이므로 별칭이 아니라 명시값으로 둔다.
+     카드면 대비 상승 7.22:1 · 하락 6.75:1 */
+  --up:#81C784;      --down:#EF9A9A;
   --logo-end:#67915f;
   /* 차트 10슬롯 (지정 사양) */
   --slot1:#8eb985; --slot2:#85a5c5; --slot3:#EBCB8B; --slot4:#bd96b5; --slot5:#BF616A;
@@ -227,7 +229,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .ind::before{content:"";position:absolute;top:0;left:12px;right:12px;height:.5px;background:linear-gradient(90deg,transparent,var(--hair),transparent)}
 .ind:hover{border-color:var(--border2);transform:translateY(-2px);background:var(--ov06);box-shadow:var(--shadow-hi), var(--shadow-8)}
 .ind .v{font-family:var(--font-num);font-weight:640;font-size:15px;letter-spacing:-.02em;margin-top:3px;font-variant-numeric:tabular-nums}
-.up{color:var(--up)} .down{color:var(--down)}   /* 하락 숫자는 옅은 로즈, 넓은 조각은 --red */ .neutral{color:var(--gold)}
+.up{color:var(--up)} .down{color:var(--down)}   /* 숫자는 지정값 #81C784/#EF9A9A, 넓은 조각은 --red #BF616A */ .neutral{color:var(--gold)}
 
 /* allocation bars (현재 vs 목표) */
 .abar-row{margin:0 0 14px}
@@ -1101,7 +1103,7 @@ const REG_COLOR={2:'green',1:'green',3:'gold',4:'red',5:'red',6:'blue'};
 const REG_LINE={2:'#d3d8db',1:'#8eb985',3:'#EBCB8B',4:'#BF616A',5:'#bd96b5',6:'#85a5c5'};   // 선·면(비텍스트)
 // 광기(#BF616A)는 넓은 조각용 톤이라 글자로 쓰면 카드면에서 3.6:1까지 떨어진다.
 // 지정 사양의 '하락(숫자)' 톤으로 갈아끼운 맵을 따로 둔다.
-const REG_TEXT={2:'#d3d8db',1:'#8eb985',3:'#EBCB8B',4:'#dfa8b2',5:'#bd96b5',6:'#85a5c5'};
+const REG_TEXT={2:'#d3d8db',1:'#8eb985',3:'#EBCB8B',4:'#EF9A9A',5:'#bd96b5',6:'#85a5c5'};   // 4=광기: 조각용 #BF616A는 글자로 쓰면 3.6:1 → '밝은 붉은 글자' 역할은 지정값 #EF9A9A 하나로 통일
 
 function sma(arr,n,i){ if(i<n-1)return NaN; let s=0; for(let k=i-n+1;k<=i;k++)s+=arr[k]; return s/n; }
 function computeSeries(md,P,EX){
