@@ -403,6 +403,10 @@ input[type="date"]::-webkit-calendar-picker-indicator{margin-left:2px;opacity:.5
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 .row2>*,.row3>*{min-width:0}
 .field{min-width:0}
+/* 수익현황은 카드가 8개인데 auto-fit이 폭에 따라 7+1로 흘려 마지막 카드만 아래 줄에 남았다.
+   ID 선택자를 쓰면 모바일의 .summary-grid{repeat(2,1fr)}까지 이겨버리므로(0,1,0 < 1,0,0)
+   min-width로 감싸 PC에서만 4+4로 고정한다. */
+@media(min-width:861px){#cumSummary{grid-template-columns:repeat(4,1fr)}}
 @media(min-width:861px){
   .bt-fields{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
   .bt-fields .row2{display:contents}
