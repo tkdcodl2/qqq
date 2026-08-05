@@ -1268,6 +1268,19 @@ function cashIndexAt(dstr){
 }
 function attachCash(md){ for(const r of md){ if(r&&r.date&&(r.cash==null||isNaN(+r.cash))) r.cash=+cashIndexAt(r.date).toFixed(4); } return md; }
 const cashPx=row=>(row&&row.cash!=null&&isFinite(+row.cash))?+row.cash:CASH_FALLBACK;
+/* 특정 날짜 행에서 종목 1개의 종가(USD)를 구하는 단일 창구.
+   market_data에 컬럼이 있는 종목(qqq/qld/tqqq)과 보간이 필요한 종목(SCHD·SGOV)을 여기서만 분기한다.
+   §45: 같은 삼항 분기를 6곳에 복사해 두었다가 그중 두 곳에 SGOV 분기가 빠져
+        금일손익이 NaN(undefined 산술)이 되고, 매매입력 기본가는 TypeError가 났다.
+   값이 없으면 null을 돌려주므로 호출부에서 반드시 확인해야 한다. */
+const pxAt=(row,k)=>{
+  if(!row||!k) return null;
+  const t=String(k).toUpperCase();
+  if(t==='SCHD') return schdPx(row);
+  if(t==='SGOV'||t==='CASH') return cashPx(row);
+  const v=+row[t.toLowerCase()];
+  return isFinite(v)?v:null;
+};
 /* 방어레그 내 SCHD 비율 (defSchd %, 기본 40 → SGOV 60). 100 = 기존 SCHD 단독 */
 const defSchdFrac=P=>{ const v=(P&&P.defSchd!=null&&isFinite(+P.defSchd))?+P.defSchd:40; return Math.min(1,Math.max(0,v/100)); };
 
@@ -1365,7 +1378,7 @@ function renderAllocBars(){
   const curPairs = TK.map(k=>[k, hasCur?((stockVal&&stockVal[k]||0)/stockTot):0]);
   const tgtPairs = TK.map(k=>[k,t[k]]);
   const el=document.getElementById('allocBars');
-  const priceUSD=k=>k==='SCHD'?schdPx(CUR):(k==='SGOV'?cashPx(CUR):(+CUR[k.toLowerCase()]));
+  const priceUSD=k=>pxAt(CUR,k);
   // 목표 달성에 필요한 매수/매도 주수 (현재 총액 기준 리밸런싱)
   function sharesFor(i){
     if(!CUR_PORT||!CUR||CUR_PORT.total<=0) return null;
@@ -1834,7 +1847,7 @@ function calcRealizedAuto(){
 }
 function onTickerChange(){
   const tkU=document.getElementById('f_ticker').value;
-  const px = tkU==='SCHD' ? schdPx(CUR) : (tkU==='SGOV' ? cashPx(CUR) : (CUR && CUR[tkU.toLowerCase()]!=null ? +CUR[tkU.toLowerCase()] : null));
+  const px = pxAt(CUR,tkU);
   if(px!=null) document.getElementById('f_price').value=px.toFixed(2);
   calcAmount();
 }
@@ -1864,7 +1877,7 @@ function openTrade(id){
     document.getElementById('f_date').value=todayStr();   // v12.0: CUR.date(미국 마지막 거래일)가 아니라 오늘 날짜
     document.getElementById('f_type').value='buy';document.getElementById('f_ticker').value=REG_BUY[CUR.regime];
     const _tk=document.getElementById('f_ticker').value;
-    document.getElementById('f_qty').value='';document.getElementById('f_price').value=(_tk==='SCHD'?schdPx(CUR):CUR[_tk.toLowerCase()]).toFixed(2);
+    document.getElementById('f_qty').value='';const _px=pxAt(CUR,_tk); document.getElementById('f_price').value=_px!=null?_px.toFixed(2):'';   // SGOV 분기가 없어 undefined.toFixed로 터졌던 자리
     document.getElementById('f_div_amt').value='';
     DIV_CCY='USD'; applyDivCcyUI();
     applyFxForDate(true);                               // 날짜(오늘) 환율 자동 적용
@@ -1971,7 +1984,7 @@ function qtUSD(krw){ return '$'+(krw/(QT.fx||FXNOW)).toLocaleString('en-US',{min
 function qtNum(q){ return (+q).toLocaleString('ko-KR',{maximumFractionDigits:4}); }
 function openQuickTrade(ticker, side){
   if(!CUR){ flash('시세 로딩 중입니다. 잠시 후 다시 시도하세요'); return; }
-  const price = ticker==='SCHD' ? schdPx(CUR) : (ticker==='SGOV' ? cashPx(CUR) : (CUR[ticker.toLowerCase()]!=null ? +CUR[ticker.toLowerCase()] : null));
+  const price = pxAt(CUR,ticker);
   if(price==null||!(price>0)){ flash(ticker+' 현재가를 가져올 수 없습니다'); return; }
   QT={ticker, side, price, fx:FXNOW, cash:CUR_CASH||0, held:HOLD_QTY[ticker]||0, qty:0, amount:0, pct:0};
   const ov=document.getElementById('qtModal');
@@ -2104,7 +2117,7 @@ async function renderTrades(){
 /* ===================== 수익분석 ===================== */
 async function renderProfit(){
   const ts=await getTrades(); TRADES_CACHE=ts;
-  const last={QQQ:CUR.qqq,QLD:CUR.qld,TQQQ:CUR.tqqq,SCHD:schdPx(CUR),SGOV:cashPx(CUR)};
+  const last={}; ['QQQ','QLD','TQQQ','SCHD','SGOV'].forEach(k=>last[k]=pxAt(CUR,k));
   const fxNow=FXNOW;
   const H={}; ['QQQ','QLD','TQQQ','SCHD','SGOV'].forEach(k=>H[k]={qty:0,cost:0}); // cost in KRW of remaining (avg)
   let totalRealized=0, totalDividend=0, cash=0, netDeposits=0;
@@ -2121,6 +2134,7 @@ async function renderProfit(){
   let invested=0,curVal=0;
   const rows=['QQQ','QLD','TQQQ','SCHD','SGOV'].map(k=>{
     const h=H[k];if(h.qty<=1e-9)return null;
+    if(last[k]==null){ console.warn('시세 없음 — 평가 제외:',k,CUR&&CUR.date); return null; }   // null.toFixed / NaN 전파 차단
     const avgUSD=h.cost/h.qty/fxNow;
     const val=h.qty*last[k]*fxNow;
     const pl=val-h.cost;invested+=h.cost;curVal+=val;
@@ -2152,7 +2166,11 @@ async function renderProfit(){
   // 금일손익 = 보유분의 전일 대비 평가 변동
   let todayPL=0;
   if(SERIES.length>=2){ const prev=SERIES[SERIES.length-2];
-    rows.forEach(r=>{ const pv=r.k==='SCHD'?schdPx(prev):(+prev[r.k.toLowerCase()]); todayPL += (+H[r.k].qty) * ((+last[r.k]) - pv) * fxNow; }); }
+    rows.forEach(r=>{
+      const pv=pxAt(prev,r.k), cp=pxAt(CUR,r.k);
+      if(pv==null||cp==null) return;      // 전일/당일 시세가 없는 종목은 제외 — NaN이 합계 전체를 오염시킨다
+      todayPL += (+H[r.k].qty) * (cp-pv) * fxNow;
+    }); }
   const cards=[
     ['총자산 (현금포함)', totalAssets, '','amt'],
     ['원금 (매수원금)', invested, '','amt'],
