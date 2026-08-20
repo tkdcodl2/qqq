@@ -1224,7 +1224,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='13.0';
+const APP_VERSION='13.0.1';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -2123,13 +2123,13 @@ async function renderProfit(){
   const last={}; ['QQQ','QLD','TQQQ','SCHD','GLD','SGOV'].forEach(k=>last[k]=pxAt(CUR,k));
   const fxNow=FXNOW;
   const H={}; ['QQQ','QLD','TQQQ','SCHD','GLD','SGOV'].forEach(k=>H[k]={qty:0,cost:0}); // cost in KRW of remaining (avg)
-  let totalRealized=0, totalDividend=0, cash=0, netDeposits=0;
+  let totalRealized=0, totalDividend=0, cash=0, netDeposits=0, sellCount=0;
   const DIV={QQQ:0,QLD:0,TQQQ:0,SCHD:0,GLD:0,SGOV:0};
   // process chronologically
   [...ts].sort(tradeOrder).forEach(t=>{
     const k=t.ticker; if(!H[k]&&t.type!=='deposit'&&t.type!=='withdrawal')H[k]={qty:0,cost:0};
     if(t.type==='buy'){H[k].qty+=+t.qty;H[k].cost+=+t.amount_krw;cash-=+t.amount_krw;}
-    else if(t.type==='sell'){const avg=H[k].qty>0?H[k].cost/H[k].qty:0;H[k].cost-=avg*(+t.qty);H[k].qty-=+t.qty;totalRealized+=(+t.realized||0);cash+=+t.amount_krw;}
+    else if(t.type==='sell'){const avg=H[k].qty>0?H[k].cost/H[k].qty:0;H[k].cost-=avg*(+t.qty);H[k].qty-=+t.qty;totalRealized+=(+t.realized||0);cash+=+t.amount_krw;sellCount++;}
     else if(t.type==='div'){totalDividend+=+t.amount_krw;cash+=+t.amount_krw;if(DIV[k]!=null)DIV[k]+=+t.amount_krw;}
     else if(t.type==='deposit'){cash+=+t.amount_krw;netDeposits+=+t.amount_krw;}
     else if(t.type==='withdrawal'){cash-=+t.amount_krw;netDeposits-=+t.amount_krw;}
@@ -2196,16 +2196,20 @@ async function renderProfit(){
     ['총수익 (총자산−입금누계)', accPL, accPL>=0?'up':'down','amtpct',accRet],
   ];
   const cumEl=document.getElementById('cumSummary');
-  // 정합성: 총수익은 항상 실현+배당+평가손익과 같아야 함. 다르면 장부(매수 없는 매도·입금 누락 등) 불일치.
+  /* 정합성: 총수익은 항상 실현+배당+평가손익과 같아야 함. 다르면 장부(매수 없는 매도·입금 누락 등) 불일치.
+     v13.0.1: 허용오차를 매도 건수에 비례시킴. 실현손익은 저장 시 Math.round()로 원 단위 반올림되는데(매도 1건당 ±0.5원)
+     여기서는 평균단가를 float 그대로 재계산하므로, 매도가 쌓이면 순수 반올림 잔차만으로 1원을 넘어 오경보가 났다.
+     실제 기록 누락(매수 없는 매도·입금 누락)은 최소 수만 원 단위라 100원 하한으로도 100% 잡힌다. */
   const expectPL=totalRealized+totalDividend+evalPL;
   const ledgerGap=accPL-expectPL;
+  const gapTol=Math.max(100, sellCount);                // 반올림 잔차 허용치(원)
   let warnEl=document.getElementById('cumWarn');
   if(!warnEl&&cumEl){ warnEl=document.createElement('p'); warnEl.id='cumWarn'; warnEl.className='note'; warnEl.style.cssText='margin-top:10px'; cumEl.parentNode.insertBefore(warnEl,cumEl.nextSibling); }
   if(warnEl){
-    if(Math.abs(ledgerGap)>1){
+    if(Math.abs(ledgerGap)>gapTol){
       warnEl.innerHTML='⚠️ <b>기록 불일치 '+won(ledgerGap)+'</b> — 총수익(총자산−입금누계)이 실현손익+배당+평가손익('+won(expectPL)+')과 다릅니다. 매수 기록 없이 매도를 입력했거나, 입금(이체) 기록이 누락된 경우입니다. 매매이력에서 해당 거래의 짝(매수 또는 입금)을 추가하면 맞춰집니다.';
       warnEl.style.color='var(--gold)';
-    } else { warnEl.textContent='✓ 기록 정합: 총수익 = 실현손익 + 배당 + 평가손익'; warnEl.style.color='var(--text2)'; }
+    } else { warnEl.textContent='✓ 기록 정합: 총수익 = 실현손익 + 배당 + 평가손익'+(Math.abs(ledgerGap)>=0.5?' (표시 차이 '+won(ledgerGap)+'은 실현손익 원 단위 반올림)':''); warnEl.style.color='var(--text2)'; }
   }
   if(cumEl) cumEl.innerHTML=cumCards.map(([l,v,c,kind,ret])=>{
     const cardCls=c==='up'?'green':c==='down'?'red':'blue';
