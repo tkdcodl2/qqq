@@ -663,7 +663,7 @@ details.sandbox .stage-edit{background:var(--ov01)}
           <label class="wcell"><input type="checkbox" id="bt_bm_QQQ" checked style="width:16px;height:16px"><span style="color:#bd96b5">QQQ</span></label>
           <label class="wcell"><input type="checkbox" id="bt_bm_QLD" checked style="width:16px;height:16px"><span style="color:#e5a182">QLD</span></label>
           <label class="wcell"><input type="checkbox" id="bt_bm_TQQQ" checked style="width:16px;height:16px"><span style="color:#BF616A">TQQQ</span></label>
-          <label class="wcell"><input type="checkbox" id="bt_bm_SCHD" style="width:16px;height:16px"><span style="color:#85a5c5">SCHD</span></label>
+          <label class="wcell"><input type="checkbox" id="bt_bm_GLD" style="width:16px;height:16px"><span style="color:#EBCB8B">GLD</span></label>
         </div>
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -721,8 +721,8 @@ details.sandbox .stage-edit{background:var(--ov01)}
         ① <b>일봉 백필(1회, 필수) — 모바일 추천 방법</b>: Supabase 대시보드 → <b>SQL Editor</b> → 패키지의 <span class="mono">backfill.sql</span> 전체를 붙여넣고 <b>Run</b>. DB가 직접 야후에서 전 기간(TQQQ 상장 2010-02~) 일봉을 받아 market_data에 저장합니다. 사전에 Database → Extensions에서 <b>http</b> 확장을 Enable 하세요. 끝나면 행 수·기간이 표시됩니다.<br>
         예비 수단: ⓐ GitHub 앱 → Actions → backfill-market-data → Run workflow (사전에 저장소 Secrets에 SUPABASE_URL/SERVICE_KEY 등록) ⓑ 엣지 펑션 v4 배포 후 <span class="mono">…/fetch-market-data?range=max</span> 호출 ⓒ PC에서 node로 backfill-market-data.mjs 실행.<br><br>
         ② <b>전략 설정 동기화(기기 간 동기화 필수)</b>: Supabase SQL Editor에서 <span class="mono">alter table settings add column if not exists strategy jsonb;</span> 를 <b>한 번</b> 실행하세요. 이 컬럼이 있어야 비중·파라미터(변동성 상한 targetVol·측정일수 volDays 포함) 전체가 Supabase에 저장되어 <b>휴대폰·PC가 같은 값으로 동기화</b>됩니다. 실행 후 원하는 기기에서 설정을 한 번 저장하면 다른 기기에도 반영됩니다. 컬럼이 없으면 이 브라우저(localStorage)에만 저장되어 기기마다 값이 달라집니다(화면 하단에 경고 표시).<br><br>
-        ③ <b>SGOV 매매 허용(v12.0, 1회)</b>: 방어자산에 현금(SGOV)이 추가되어 trades 테이블의 티커 체크 제약을 갱신해야 합니다. Supabase SQL Editor에서 실행: <span class="mono">alter table trades drop constraint if exists trades_ticker_check; alter table trades add constraint trades_ticker_check check (ticker in ('QQQ','QLD','TQQQ','SCHD','SGOV','CASH'));</span> — 실행 전까지 SGOV 매수/매도 저장이 "trades_ticker_check" 오류로 거부됩니다(기존 데이터는 영향 없음).<br><br>
-        ④ <b>데이터 한계</b>: QLD 2006-06 / TQQQ 2010-02 / SCHD 2011-10 상장 이전은 실데이터가 없어 <b>합성 근사</b>로 채웁니다(QQQ 일복리 레버리지·비용 모델 + SCHD 분기앵커 보간). 1999~까지 백테스트하려면 backfill.sql(v2 — QQQ만 있는 날도 행 생성)을 다시 실행하세요. 합성 구간이 포함되면 결과에 경고가 표시됩니다. 앱은 market_data를 최신부터 최대 12,000행까지 로드합니다.
+        ③ <b>SGOV 매매 허용(v12.0, 1회)</b>: 방어자산에 현금(SGOV)이 추가되어 trades 테이블의 티커 체크 제약을 갱신해야 합니다. Supabase SQL Editor에서 실행: <span class="mono">alter table trades drop constraint if exists trades_ticker_check; alter table trades add constraint trades_ticker_check check (ticker in ('QQQ','QLD','TQQQ','SCHD','GLD','SGOV','CASH'));</span> — 실행 전까지 SGOV/GLD 매수/매도 저장이 "trades_ticker_check" 오류로 거부됩니다(기존 데이터는 영향 없음).<br><br>
+        ④ <b>데이터 한계</b>: QLD 2006-06 / TQQQ 2010-02 / SCHD 2011-10 상장 이전은 실데이터가 없어 <b>합성 근사</b>로 채웁니다(QQQ 일복리 레버리지·비용 모델 + SCHD 분기앵커 보간). GLD도 2004-11 상장 이전은 금 선물·월앵커 합성입니다(db/v13_migration.sql로 사전 적재). 1999~까지 백테스트하려면 backfill.sql(v2 — QQQ만 있는 날도 행 생성)을 다시 실행하세요. 합성 구간이 포함되면 결과에 경고가 표시됩니다. 앱은 market_data를 최신부터 최대 12,000행까지 로드합니다.<br><br>⑤ <b>GLD 방어자산(v13.0, 1회)</b>: 방어레그가 SCHD→GLD로 바뀌어 <span class="mono">db/v13_migration.sql</span>을 Supabase SQL Editor에서 1회 실행해야 합니다(market_data.gold 열 추가 + 1999~ 금 시세 적재 + trades 제약에 GLD). 이후 Edge Function fetch-market-data(v5)를 재배포하면 GLD 시세도 매일 갱신됩니다. 미적재 시 백테스트에 경고가 뜨고 GLD 평가가 고정가로 처리됩니다.
       </div>
     </div>
   </section>
@@ -759,9 +759,9 @@ details.sandbox .stage-edit{background:var(--ov01)}
 <div class="modal-overlay" id="strategyModal">
   <div class="modal">
     <span class="close" onclick="closeModal('strategyModal')">&times;</span>
-    <h2>TQQQ 래더 전략 — 균형형 v12.0 (디폴트)</h2>
+    <h2>TQQQ 래더 전략 — 균형형 v13.0 (디폴트)</h2>
     <p class="note" style="margin-bottom:16px"><b>철학: 평소엔 기계적으로 TQQQ 100% 적립.</b> 고점·저점은 못 맞추니 — <b>과열 신호가 켜진 주마다 30%p씩</b> 방어자산으로 미리 덜어내고, 추세가 확실히 깨졌을 때만 전량 피신, 회복이 확인되면 <b>매주 10%p씩(추력 복귀는 35%p) 분할 재진입</b>합니다. 여기에 <b>변동성 상한</b>을 덧씌워 시장이 출렁이면 TQQQ를 자동으로 줄입니다. 판단·동작은 일주일에 한 번뿐입니다.</p>
-    <p class="note" style="margin-bottom:16px"><b>방어자산 = SCHD 40% + 현금(SGOV) 60%</b> (§35, v12.0). TQQQ에서 덜어낸 비중(1−w)을 이 비율로 나눠 담습니다. SCHD는 QQQ와 양의 상관이라 폭락 때 −19~21% 같이 빠지는데, 현금을 섞으면 <b>방어 자본이 보존돼 재진입 실탄</b>이 커집니다(닷컴·GFC 포함 전체 구간, 복귀·변동성·수확 개선과 합쳐 세후 IRR +1.5%p·최종 +34% — §35: 40~60% 어디든 비슷한 고원, 특정 국면 과최적화 아님). 별도 <b>단계가 추가된 것이 아니라</b>, 기존 모든 단계에서 "SCHD로"라고 하던 곳이 "SCHD 40+SGOV 60으로"로 바뀐 것입니다. 여기에 <b>연말 비과세 한도 수확</b>과 <b>적립 스티어링</b>(둘 다 신호·위험 불변)을 더해 세후 성과를 끌어올립니다.</p>
+    <p class="note" style="margin-bottom:16px"><b>방어자산 = GLD(금) 70% + 현금(SGOV) 30%</b> (§48, v13.0). TQQQ에서 덜어낸 비중(1−w)을 이 비율로 나눠 담습니다. 방어레그가 크게 보유되는 건 과열·광기·급락·이탈 구간인데, SCHD는 그때 지수와 같이 빠지는 반면(08년 −33%) <b>금은 정확히 그 구간에 비상관~역상관</b>이면서 장기수익(연 ~10%)도 있어, 방어 자본이 보존되고 <b>재진입 실탄</b>이 커집니다. §48 검증: 1999~2026 일봉·세후 기준 <b>6개 창 전부</b> v12(SCHD40) 대비 우위 — 2011-15 금 약세장을 포함한 07-20 창에서도 +1.7%p. 금 비중 60~80%는 성과가 평탄한 <b>넓은 고원</b>이라 70은 튜닝값이 아닌 고원 중앙입니다(100%는 방어 전량 단일자산 집중이라 배제). 대가도 명시합니다: 창별 MDD가 +1.6~2.0%p 깊어집니다(방어자산 자체의 변동을 감수하는 트레이드). 별도 단계가 추가된 것이 아니라, 모든 단계에서 방어레그 구성만 GLD70/SGOV30으로 바뀐 것입니다. <b>연말 비과세 한도 수확</b>과 <b>적립 스티어링</b>(둘 다 신호·위험 불변)은 v12 그대로 유지됩니다.</p>
 
     <div class="section-title" style="font-size:16px"><span class="dot"></span>5가지 상태</div>
     <div id="modalRegimes"></div>
@@ -770,28 +770,28 @@ details.sandbox .stage-edit{background:var(--ov01)}
     <div class="tbl-scroll"><table style="font-size:12.5px;min-width:520px">
       <thead><tr><th>신호</th><th>조건 (QQQ 기준)</th><th>동작</th></tr></thead>
       <tbody>
-        <tr><td class="tkr" style="color:#e5a182">과열</td><td>주간 RSI(14) ≥ <b>70</b> <b>또는</b> 성숙 천장(200일선 위 <b>360거래일(≈1.4년)</b> & 전고점 <b>98%</b> 이내)</td><td class="mono">매주 TQQQ <b>−30%p</b> → 방어자산(SCHD·SGOV)</td></tr>
+        <tr><td class="tkr" style="color:#e5a182">과열</td><td>주간 RSI(14) ≥ <b>70</b> <b>또는</b> 성숙 천장(200일선 위 <b>360거래일(≈1.4년)</b> & 전고점 <b>98%</b> 이내)</td><td class="mono">매주 TQQQ <b>−30%p</b> → 방어자산(GLD·SGOV)</td></tr>
         <tr><td class="tkr" style="color:#BF616A">광기</td><td>200일선 이격 <b>+28%</b> & 고점권(−3% 이내) <span class="muted">(RSI 동반조건 없음 — 이격 단독)</span></td><td class="mono">즉시 전량 방어자산. 해제: 고점 −3% 회복 / 추세 회복(200일선 +1% & 50일선 동반) → 매주 +10%p 점진 복귀</td></tr>
         <tr><td class="tkr" style="color:#a56f60">급락</td><td>50일 고점 대비 <b>−16% ~ −30%</b> (코로나·관세형 급락)</td><td class="mono">낙폭에 비례해 TQQQ 상한을 매주 하향 (−30%에서 0%)</td></tr>
-        <tr><td class="tkr" style="color:#85a5c5">이탈</td><td>200일선 아래 <b>16거래일(≈3주) 연속</b></td><td class="mono">전량 방어자산(SCHD·SGOV)</td></tr>
+        <tr><td class="tkr" style="color:#85a5c5">이탈</td><td>200일선 아래 <b>16거래일(≈3주) 연속</b></td><td class="mono">전량 방어자산(GLD·SGOV)</td></tr>
         <tr><td class="tkr" style="color:#85a5c5">복귀</td><td>위 신호가 모두 꺼짐. 이탈 후엔 ①200일선 <b>+1%</b> 재돌파(50일선 동반) <b>또는</b> ②저점 <b>+22%</b> 추력 & 50일선 위 (V반등 캡처, 차트 ▲ 표시)</td><td class="mono">추력 복귀는 매주 <b>+35%p</b> 가속, 그 외 매주 +10%p (100%까지)</td></tr>
         <tr><td class="tkr" style="color:#bd96b5">변동성 상한</td><td>최근 <b>10거래일</b> 실현변동성 기준 (하이브리드 오버레이)</td><td class="mono">TQQQ 상한 = min(목표 <b>70%</b> ÷ (3×최근변동성), 100%)를 래더 위에 덧씌움 — 출렁이면 자동 축소→방어자산</td></tr>
       </tbody>
     </table></div>
-    <p class="note" style="margin:8px 0 0"><b>실행.</b> 매주 적립일에 대시보드의 목표 TQQQ 비중을 확인하고, 신규 적립금은 목표 비중대로 매수합니다. 목표가 지난주와 달라졌으면 보유분도 한 번 맞춥니다(방어자산은 SCHD·SGOV 4:6으로). 대시보드의 "+N주 매수/매도"가 그 차이를 주수로 환산한 값입니다. 매매는 많아야 주 1회, 대부분 전체 자산의 10%만 움직입니다.</p>
+    <p class="note" style="margin:8px 0 0"><b>실행.</b> 매주 적립일에 대시보드의 목표 TQQQ 비중을 확인하고, 신규 적립금은 목표 비중대로 매수합니다. 목표가 지난주와 달라졌으면 보유분도 한 번 맞춥니다(방어자산은 GLD·SGOV 7:3으로). 대시보드의 "+N주 매수/매도"가 그 차이를 주수로 환산한 값입니다. 매매는 많아야 주 1회, 대부분 전체 자산의 10%만 움직입니다.</p>
 
-    <div class="section-title" style="font-size:16px;margin-top:18px"><span class="dot"></span>시뮬레이션 결과 — v12.0 균형형 (실데이터+합성 일봉, $100,000 + 매월 $1,000, 수수료 0.1%, <b style="color:#85a5c5">세금 반영=세후</b> · 연 250만 비과세 + 22%)</div>
+    <div class="section-title" style="font-size:16px;margin-top:18px"><span class="dot"></span>시뮬레이션 결과 — v13.0 균형형 (실데이터+합성 일봉, $100,000 + 매월 $1,000, 수수료 0.1%, <b style="color:#85a5c5">세금 반영=세후</b> · 연 250만 비과세 + 22%)</div>
     <div class="tbl-scroll"><table style="min-width:560px">
-      <thead><tr><th>구간</th><th>균형형 v12.0 (세후 IRR/MDD)</th><th>세후 최종</th><th>구 균형형 v11 (세후)</th><th>TQQQ 단독적립 (세후)</th></tr></thead>
+      <thead><tr><th>구간</th><th>균형형 v13.0 (세후 IRR/MDD)</th><th>세후 최종</th><th>구 균형형 v12 (세후)</th><th>TQQQ 단독적립 (세후)</th></tr></thead>
       <tbody>
-        <tr><td>1999–2010 (닷컴+GFC)</td><td class="mono up">+24.7% / −60%</td><td class="mono">$2.0M</td><td class="mono">+22.8% / −60%</td><td class="mono down">−7% / −99.5%</td></tr>
-        <tr><td>2007–2020</td><td class="mono up">+38.6% / −47%</td><td class="mono">$13.1M</td><td class="mono">+36.6% / −54%</td><td class="mono">+36% / −93%</td></tr>
-        <tr><td>2011–2026</td><td class="mono up">+36.1% / −47%</td><td class="mono">$16.3M</td><td class="mono">+34.9% / −47%</td><td class="mono">+41% / −82%</td></tr>
-        <tr><td>2018–2026</td><td class="mono up">+42.6% / −37%</td><td class="mono">$2.7M</td><td class="mono">+38.7% / −42%</td><td class="mono">+37% / −81%</td></tr>
-        <tr><td><b>전체 1999–2026</b></td><td class="mono up"><b>+31.1% / −60%</b></td><td class="mono"><b>$232M</b></td><td class="mono">+29.6% / −60% · $173M</td><td class="mono">+22% / −99.5% · $38M</td></tr>
+        <tr><td>1999–2010 (닷컴+GFC)</td><td class="mono up">+26.9% / −60%</td><td class="mono">$2.4M</td><td class="mono">+24.7% / −60%</td><td class="mono down">−7% / −99.5%</td></tr>
+        <tr><td>2007–2020</td><td class="mono up">+40.3% / −49%</td><td class="mono">$15.4M</td><td class="mono">+38.6% / −47%</td><td class="mono">+36% / −93%</td></tr>
+        <tr><td>2011–2026</td><td class="mono up">+37.9% / −49%</td><td class="mono">$19.6M</td><td class="mono">+36.1% / −47%</td><td class="mono">+41% / −82%</td></tr>
+        <tr><td>2018–2026</td><td class="mono up">+47.4% / −38%</td><td class="mono">$3.5M</td><td class="mono">+42.6% / −37%</td><td class="mono">+37% / −81%</td></tr>
+        <tr><td><b>전체 1999–2026</b></td><td class="mono up"><b>+32.8% / −60%</b></td><td class="mono"><b>$327M</b></td><td class="mono">+31.1% / −60% · $232M</td><td class="mono">+22% / −99.5% · $38M</td></tr>
       </tbody>
     </table></div>
-    <p class="note" style="margin-top:10px">⚠️ v12.0 파라미터(트림 −30%p · 복귀 +35%p · 변동성 상한 70%/10일 · 방어 SCHD40/SGOV60 · 연말수확 + 적립스티어링)는 <b>§35 연구</b>에서 채택: 24개 조합 격자 중 19개가 두 기간(전체·2011~) 모두 구버전 이상인 <b>넓은 고원</b>이었고, <b>7개 서브기간 전부 승리</b>했으며, 메커니즘(방어레그 베타 축소 → 폭락 시 실탄 보존)이 경제적으로 자명해 채택했습니다. 그래도 전 구간 인샘플 탐색이라 <b>표본 의존성 위험은 남아 있습니다</b>. 개선은 주로 <b>수익(복리)</b>이며 <b>전체구간 MDD −60%는 그대로</b> — 실전에서 견디기 매우 어려운 수준입니다. 세금 드래그의 근원은 폭락 직전 고점 매도(방어 기능)의 실현이익이라 제거 불가(§35 진단): <b>세금 이연 계좌(연금·ISA)에서는 세전 순위가 적용</b>되어 격차가 더 커집니다. 2011년 이전 레버리지·SCHD, 2020년 이전 현금 데이터는 <b>합성 근사</b>입니다. TQQQ 단독적립은 무매도라 세금이 거의 없지만 MDD −99.5%(전체) 후 회복 불가였습니다. 인앱 백테스트(샌드박스)로 각 구간·설정을 직접 재확인하세요.</p>
+    <p class="note" style="margin-top:10px">⚠️ v13.0의 방어자산 교체(SCHD40/SGOV60 → GLD70/SGOV30)는 <b>§48 연구</b>에서 채택: 금/장기국채/SCHD/현금 조합 30여 개를 동일 엔진·세후 조건으로 비교해 금 계열만 <b>6개 창(전체·2011~·99-10·07-20·18-26·21-26) 전부 승리</b>했고, 금 비중 60~80이 넓은 고원이었습니다. 장기국채(TLT)는 전체구간 수치가 더 크지만 1999→2020 금리 하락이라는 일회성 순풍 의존이라 최근 창(18-26·21-26) 전패 + MDD 악화로 기각했습니다. 최근 창의 큰 격차(+4.8%p)에는 2024-26 금 랠리 수혜가 섞여 있어 <b>구조 효과의 보수적 추정은 +1.7~2.2%p</b>입니다. 전 구간 인샘플 비교라 <b>표본 의존성 위험은 남아 있고</b>, 전체구간 MDD −60%는 그대로이며 <b>창별 MDD는 +1.6~2.0%p 더 깊어졌습니다</b>. 나머지(트림 −30%p · 복귀 +35%p · 변동성 70%/10일 · 연말수확 · 적립스티어링)는 v12(§35)와 동일합니다. GLD 2004-11·QLD 2006-06·TQQQ 2010-02·SCHD 2011-10 이전과 2020년 이전 현금은 <b>합성 근사</b>입니다. 세금 이연 계좌(연금·ISA)에서는 세전 순위가 적용됩니다. 인앱 백테스트(샌드박스)로 각 구간·설정을 직접 재확인하세요.</p>
 
     <div class="disclaim">⚠️ 본 자료는 과거 데이터 기반 시뮬레이션이며 투자 조언이 아닙니다. 과거 성과가 미래를 보장하지 않으며, 레버리지 ETF는 변동성 끌림(decay)과 -90% 이상의 실제 손실 위험이 있고, 본 전략의 MDD -58%는 실전에서 견디기 매우 어려운 수준입니다. 모든 투자 책임은 본인에게 있습니다.</div>
   </div>
@@ -811,7 +811,7 @@ details.sandbox .stage-edit{background:var(--ov01)}
         <option value="deposit">입금</option><option value="withdrawal">출금</option></select></div>
     </div>
     <div class="row2" id="secRow1">
-      <div class="field"><label>종목</label><select id="f_ticker" onchange="onTickerChange()"><option>TQQQ</option><option>SCHD</option><option>SGOV</option></select></div>
+      <div class="field"><label>종목</label><select id="f_ticker" onchange="onTickerChange()"><option>TQQQ</option><option>GLD</option><option>SCHD</option><option>SGOV</option></select></div>
       <div class="field"><label>수량 <span class="muted" id="qtyPctHint"></span></label><input id="f_qty" type="number" step="any" oninput="calcAmount()"><div class="qty-pcts" id="qtyPcts" style="display:none"><button type="button" onclick="qtyPct(0.1)">10%</button><button type="button" onclick="qtyPct(0.5)">50%</button><button type="button" onclick="qtyPct(1)">100%</button></div></div>
     </div>
     <div class="row2" id="secRow2">
@@ -944,7 +944,7 @@ function tradeSaveErr(prefix,error){                    // v12.0: SGOV 등 신�
   const m=(error&&error.message)||'';
   if(m.indexOf('trades_ticker_check')>=0){
     flash(prefix+' 실패: DB가 이 티커를 아직 허용하지 않습니다 — 화면 하단 안내의 SQL을 한 번 실행하세요');
-    showSyncWarn('⚠ <b>SGOV 매매 저장에는 Supabase 마이그레이션(1회)이 필요합니다</b> — trades 테이블의 티커 체크 제약이 v12.0 이전 목록이라 막힌 것입니다. Supabase → SQL Editor에서 아래를 실행하세요:<br><span style="font-family:ui-monospace,monospace;background:rgba(0,0,0,.3);padding:2px 6px;border-radius:5px;display:inline-block;margin-top:5px">alter table trades drop constraint if exists trades_ticker_check;<br>alter table trades add constraint trades_ticker_check check (ticker in (\'QQQ\',\'QLD\',\'TQQQ\',\'SCHD\',\'SGOV\',\'CASH\'));</span><br><span style="opacity:.85;font-weight:500">기존 데이터는 그대로 유지되며, 실행 후 다시 저장하면 됩니다.</span>');
+    showSyncWarn('⚠ <b>SGOV 매매 저장에는 Supabase 마이그레이션(1회)이 필요합니다</b> — trades 테이블의 티커 체크 제약이 v13.0 이전 목록이라 막힌 것입니다. Supabase → SQL Editor에서 아래를 실행하세요:<br><span style="font-family:ui-monospace,monospace;background:rgba(0,0,0,.3);padding:2px 6px;border-radius:5px;display:inline-block;margin-top:5px">alter table trades drop constraint if exists trades_ticker_check;<br>alter table trades add constraint trades_ticker_check check (ticker in (\'QQQ\',\'QLD\',\'TQQQ\',\'SCHD\',\'GLD\',\'SGOV\',\'CASH\'));</span><br><span style="opacity:.85;font-weight:500">기존 데이터는 그대로 유지되며, 실행 후 다시 저장하면 됩니다.</span>');
   } else flash(prefix+' 실패: '+m);
 }
 async function saveTrade(t){
@@ -993,7 +993,7 @@ function autoMonthlyRows(ts){
      마지막 행을 고르므로 자동으로 그렇게 된다. */
   const priceAsOf=ym=>{ const cut=ym+'-31'; let row=null; for(const r of SERIES){ if(r.date<=cut)row=r; else break; } return row||SERIES[0]; };
   return yms.map(ym=>{
-    const cut=ym+'-31'; const H={QQQ:0,QLD:0,TQQQ:0,SCHD:0,SGOV:0}; let dep=0,cash=0;
+    const cut=ym+'-31'; const H={QQQ:0,QLD:0,TQQQ:0,SCHD:0,GLD:0,SGOV:0}; let dep=0,cash=0;
     ts.filter(t=>t.date<=cut).forEach(t=>{const k=t.ticker;
       if(t.type==='buy'){if(H[k]!=null)H[k]+=+t.qty;cash-=+t.amount_krw;}
       else if(t.type==='sell'){if(H[k]!=null)H[k]-=+t.qty;cash+=+t.amount_krw;}
@@ -1001,7 +1001,7 @@ function autoMonthlyRows(ts){
       else if(t.type==='deposit'){dep+=+t.amount_krw;cash+=+t.amount_krw;}
       else if(t.type==='withdrawal'){dep-=+t.amount_krw;cash-=+t.amount_krw;}});
     const pr=priceAsOf(ym), fx=pr.fx?+pr.fx:FXNOW;
-    const stock=(H.QQQ*pr.qqq+H.QLD*pr.qld+H.TQQQ*pr.tqqq+H.SCHD*schdPx(pr)+H.SGOV*cashPx(pr))*fx;
+    const stock=(H.QQQ*pr.qqq+H.QLD*pr.qld+H.TQQQ*pr.tqqq+H.SCHD*schdPx(pr)+H.GLD*goldPx(pr)+H.SGOV*cashPx(pr))*fx;
     return {ym, principal:Math.round(dep), eval_amount:Math.round(stock), cash:Math.round(cash), manual:false};
   });
 }
@@ -1012,13 +1012,13 @@ async function syncAutoMonthly(){
   for(const r of auto){ if(!manualSet.has(r.ym)) await saveMonthly(r); }  // 수기 편집한 달은 보존
 }
 
-/* ===================== 전략 엔진 v12.0: 심플 래더 (TQQQ ↔ 방어자산) =====================
+/* ===================== 전략 엔진 v13.0: 심플 래더 (TQQQ ↔ 방어자산) =====================
    평소엔 TQQQ 100% 적립. 과열·성숙 천장에서 매주 일부만 방어자산으로 덜어내고,
    추세가 확실히 깨지면 전량 방어, 회복이 확인되면 매주 일부씩 되돌립니다.
-   방어자산(1−w) = SCHD defSchd% + 현금(SGOV) 나머지 — §35: 폭락 시 방어 자본 보존→재진입 실탄. */
+   방어자산(1−w) = GLD(금) defGold% + 현금(SGOV) 나머지 — §48: 위기 구간 비상관 자산이 방어 자본을 지키고 불림. */
 const REG_NAME={2:'적립',1:'복귀',3:'과열',4:'광기',5:'급락',6:'이탈'};
-const REG_BUY ={2:'TQQQ',1:'TQQQ',3:'SGOV',4:'SGOV',5:'SGOV',6:'SGOV'};                    // 매수 팝업 기본 선택(방어 시 최대 슬리브=SGOV)
-const REG_BUY_DISP={2:'TQQQ',1:'TQQQ',3:'SCHD·SGOV',4:'SCHD·SGOV',5:'SCHD·SGOV',6:'SCHD·SGOV'};  // 표시용
+const REG_BUY ={2:'TQQQ',1:'TQQQ',3:'GLD',4:'GLD',5:'GLD',6:'GLD'};                    // 매수 팝업 기본 선택(방어 시 최대 슬리브=GLD 70, v13.0)
+const REG_BUY_DISP={2:'TQQQ',1:'TQQQ',3:'GLD·SGOV',4:'GLD·SGOV',5:'GLD·SGOV',6:'GLD·SGOV'};  // 표시용
 /* ===================== 합성 근사 (v6.4): TQQQ/QLD/SCHD 상장 이전 구간 채움 ===================== */
 /* QLD(2006-06)·TQQQ(2010-02)·SCHD(2011-10) 상장 이전을 QQQ 일별 수익률에서 역방향 합성.
    레버리지 일복리(일별이라 변동성 잠식 자동 반영) − 보수 0.95%/년 − 금융비용 (L−1)(FFR+0.4%)/년.
@@ -1070,19 +1070,19 @@ function synthesizeMissing(md){
 
 /* v7.0: 심플 래더 — 파라미터 7개가 전부입니다 */
 const DEFAULT_STRAT={
-  params:{rsiHi:70, matDays:360, matATH:98, maniaExt:28, confirmDays:16, stepOut:30, stepIn:10, dipStart:16, dipFull:30, exitThrust:22, thrustIn:35, dipReWeeks:12, dipReDD:26, dipReThrust:15, targetVol:70, volDays:10, defSchd:40, rebBand:0},  // 균형형 v12.0 (§35: 복귀35·변동성 70%/10일·방어 SCHD40/SGOV60)
+  params:{rsiHi:70, matDays:360, matATH:98, maniaExt:28, confirmDays:16, stepOut:30, stepIn:10, dipStart:16, dipFull:30, exitThrust:22, thrustIn:35, dipReWeeks:12, dipReDD:26, dipReThrust:15, targetVol:70, volDays:10, defGold:70, rebBand:0},  // 균형형 v13.0 (§48: 방어 GLD70/SGOV30 — 나머지 파라미터는 §35 그대로)
   ex:{}   // 단계 끄기: {3:1 과열, 4:1 광기, 5:1 급락, 6:1 이탈} — 전략 모달 체크박스로 토글
 };
-// 전체기간(1999~2026) 전역탐색 프리셋 (효율 = IRR/|MDD| 기준). 모두 과거 적합값·기본값 아님.
+// 전체기간(1999~2026) 전역탐색 프리셋 (효율 = IRR/|MDD| 기준). 모두 과거 적합값·기본값 아님. ※ 인용 수치는 v11 SCHD-방어 기준 참고치 — v13(GLD 방어)에서는 재산출 전(§49).
 //  효율형(저낙폭): 전기간 IRR 36.9% / MDD −47.6% / 효율 0.775 — 위험 대비 수익 최고
 //  균형형        : 전기간 IRR 39.0% / MDD −54.5% / 효율 0.715 — IRR 조금 더, 낙폭 조금 더
-const OPT_EFF ={params:{rsiHi:70,matDays:360,matATH:98,maniaExt:28,confirmDays:16,stepOut:30,stepIn:6,dipStart:14,dipFull:45,exitThrust:22,thrustIn:30,dipReWeeks:12,dipReDD:26,dipReThrust:15,targetVol:75,volDays:5,defSchd:100,rebBand:0}, ex:{}};
-const OPT_FULL={params:{rsiHi:70,matDays:360,matATH:98,maniaExt:28,confirmDays:16,stepOut:30,stepIn:10,dipStart:16,dipFull:30,exitThrust:22,thrustIn:30,dipReWeeks:12,dipReDD:26,dipReThrust:15,targetVol:65,volDays:5,defSchd:100,rebBand:0}, ex:{}};
+const OPT_EFF ={params:{rsiHi:70,matDays:360,matATH:98,maniaExt:28,confirmDays:16,stepOut:30,stepIn:6,dipStart:14,dipFull:45,exitThrust:22,thrustIn:30,dipReWeeks:12,dipReDD:26,dipReThrust:15,targetVol:75,volDays:5,defGold:100,rebBand:0}, ex:{}};
+const OPT_FULL={params:{rsiHi:70,matDays:360,matATH:98,maniaExt:28,confirmDays:16,stepOut:30,stepIn:10,dipStart:16,dipFull:30,exitThrust:22,thrustIn:30,dipReWeeks:12,dipReDD:26,dipReThrust:15,targetVol:65,volDays:5,defGold:100,rebBand:0}, ex:{}};
 const PARAM_DEF=[
   ['rsiHi','과열 트림 ① 주간 RSI','이상','주간 RSI(14)가 이 값 이상인 주는 트림 (기본 70)'],
   ['matDays','과열 트림 ② 성숙 천장 기간','거래일','200일선 위 연속 X일 이상이고… (기본 260 ≈ 1년)'],
   ['matATH','과열 트림 ② 성숙 천장 고점권','%','…전고점의 X% 이상인 주는 트림 (기본 98)'],
-  ['stepOut','트림 속도','%p/주','트림 신호가 켜진 주마다 TQQQ→방어자산(SCHD·SGOV)으로 옮기는 비중 (기본 30)'],
+  ['stepOut','트림 속도','%p/주','트림 신호가 켜진 주마다 TQQQ→방어자산(GLD·SGOV)으로 옮기는 비중 (기본 30)'],
   ['maniaExt','광기 이격','%','200일선 이격이 +X% 이상이고 고점권(−3% 이내)이면 즉시 전량 방어자산(천장 방어). 해제: 고점 −3% 회복 또는 추세 회복(200일선 +1% & 50일선 동반) → 매주 분할 복귀 (기본 28)'],
   ['confirmDays','추세 이탈 확인','거래일','200일선 아래 연속 X거래일이면 전량 방어자산 (기본 16 ≈ 3주)'],
   ['stepIn','복귀 속도','%p/주','신호가 없는 주마다 TQQQ 100%로 되돌리는 비중. 추세 회복(200일선 +1% 재돌파) 후 분할 재진입에도 사용 (기본 10)'],
@@ -1093,20 +1093,20 @@ const PARAM_DEF=[
   ['dipReWeeks','얕은급락 판정 주수','주','이탈이 이 주수보다 짧으면 "얕고 빠른 급락(코로나·2025형)"으로 보고 빠른 복귀를 적용. 이보다 길어지면 약세장(닷컴·2022형)으로 보고 신중한 기존 복귀 (기본 6, 0=끔=항상 기존 방식)'],
   ['dipReDD','얕은급락 판정 낙폭','%','이탈 직전 고점 대비 저점 낙폭이 이 값 이내면 "얕은 급락"으로 판정(위 주수 조건과 함께). 더 깊으면 약세장으로 보고 신중 복귀 (기본 22)'],
   ['dipReThrust','얕은급락 추력','%','얕은 급락으로 판정되면 이탈 직전 실제 저점(50일 저점) 대비 +X% 반등 시 즉시 복귀 — 기준점이 진짜 바닥이라 더 빨리 잡음. V반등을 놓치지 않게 일반 추력(exitThrust)보다 낮게 (기본 10)'],
-  ['targetVol','변동성 상한 (하이브리드)','%','목표 연변동성. TQQQ 상한 = min(목표변동성 ÷ (3×최근 변동성), 100%)을 래더 비중 위에 덧씌움 — 시장이 출렁이면 TQQQ를 자동으로 줄여(→SCHD) 낙폭을 막음. 낮을수록 방어적·수익↓, 높을수록 래더에 근접. 0=끔(순수 래더 — 전체구간 MDD −82%로 위험). (기본 70, §35)'],
+  ['targetVol','변동성 상한 (하이브리드)','%','목표 연변동성. TQQQ 상한 = min(목표변동성 ÷ (3×최근 변동성), 100%)을 래더 비중 위에 덧씌움 — 시장이 출렁이면 TQQQ를 자동으로 줄여(→방어자산) 낙폭을 막음. 낮을수록 방어적·수익↓, 높을수록 래더에 근접. 0=끔(순수 래더 — 전체구간 MDD −82%로 위험). (기본 70, §35)'],
   ['volDays','변동성 측정 일수 (하이브리드)','거래일','위 변동성 상한을 계산할 때 쓰는 최근 변동성의 측정 기간. 작을수록 코로나·관세형 초고속 급락에 더 빨리 반응해 낙폭을 줄임(대신 잔잔한 흔들림에 다소 민감). 5일은 노이즈가 커서 10~20일이 견고(§35). (기본 10)'],
-  ['defSchd','방어자산 내 SCHD 비율','%','TQQQ에서 덜어낸 방어레그(1−w)의 구성: SCHD X% + 현금(SGOV) (100−X)%. SCHD는 QQQ와 양의 상관이라 폭락 때 같이 빠지므로, 현금을 섞으면 방어 자본이 보존돼 재진입 실탄이 커짐(§35: 40~60 넓은 고원 — 다른 개선과 합쳐 전체 세후 최종 +34%). 100=기존 SCHD 단독 (기본 40)'],
+  ['defGold','방어자산 내 GLD(금) 비율','%','TQQQ에서 덜어낸 방어레그(1−w)의 구성: GLD X% + 현금(SGOV) (100−X)%. 금은 폭락·이탈 구간에 지수와 비상관~역상관이면서 장기수익도 있어 방어 자본이 보존·성장 → 재진입 실탄(§48: 60~80 넓은 고원, 6개 창 전승 — 전체 세후 최종 +41%). 100은 방어 전량 단일자산 집중이라 비권장 (기본 70)'],
   ['rebBand','리밸런싱 밴드','%','목표 TQQQ 비중이 마지막 체결 비중과 이 값 이상 차이날 때만 보유분을 매매(작은 변화는 무시 → 매매·세금·수수료 절감). 백테스트 검증: 5~10%면 수익률 거의 그대로·거래수 ~15%↓. 0=항상 즉시 반영 (기본 0)'],
 ];
 let STRAT=JSON.parse(JSON.stringify(DEFAULT_STRAT));
-const tgtOf=r=>{ const w=(r&&r.w!=null)?r.w:1, s=defSchdFrac(STRAT&&STRAT.params), d=1-w; return [w,0,0,d*s,d*(1-s)]; };   // [TQQQ,QLD,QQQ,SCHD,SGOV]
+const tgtOf=r=>{ const w=(r&&r.w!=null)?r.w:1, s=defGoldFrac(STRAT&&STRAT.params), d=1-w; return [w,0,0,d*s,d*(1-s)]; };   // [TQQQ,QLD,QQQ,GLD,SGOV]
 const REG_SUB={
   2:'추세 위 + 신호 없음. TQQQ 100%를 들고 매주 기계적으로 적립합니다. 대부분의 시간을 여기서 보냅니다.',
   1:'트림·방어가 끝나고 TQQQ 100%로 돌아가는 중. 매주 복귀 속도(기본 10%p)만큼 방어자산→TQQQ로 옮깁니다. 이탈 후 저점 추력으로 복귀한 경우(차트 ▲)는 매주 +35%p로 가속해 V반등을 캡처합니다. 적립도 같은 목표 비중으로.',
-  3:'주간 RSI 70 이상 또는 성숙 천장(200일선 위 1.4년+ & 전고점 98% 이내). 고점을 못 맞추는 대신 매주 30%p씩 방어자산(SCHD·SGOV)으로 미리 덜어냅니다. 신호가 꺼지면 즉시 복귀 시작.',
-  4:'200일선 이격 +28% & 고점권(−3% 이내) — 이격 단독 판정(2000.3 닷컴·1999말형 천장). 전량 방어자산(SCHD·SGOV)으로 피신. 해제는 고점 −3% 회복(빠른 V반등) 또는 추세 회복(200일선 +1% 재돌파 & 50일선 동반) 시 — 둘 다 매주 +10%p로 점진 복귀하므로 다구간 약세장의 베어 반등에 한 방에 물리지 않습니다.',
+  3:'주간 RSI 70 이상 또는 성숙 천장(200일선 위 1.4년+ & 전고점 98% 이내). 고점을 못 맞추는 대신 매주 30%p씩 방어자산(GLD·SGOV)으로 미리 덜어냅니다. 신호가 꺼지면 즉시 복귀 시작.',
+  4:'200일선 이격 +28% & 고점권(−3% 이내) — 이격 단독 판정(2000.3 닷컴·1999말형 천장). 전량 방어자산(GLD·SGOV)으로 피신. 해제는 고점 −3% 회복(빠른 V반등) 또는 추세 회복(200일선 +1% 재돌파 & 50일선 동반) 시 — 둘 다 매주 +10%p로 점진 복귀하므로 다구간 약세장의 베어 반등에 한 방에 물리지 않습니다.',
   5:'우상향 중 갑작스러운 급락(2020.3 코로나·2025.4 관세형). 50일 고점 대비 −16%부터 낙폭에 비례해 TQQQ 상한을 매주 끌어내려 −30%에서 전량 방어자산. 낙폭이 줄면 상한이 풀려 자동 복귀합니다.',
-  6:'200일선 아래 16거래일 연속 = 추세 붕괴 확정. 전량 방어자산(SCHD·SGOV)으로 통과합니다. 복귀는 ①200일선 +1% 재돌파(50일선 동반) 또는 ②이탈 후 저점 추력(얕은급락 +15%·일반 +22%) & 50일선 위(V반등 캡처 — 이후 매주 35%p 가속 복귀, 재이탈 판정은 16거래일 새로 카운트, 차트에 ▲ 표시) — 둘 중 빠른 쪽.'
+  6:'200일선 아래 16거래일 연속 = 추세 붕괴 확정. 전량 방어자산(GLD·SGOV)으로 통과합니다. 복귀는 ①200일선 +1% 재돌파(50일선 동반) 또는 ②이탈 후 저점 추력(얕은급락 +15%·일반 +22%) & 50일선 위(V반등 캡처 — 이후 매주 35%p 가속 복귀, 재이탈 판정은 16거래일 새로 카운트, 차트에 ▲ 표시) — 둘 중 빠른 쪽.'
 };
 const REG_COLOR={2:'green',1:'green',3:'gold',4:'red',5:'red',6:'blue'};
 const REG_LINE={2:'#d3d8db',1:'#8eb985',3:'#EBCB8B',4:'#BF616A',5:'#bd96b5',6:'#85a5c5'};   // 선·면(비텍스트)
@@ -1182,7 +1182,7 @@ function computeSeries(md,P,EX){
         }
       }
       cur=Math.round(cur*100)/100;
-      // 하이브리드 변동성 상한(오버레이): 래더 비중 cur 위에 cap을 덧씌워 실효 TQQQ 비중 curEff 산출 — 깎인 분은 SCHD로. 래더 cur(기저)은 그대로 드리프트 유지.
+      // 하이브리드 변동성 상한(오버레이): 래더 비중 cur 위에 cap을 덧씌워 실효 TQQQ 비중 curEff 산출 — 깎인 분은 방어자산으로. 래더 cur(기저)은 그대로 드리프트 유지.
       let volCap=1;
       if((P.targetVol||0)>0 && !isNaN(p.rvol) && p.rvol>0) volCap=Math.min(1,(P.targetVol/100)/(3*p.rvol));
       curEff=Math.round(Math.min(cur,volCap)*100)/100;
@@ -1224,7 +1224,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='12.1';
+const APP_VERSION='13.0';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -1248,11 +1248,13 @@ function runCountUp(){
 }
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
 const pct = n => (n>=0?'+':'')+ (n*100).toFixed(1)+'%';
-const ALLOC_COLORS={TQQQ:'#BF616A',QLD:'#a56f60',QQQ:'#bd96b5',SCHD:'#85a5c5',SGOV:'#8eb985',CASH:'#828b91'};   // 차트 10슬롯 중 5·7·4·2·1 + 중립 슬레이트
-const ALLOC_GRAD={TQQQ:'#BF616A',QLD:'#a56f60',QQQ:'#bd96b5',SCHD:'#85a5c5',SGOV:'#8eb985',CASH:'#828b91'};
-const ALLOC_DISP={TQQQ:'TQQQ',QLD:'QLD',QQQ:'QQQ',SCHD:'SCHD',SGOV:'SGOV',CASH:'현금'};
+const ALLOC_COLORS={TQQQ:'#BF616A',QLD:'#a56f60',QQQ:'#bd96b5',SCHD:'#85a5c5',GLD:'#EBCB8B',SGOV:'#8eb985',CASH:'#828b91'};   // 차트 10슬롯 + 중립 슬레이트. GLD=금 톤(#EBCB8B, §41 gold — 레짐3 선색과 공유하나 차트 종류가 달라 충돌 없음)
+const ALLOC_GRAD={TQQQ:'#BF616A',QLD:'#a56f60',QQQ:'#bd96b5',SCHD:'#85a5c5',GLD:'#EBCB8B',SGOV:'#8eb985',CASH:'#828b91'};
+const ALLOC_DISP={TQQQ:'TQQQ',QLD:'QLD',QQQ:'QQQ',SCHD:'SCHD',GLD:'GLD',SGOV:'SGOV',CASH:'현금'};
 const SCHD_FALLBACK=32.3;                                  // 시세 미수집 시 임시 단가($)
 const schdPx=row=>(row&&row.schd!=null&&!isNaN(+row.schd))?+row.schd:SCHD_FALLBACK;
+const GOLD_FALLBACK=413.8;                                 // GLD 시세 미수집 시 임시 단가($) — db/v13_migration.sql 적재 필요
+const goldPx=row=>(row&&row.gold!=null&&!isNaN(+row.gold))?+row.gold:GOLD_FALLBACK;
 /* ===== 현금(SGOV) 총수익 지수 (v12.0 §35) =====
    market_data에 현금 시계열이 없어 월간 앵커(각 월 첫 거래일 값)를 내장하고 일별 기하보간.
    1999-03~2020-05는 ^IRX(13주 국채) 합성, 2020-05~는 SGOV Adj Close 실측(오프라인 master와 동일).
@@ -1269,7 +1271,7 @@ function cashIndexAt(dstr){
 function attachCash(md){ for(const r of md){ if(r&&r.date&&(r.cash==null||isNaN(+r.cash))) r.cash=+cashIndexAt(r.date).toFixed(4); } return md; }
 const cashPx=row=>(row&&row.cash!=null&&isFinite(+row.cash))?+row.cash:CASH_FALLBACK;
 /* 특정 날짜 행에서 종목 1개의 종가(USD)를 구하는 단일 창구.
-   market_data에 컬럼이 있는 종목(qqq/qld/tqqq)과 보간이 필요한 종목(SCHD·SGOV)을 여기서만 분기한다.
+   market_data에 컬럼이 있는 종목(qqq/qld/tqqq/gold)과 보간·폴백 종목(SCHD·GLD·SGOV)을 여기서만 분기한다.
    §45: 같은 삼항 분기를 6곳에 복사해 두었다가 그중 두 곳에 SGOV 분기가 빠져
         금일손익이 NaN(undefined 산술)이 되고, 매매입력 기본가는 TypeError가 났다.
    값이 없으면 null을 돌려주므로 호출부에서 반드시 확인해야 한다. */
@@ -1277,12 +1279,13 @@ const pxAt=(row,k)=>{
   if(!row||!k) return null;
   const t=String(k).toUpperCase();
   if(t==='SCHD') return schdPx(row);
+  if(t==='GLD') return goldPx(row);      // v13.0: 방어자산 — row.gold (§45 규칙: 반드시 pxAt 경유)
   if(t==='SGOV'||t==='CASH') return cashPx(row);
   const v=+row[t.toLowerCase()];
   return isFinite(v)?v:null;
 };
-/* 방어레그 내 SCHD 비율 (defSchd %, 기본 40 → SGOV 60). 100 = 기존 SCHD 단독 */
-const defSchdFrac=P=>{ const v=(P&&P.defSchd!=null&&isFinite(+P.defSchd))?+P.defSchd:40; return Math.min(1,Math.max(0,v/100)); };
+/* 방어레그 내 GLD(금) 비율 (defGold %, 기본 70 → SGOV 30). v13.0 §48 */
+const defGoldFrac=P=>{ const v=(P&&P.defGold!=null&&isFinite(+P.defGold))?+P.defGold:70; return Math.min(1,Math.max(0,v/100)); };
 
 /* ===================== 초기화 ===================== */
 async function init(){
@@ -1327,10 +1330,10 @@ function renderDashboard(){
     gr.appendChild(p);}
   // 이번 주 동작
   let act;
-  if(reg===4) act='전량 방어(SCHD·SGOV) 중 — 고점 −3% 회복 또는 추세 회복까지';
-  else if(reg===6) act='전량 방어(SCHD·SGOV) — 200일선 +1% 재돌파 또는 추력 대기';
+  if(reg===4) act='전량 방어(GLD·SGOV) 중 — 고점 −3% 회복 또는 추세 회복까지';
+  else if(reg===6) act='전량 방어(GLD·SGOV) — 200일선 +1% 재돌파 또는 추력 대기';
   else if(reg===5) act='급락 거버너 — 50일 고점 '+(r.ddr50*100).toFixed(1)+'% → TQQQ 상한 '+Math.round(Math.min(1,Math.max(0,(P.dipFull+r.ddr50*100)/(P.dipFull-P.dipStart)))*100)+'%';
-  else if(reg===3) act='매주 '+P.stepOut+'%p씩 TQQQ → 방어(SCHD·SGOV) 트림 중';
+  else if(reg===3) act='매주 '+P.stepOut+'%p씩 TQQQ → 방어(GLD·SGOV) 트림 중';
   else if(reg===1) act='매주 '+(r.fast?P.thrustIn+'%p씩 방어 → TQQQ 추력 가속 복귀 중 (V반등 캡처)':P.stepIn+'%p씩 방어 → TQQQ 복귀 중');
   else act='유지 — TQQQ 100% 기계적 적립';
   let ae=document.getElementById('stateAction');
@@ -1358,7 +1361,7 @@ function renderIndicators(r){
   + indCard('200일선 이격','('+(ext>=0?'+':'')+(ext*100).toFixed(1)+'%)', (ext>=P.maniaExt/100&&maniaHot)?'down':(ext>=P.maniaExt/100?'neutral':'up'), ext>=P.maniaExt/100?('광기 발동권(이격 +'+P.maniaExt+'% 초과) — 전량 방어'):('광기 기준(+'+P.maniaExt+'%) 미만'))
   + indCard('고점대비 낙폭', (dd*100).toFixed(1)+'%', dd<=-0.15?'down':(dd<=-0.05?'neutral':'up'), 'ATH $'+r.ath.toFixed(0))
   + indCard('50일 고점 낙폭', (r.ddr50*100).toFixed(1)+'%', r.ddr50<=-P.dipStart/100?'down':'up', r.ddr50<=-P.dipStart/100?('급락 거버너 작동 (−'+P.dipStart+'%~−'+P.dipFull+'%)'):'급락 거버너 기준(−'+P.dipStart+'%) 위')
-  + indCard('목표 TQQQ 비중', Math.round(r.w*100)+'%', r.w>=1?'up':(r.w<=0?'down':'neutral'), (()=>{const s=defSchdFrac(P),d=1-r.w;return '방어 '+Math.round(d*100)+'% (SCHD '+Math.round(d*s*100)+'·SGOV '+Math.round(d*(1-s)*100)+') · 매주 한 번만 조정';})())
+  + indCard('목표 TQQQ 비중', Math.round(r.w*100)+'%', r.w>=1?'up':(r.w<=0?'down':'neutral'), (()=>{const s=defGoldFrac(P),d=1-r.w;return '방어 '+Math.round(d*100)+'% (GLD '+Math.round(d*s*100)+'·SGOV '+Math.round(d*(1-s)*100)+') · 매주 한 번만 조정';})())
   + indCard('현재 단계', (r.regime===1&&r.fast)?'복귀(추력발동)':REG_NAME[r.regime], REG_COLOR[r.regime]==='red'?'down':REG_COLOR[r.regime]==='gold'?'neutral':'up', '매수 1순위: '+REG_BUY_DISP[r.regime]);
 }
 function allocBar(title,pairs,emptyMsg,faded){
@@ -1369,12 +1372,12 @@ function allocBar(title,pairs,emptyMsg,faded){
   return `<div class="abar-row"><div class="abar-label">${title}</div><div class="abar${faded?' faded':''}">${inner}</div></div>`;
 }
 function renderAllocBars(){
-  const w=CUR.w, sF=defSchdFrac(STRAT&&STRAT.params), dF=1-w;
-  const t={TQQQ:w, SCHD:dF*sF, SGOV:dF*(1-sF)};       // 래더 + 방어 분할 (v12.0)
+  const w=CUR.w, sF=defGoldFrac(STRAT&&STRAT.params), dF=1-w;
+  const t={TQQQ:w, GLD:dF*sF, SGOV:dF*(1-sF)};       // 래더 + 방어 분할 (v13.0)
   const stockVal = CUR_PORT?CUR_PORT.val:null;
   const stockTot = CUR_PORT?CUR_PORT.total:0;
   const hasCur = stockTot>0.0001;
-  const TK=['TQQQ','SCHD','SGOV'];
+  const TK=['TQQQ','GLD','SGOV'];
   const curPairs = TK.map(k=>[k, hasCur?((stockVal&&stockVal[k]||0)/stockTot):0]);
   const tgtPairs = TK.map(k=>[k,t[k]]);
   const el=document.getElementById('allocBars');
@@ -1704,7 +1707,7 @@ function onCadenceChange(){
   document.getElementById('cadTitle').textContent=cad;
   document.getElementById('cadNote').textContent=CAD_NOTE[cad];
   const tb=document.getElementById('cadTable');const b=BT[cad];
-  const rows=[['★ 적응형+SCHD','adaptive','up'],['QQQ','QQQ',''],['QLD','QLD',''],['TQQQ','TQQQ',''],['균등3분할','split','']];
+  const rows=[['★ 적응형','adaptive','up'],['QQQ','QQQ',''],['QLD','QLD',''],['TQQQ','TQQQ',''],['균등3분할','split','']];
   tb.innerHTML=rows.map(([nm,k,c])=>{const[m,d,i]=b[k];return `<tr><td class="${c?'up tkr':''}">${nm}</td><td class="mono">${m}x</td><td class="mono ${d<-80?'down':'neutral'}">${d}%</td><td class="mono ${c||''}">${i}%</td></tr>`;}).join('');
 }
 async function saveSettingsUI(){
@@ -1951,7 +1954,7 @@ async function editTrade(id){
 }
 /* ===== 현황 빠른 매수/매도 (v10.8) ===== */
 /* ===== TradingView 차트 팝업 (v11.0) ===== */
-const SYMBOL_MAP={QQQ:'NASDAQ:QQQ', QLD:'AMEX:QLD', TQQQ:'NASDAQ:TQQQ', SCHD:'AMEX:SCHD', SGOV:'NYSE:SGOV'};
+const SYMBOL_MAP={QQQ:'NASDAQ:QQQ', QLD:'AMEX:QLD', TQQQ:'NASDAQ:TQQQ', SCHD:'AMEX:SCHD', GLD:'AMEX:GLD', SGOV:'NYSE:SGOV'};
 function tkrCell(t){ return SYMBOL_MAP[t] ? `<span class="tkr-link" onclick="openChart('${t}')" title="${t} 차트 보기">${t}</span>` : t; }
 function openChart(ticker){
   const sym = SYMBOL_MAP[ticker] || ticker;
@@ -2117,11 +2120,11 @@ async function renderTrades(){
 /* ===================== 수익분석 ===================== */
 async function renderProfit(){
   const ts=await getTrades(); TRADES_CACHE=ts;
-  const last={}; ['QQQ','QLD','TQQQ','SCHD','SGOV'].forEach(k=>last[k]=pxAt(CUR,k));
+  const last={}; ['QQQ','QLD','TQQQ','SCHD','GLD','SGOV'].forEach(k=>last[k]=pxAt(CUR,k));
   const fxNow=FXNOW;
-  const H={}; ['QQQ','QLD','TQQQ','SCHD','SGOV'].forEach(k=>H[k]={qty:0,cost:0}); // cost in KRW of remaining (avg)
+  const H={}; ['QQQ','QLD','TQQQ','SCHD','GLD','SGOV'].forEach(k=>H[k]={qty:0,cost:0}); // cost in KRW of remaining (avg)
   let totalRealized=0, totalDividend=0, cash=0, netDeposits=0;
-  const DIV={QQQ:0,QLD:0,TQQQ:0,SCHD:0,SGOV:0};
+  const DIV={QQQ:0,QLD:0,TQQQ:0,SCHD:0,GLD:0,SGOV:0};
   // process chronologically
   [...ts].sort(tradeOrder).forEach(t=>{
     const k=t.ticker; if(!H[k]&&t.type!=='deposit'&&t.type!=='withdrawal')H[k]={qty:0,cost:0};
@@ -2132,7 +2135,7 @@ async function renderProfit(){
     else if(t.type==='withdrawal'){cash-=+t.amount_krw;netDeposits-=+t.amount_krw;}
   });
   let invested=0,curVal=0;
-  const rows=['QQQ','QLD','TQQQ','SCHD','SGOV'].map(k=>{
+  const rows=['QQQ','QLD','TQQQ','SCHD','GLD','SGOV'].map(k=>{
     const h=H[k];if(h.qty<=1e-9)return null;
     if(last[k]==null){ console.warn('시세 없음 — 평가 제외:',k,CUR&&CUR.date); return null; }   // null.toFixed / NaN 전파 차단
     const avgUSD=h.cost/h.qty/fxNow;
@@ -2144,10 +2147,10 @@ async function renderProfit(){
   CUR_CASH = cash>0?cash:0;
   HOLD_QTY={}; rows.forEach(r=>HOLD_QTY[r.k]=r.qty);
   if(curVal>0){
-    const v={QQQ:0,QLD:0,TQQQ:0,SCHD:0,SGOV:0}; rows.forEach(r=>v[r.k]=r.val);
+    const v={QQQ:0,QLD:0,TQQQ:0,SCHD:0,GLD:0,SGOV:0}; rows.forEach(r=>v[r.k]=r.val);
     CUR_ALLOC={TQQQ:v.TQQQ/curVal,QLD:v.QLD/curVal,QQQ:v.QQQ/curVal};
     CUR_PORT={total:curVal, val:v};
-  } else { CUR_ALLOC=null; CUR_PORT={total:0, val:{QQQ:0,QLD:0,TQQQ:0,SCHD:0,SGOV:0}}; }
+  } else { CUR_ALLOC=null; CUR_PORT={total:0, val:{QQQ:0,QLD:0,TQQQ:0,SCHD:0,GLD:0,SGOV:0}}; }
   if(CUR) renderAllocBars(CUR.regime);
   const hb=document.getElementById('holdBody');
   hb.innerHTML=rows.length?rows.map(r=>`<tr><td class="tkr">${tkrCell(r.k)}</td><td class="mono">${(+r.qty).toLocaleString('ko-KR',{maximumFractionDigits:0})}</td>
@@ -2379,7 +2382,9 @@ function loadStrategy(settings){
     const legacyMania = (sp.maniaRsi===undefined || sp.maniaRsi===null);
     // v9.3 저장본의 volDays 기본(20) → 이후 5 → v12.0 기본 10으로 이관(직전 버전 기본값이라 의도적 선택으로 보지 않음)
     const oldVolDefault = (sp.volDays===undefined || sp.volDays===null || +sp.volDays===20 || +sp.volDays===5);
-    // v12.0(§35) 마이그레이션: 구 기본값 그대로면 신규 기본으로 이관 (thrustIn 30→35, targetVol 65→70). defSchd 없으면 기본 40.
+    // v12.0(§35) 마이그레이션: 구 기본값 그대로면 신규 기본으로 이관 (thrustIn 30→35, targetVol 65→70).
+    // v13.0(§48): defSchd(SCHD%) 파라미터 폐지 → defGold(GLD%, 기본 70). 아래 루프가 DEFAULT_STRAT.params 키만 순회하므로
+    //             구 저장값 defSchd는 자동 무시되고 defGold=70이 적용된다(자산이 바뀐 축이라 값 이관 안 함 — 의도).
     const oldThr = (sp.thrustIn===undefined || sp.thrustIn===null || +sp.thrustIn===30);
     const oldTv  = (sp.targetVol===undefined || sp.targetVol===null || +sp.targetVol===65);
     const p={};
@@ -2459,12 +2464,12 @@ function runBacktest(){
   const warns=[];
   if(sd<SER[0].date) warns.push('⚠️ 요청 시작일('+sd+')보다 데이터가 늦게 시작해 실제 백테스트는 '+SER[i0].date+'부터입니다. (TQQQ 2010-02 상장 — 그 이전 실데이터는 야후에 존재하지 않음)');
   if(i0<200) warns.push('⚠️ 시작일 이전 데이터가 '+i0+'거래일뿐이라 초기 단계 판정(200일선·52주 고점)이 부정확할 수 있습니다.');
-  const DEF_S=defSchdFrac(S.params), DEF_C=1-DEF_S;                       // 방어레그 분할: SCHD/현금(SGOV) (v12.0 §35)
-  const px=r=>[+r.tqqq, +r.qld, +r.qqq, schdPx(r), cashPx(r)];            // [TQQQ,QLD,QQQ,SCHD,SGOV]
+  const DEF_S=defGoldFrac(S.params), DEF_C=1-DEF_S;                       // 방어레그 분할: GLD/현금(SGOV) (v13.0 §48)
+  const px=r=>[+r.tqqq, +r.qld, +r.qqq, goldPx(r), cashPx(r)];            // [TQQQ,QLD,QQQ,GLD,SGOV] (v13.0: 방어 슬롯 = GLD)
   const NA=5;
-  const BM_IDX={TQQQ:0,QLD:1,QQQ:2,SCHD:3};
-  const bms=['QQQ','QLD','TQQQ','SCHD'].filter(k=>{const e=document.getElementById('bt_bm_'+k);return e&&e.checked;});
-  let schdMiss=0, synthDays=0, sh=[0,0,0,0,0], invested=0, rebals=0, hv=0, peak=0, mdd=0;
+  const BM_IDX={TQQQ:0,QLD:1,QQQ:2,GLD:3};
+  const bms=['QQQ','QLD','TQQQ','GLD'].filter(k=>{const e=document.getElementById('bt_bm_'+k);return e&&e.checked;});
+  let goldMiss=0, synthDays=0, sh=[0,0,0,0,0], invested=0, rebals=0, hv=0, peak=0, mdd=0;
   const cost=[0,0,0,0,0]; let realizedYr=0, taxPaidUSD=0, curYear=null;   // 세금: 자산별 평균취득원가·연 실현손익(원)·누적세금($)
   const TAX_ON=(TAXCFG&&TAXCFG.on!==false), TAX_EX=(TAXCFG&&+TAXCFG.exempt)||0, TAX_RATE=((TAXCFG&&+TAXCFG.rate)||0)/100, FXFB=(typeof FXNOW==='number'&&FXNOW>100)?FXNOW:1380;
   const HARV_ON=TAX_ON && !(TAXCFG&&TAXCFG.harv===false);                 // 연말 비과세 한도 수확 (§35, 설정에서 on/off)
@@ -2502,7 +2507,7 @@ function runBacktest(){
       const pa=pxA[_ym]||(pxA[_ym]={open:_q,close:_q}); pa.close=_q;
       const pw=pxW[_wk]||(pxW[_wk]={open:_q,close:_q}); pw.close=_q; }
     if(i>i0){ const _yr=r.date.slice(0,4); if(_yr!==curYear){ settleTax(fxOf(r), p); curYear=_yr; } }   // 연 경계: 직전 연도 세금 정산
-    if(r.schd==null||isNaN(+r.schd)) schdMiss++;
+    if(r.gold==null||isNaN(+r.gold)) goldMiss++;
     if(r.synth) synthDays++;
     if(i>i0){ const ym=r.date.slice(0,7), dr=r.qqq/SER[i-1].qqq-1;
       const a=volA[ym]||(volA[ym]={n:0,s:0,s2:0}); a.n++; a.s+=dr; a.s2+=dr*dr;
@@ -2554,9 +2559,9 @@ function runBacktest(){
     if(weeks[wk]) weeks[wk].vol = a.n>=2 ? Math.sqrt(Math.max(0,(a.s2-a.s*a.s/a.n)/(a.n-1))*252) : null; }
   { let pc=null; for(const ym in pxA){ const a=pxA[ym]; if(months[ym]){ months[ym].pxChg=(pc!=null?a.close/pc:a.close/a.open)-1; months[ym].pxClose=a.close; } pc=a.close; } }
   { let pw=null; for(const wk in pxW){ const a=pxW[wk]; if(weeks[wk]){ weeks[wk].pxChg=(pw!=null?a.close/pw:a.close/a.open)-1; weeks[wk].pxClose=a.close; } pw=a.close; } }
-  if(synthDays>0) warns.push('⚠️ 기간 중 '+synthDays.toLocaleString()+'거래일은 합성 근사 데이터입니다 (QLD 2006-06 / TQQQ 2010-02 / SCHD 2011-10 상장 이전 — 레버리지 일복리·비용 모델 + SCHD 분기앵커 보간). 해당 구간 결과는 근사치로만 보세요.');
-  if(schdMiss>0) warns.push('⚠️ 기간 중 '+schdMiss+'일은 SCHD 시세가 없어 고정가($'+SCHD_FALLBACK+', 수익률 0%·현금성)로 처리했습니다 (SCHD 2011-10 상장).');
-  if(DEF_C>0.0001) warns.push('ℹ️ 방어레그 = SCHD '+Math.round(DEF_S*100)+'% + 현금(SGOV) '+Math.round(DEF_C*100)+'% (§35 · defSchd 파라미터). 현금 시계열은 월간 앵커(1999–2020 ^IRX 합성 → 이후 SGOV 실측 총수익) 기하보간 근사이며 일별 오차 <0.1%입니다.');
+  if(synthDays>0) warns.push('⚠️ 기간 중 '+synthDays.toLocaleString()+'거래일은 합성 근사 데이터입니다 (QLD 2006-06 / TQQQ 2010-02 / GLD 2004-11 / SCHD 2011-10 상장 이전 — 레버리지 일복리·비용 모델 + 금 선물/월앵커·SCHD 분기앵커 보간). 해당 구간 결과는 근사치로만 보세요.');
+  if(goldMiss>0) warns.push('⚠️ 기간 중 '+goldMiss+'일은 GLD 시세가 없어 고정가($'+GOLD_FALLBACK+', 수익률 0%·현금성)로 처리했습니다 — market_data.gold 열이 비어 있습니다. db/v13_migration.sql을 실행하세요.');
+  if(DEF_C>0.0001) warns.push('ℹ️ 방어레그 = GLD '+Math.round(DEF_S*100)+'% + 현금(SGOV) '+Math.round(DEF_C*100)+'% (§48 · defGold 파라미터). 현금 시계열은 월간 앵커(1999–2020 ^IRX 합성 → 이후 SGOV 실측 총수익) 기하보간 근사이며 일별 오차 <0.1%입니다.');
   warns.push('ℹ️ 적립금은 목표 대비 부족한 자산에 우선 배분됩니다(스티어링·§35).'+(HARV_ON?' 매년 말 비과세 한도 잔여분은 이익 실현 후 즉시 재매수해 취득원가를 올립니다(연말 수확 '+hv+'회 — 신호·위험 불변·세금 절감, 설정에서 끌 수 있음).':''));
   warns.push('⚠️ 일봉 종가 기준 근사 시뮬레이션입니다. 배당·슬리피지 미반영, 세금은 설정에 따라 평균취득가 기준으로 근사 반영(벤치마크는 매도 없으므로 세전). 과거 성과는 미래를 보장하지 않으며 투자 조언이 아닙니다.');
   BT_RES={i0,i1,s:SER.slice(i0,i1+1),strat:JSON.parse(JSON.stringify(S)),days,months:Object.values(months),weeks:Object.values(weeks),irr,mdd,rebals,hv,invested:last.invested,final:last.val,bms,bm:last.bm,bmMdd,tax:taxPaidUSD,warns};
@@ -2577,7 +2582,7 @@ function renderBtTable(){
     '<th>'+(isW?'주 (마감일)':'년월')+'</th>'
     + '<th>QQQ 가격</th>'
     + '<th title="기간 QQQ 등락률 (직전 기간 종가 대비, 첫 기간은 기간내)">QQQ 변동 ('+(isW?'주':'월')+')</th>'
-    + '<th>단계('+(isW?'주말':'월말')+')</th><th>TQQQ 목표</th><th>평가금액</th><th>TQQQ</th><th>SCHD</th><th>SGOV</th><th>누적수익률</th>'
+    + '<th>단계('+(isW?'주말':'월말')+')</th><th>TQQQ 목표</th><th>평가금액</th><th>TQQQ</th><th>GLD</th><th>SGOV</th><th>누적수익률</th>'
     + R.bms.map(nm=>'<th>'+nm+' 평가금액 (동일적립)</th>').join('');
   document.getElementById('btMonthlyBody').innerHTML=rows.map(m=>{
     const cum=m.invested>0?m.val/m.invested-1:0;
