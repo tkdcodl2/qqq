@@ -194,13 +194,13 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
    ├─────────┴──────────────┤ (2행) │
    │      공포·탐욕 지수      │       │
    └────────────────────────┴───────┘ */
-.hero{display:grid;grid-template-columns:minmax(292px,2.08fr) minmax(146px,.92fr) minmax(160px,1fr);
+.hero{display:grid;grid-template-columns:minmax(286px,2.0fr) minmax(142px,.88fr) minmax(176px,1.12fr);
   grid-template-rows:auto auto;gap:13px;align-items:stretch}
 #stateCard{grid-area:1/1/2/2} #allocCard{grid-area:2/1/3/2}
 #fgCard{grid-area:1/2/3/3}    #eggCard{grid-area:1/3/3/4}
 /* 중간 폭: 왼쪽 열을 넓히고 게이지·달걀을 좁힌다 (행 구조는 동일) */
 @media(max-width:1080px) and (min-width:861px){
-  .hero{grid-template-columns:minmax(250px,1.9fr) minmax(132px,.9fr) minmax(146px,.95fr);gap:11px}
+  .hero{grid-template-columns:minmax(244px,1.86fr) minmax(126px,.86fr) minmax(158px,1.05fr);gap:11px}
 }
 .state-box{display:flex;flex-direction:column;justify-content:center;gap:6px;min-height:112px;position:relative;overflow:hidden;
   background:
@@ -312,13 +312,11 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .egg-box{display:flex;flex-direction:column;min-height:0;padding:14px 11px 12px;cursor:pointer;overflow:hidden}
 .egg-box .label{margin-bottom:2px;flex:0 0 auto}
 #eggBody{flex:1;min-height:0;display:flex;flex-direction:column}
-.egg-svg{display:block;width:100%;height:100%;flex:1 1 auto;min-height:0;margin:0 auto}   /* 2행 높이에 맞춰 축소 — preserveAspectRatio가 비율 유지 */
+.egg-svg{display:block;width:100%;flex:1 1 0;height:0;min-height:0;margin:0 auto}
+/* flex-basis:0 + height:0 — SVG의 고유 비율(176:250)이 카드 높이를 밀어올리지 못하게 막는다.
+   이게 없으면 달걀이 좌측 두 카드를 억지로 늘려 히어로 전체가 세로로 커진다(§63). */
 .egg-cap{margin-top:6px;text-align:center;line-height:1.3;flex:0 0 auto}
-.egg-cap .hint{font-size:10.5px;color:var(--muted);margin-top:5px;line-height:1.4;padding:0 2px}
-.egg-cmp{margin-top:6px;font-size:10px;font-family:var(--font-num);letter-spacing:0;font-weight:640;
-  border-radius:var(--r-pill);padding:4px 8px;display:inline-block;
-  color:var(--text-2);background:var(--ov06);border:.5px solid var(--border)}
-.egg-cmp.clash{color:var(--gold);background:color-mix(in srgb, var(--gold) 12%, transparent);border-color:color-mix(in srgb, var(--gold) 32%, transparent)}
+.egg-cap .ps.clash{color:var(--gold);font-weight:640}   /* 달걀 처방이 래더 지시와 어긋날 때 */
 .egg-cap .pn{font-family:var(--font-text);font-weight:700;font-size:12.5px;letter-spacing:-.02em;color:var(--text)}
 .egg-cap .ps{font-family:var(--font-num);font-size:10px;color:var(--text2);margin-top:3px;font-variant-numeric:tabular-nums;letter-spacing:0}
 /* ── 공포·탐욕 지수 (v13.2) — 5축 자체 산출. CNN 지수가 아니다. ── */
@@ -350,7 +348,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .kg-tbl th{color:var(--text2);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:590}
 .kg-tbl td.kc{font-family:var(--font-num);font-weight:700;white-space:nowrap}
 .kg-tbl td.ka{white-space:nowrap;font-weight:640}
-@media(max-width:860px){.egg-svg{min-height:230px;max-height:260px}}
+@media(max-width:860px){.egg-svg{flex:0 0 auto;height:auto;min-height:220px}}   /* 1열에서는 고유 비율대로 */
 .range-pills{display:inline-flex;gap:3px;padding:3px;border-radius:var(--r-pill);background:var(--surface2)}
 .range-pills button{font-family:var(--font-num);font-size:10.5px;font-weight:640;color:var(--text2);background:none;border:none;border-radius:var(--r-pill);padding:4px 11px;cursor:pointer;transition:.28s var(--ease);letter-spacing:-.01em}
 .range-pills button:hover{color:var(--text);background:var(--st-hover)}
@@ -1260,24 +1258,24 @@ const REG_TEXT={2:'#d3d8db',1:'#8eb985',3:'#EBCB8B',4:'#EF9A9A',5:'#bd96b5',6:'#
 
    ※ 표시 전용. 매매(w)는 computeSeries가 단독 결정하며 달걀은 개입하지 않는다. */
 const KOSTO_PH=[
-  {k:'A1',ph:'상승 · 조정 국면',act:'매수',c:'#8eb985',
-   d:'바닥을 지나 추세가 돌아서는 구간. 거래량도 관심도 아직 낮고, 소신파가 조용히 사 모으는 때.',
-   h:'아직 아무도 관심 없을 때 — 코스톨라니가 사라고 한 두 자리 중 하나'},
-  {k:'A2',ph:'상승 · 동행 국면',act:'보유',c:'#85a5c5',
-   d:'가격과 거래량이 나란히 늘며 안정적으로 오르는 구간. 새로 담기보다 들고 가는 시기.',
-   h:'추세를 타고 가는 구간 — 기계적으로 적립만 하면 된다'},
-  {k:'A3',ph:'상승 · 과장 국면',act:'분할매도',c:'#EBCB8B',
-   d:'거래량과 참여자가 폭증하며 가격이 실체보다 앞서 나가는 구간. 부화뇌동파가 몰려들 때 소신파는 판다.',
-   h:'고점은 못 맞춘다 — 매주 나눠서 덜어내는 구간'},
-  {k:'B1',ph:'하락 · 조정 국면',act:'현금 유지',c:'#e5a182',
-   d:'천장을 지나 처음 꺾이는 구간. 낙폭은 아직 얕고 "일시 조정"이라는 말이 돈다. 새로 살 자리는 아니다.',
-   h:'천장 직후 — A3에서 덜지 못했다면 여기가 마지막 정리 구간'},
-  {k:'B2',ph:'하락 · 동행 국면',act:'현금 유지',c:'#BF616A',
-   d:'추세가 무너지고 낙폭이 본격적으로 커지는 구간. 현금·방어자산을 들고 기다린다.',
-   h:'방어자산으로 기다린다 — 바닥 잡으려 들지 않는다'},
-  {k:'B3',ph:'하락 · 과장 국면',act:'매수',c:'#428968',
-   d:'투매가 나오며 거래량이 다시 폭증하는 구간. 가장 견디기 어렵지만 코스톨라니가 다시 사라고 한 자리.',
-   h:'가장 견디기 어려운 자리 — 코스톨라니가 사라고 한 나머지 하나'}
+  {k:'A1',ph:'상승 · 바닥 국면',act:'매수',c:'#b5c98e',
+   h:'아직 아무도 관심 없을 때 — 코스톨라니가 사라고 한 두 자리 중 하나',
+   d:'바닥을 지나 추세가 돌아서는 구간. 거래량도 관심도 아직 낮고, 소신파가 조용히 사 모으는 때.'},
+  {k:'A2',ph:'상승 · 동행 국면',act:'보유',c:'#7cb075',
+   h:'추세를 타고 가는 구간 — 기계적으로 적립만 하면 된다',
+   d:'가격과 거래량이 나란히 늘며 안정적으로 오르는 구간. 새로 담기보다 들고 가는 시기.'},
+  {k:'A3',ph:'상승 · 과열 국면',act:'분할매도',c:'#c9604f',
+   h:'고점은 못 맞춘다 — 매주 나눠서 덜어내는 구간',
+   d:'거래량과 참여자가 폭증하며 가격이 실체보다 앞서 나가는 구간. 부화뇌동파가 몰려들 때 소신파는 판다.'},
+  {k:'B1',ph:'하락 · 전환 국면',act:'대량매도',c:'#e08553',
+   h:'천장이 확인된 자리 — 남은 물량을 정리한다',
+   d:'천장을 지나 추세가 실제로 꺾인 구간. 아직 "일시 조정"이라는 말이 돌지만, 되돌림에 기대지 않고 정리할 자리.'},
+  {k:'B2',ph:'하락 · 동행 국면',act:'현금유지',c:'#89b8d6',
+   h:'방어자산으로 기다린다 — 바닥 잡으려 들지 않는다',
+   d:'낙폭이 본격적으로 커지는 구간. 현금·방어자산을 들고 기다린다.'},
+  {k:'B3',ph:'하락 · 과장 국면',act:'분할매수',c:'#5f8fc4',
+   h:'가장 견디기 어려운 자리 — 나눠서 사 모으는 구간',
+   d:'투매가 나오며 거래량이 다시 폭증하는 구간. 가장 견디기 어렵지만 코스톨라니가 다시 사라고 한 자리.'}
 ];
 function computeKosto(out,P){
   P=P||STRAT.params;
@@ -1335,11 +1333,12 @@ function computeKosto(out,P){
   return out;
 }
 /* 달걀 도형: 아래가 넓고 위가 좁은 타원. a=0 바닥 → 0.25 우측 → 0.5 천장 → 0.75 좌측 (시계방향) */
-const EGG={cx:96,cy:118,rx:50,ry:82,k:0.20};
+const EGG={cx:88,cy:124,rx:46,ry:88,k:0.20,W:176,H:250};
 function eggPt(a){
   const A=(90-a*360)*Math.PI/180, sn=Math.sin(A);
   const rx=EGG.rx*(1+EGG.k*sn);                    // sn=+1(바닥) → 넓게, sn=−1(천장) → 좁게
-  return [EGG.cx+rx*Math.cos(A), EGG.cy+EGG.ry*sn];
+  // x에 −를 쓴다: 원서 도식대로 A(상승)가 왼쪽, B(하락)가 오른쪽으로 돌게 하는 반전(§63)
+  return [EGG.cx-rx*Math.cos(A), EGG.cy+EGG.ry*sn];
 }
 function eggOut(a,off){
   const p=eggPt(a), dx=p[0]-EGG.cx, dy=p[1]-EGG.cy, L=Math.hypot(dx,dy)||1;
@@ -1449,29 +1448,29 @@ function renderEgg(){
   // 달걀의 처방은 '코스톨라니 원전의 교리'일 뿐 이 앱의 지시가 아니다.
   // 래더가 실제 지시이므로 나란히 보여주고, 어긋나면 어느 쪽을 따를지 화면에서 못박는다.
   const wP=Math.round((r.w||0)*100);
+  //  A1·B3 매수계열 / A2 보유 / A3 분할매도 / B1 대량매도·B2 현금유지 = 현금계열
   const agree = (r.kPh===2) ? wP<100 : (r.kPh===3||r.kPh===4) ? wP<=30 : (r.kPh===0||r.kPh===5) ? wP>=70 : true;
-  const cmp = '<div class="egg-cmp'+(agree?'':' clash')+'">래더 TQQQ '+wP+'% · '+(agree?'같은 방향':'상충 → 래더를 따르세요')+'</div>';
   el.innerHTML =
-   '<svg class="egg-svg" viewBox="0 0 192 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="코스톨라니 달걀 — 현재 '+P.k+' '+P.ph+'">'
+   '<svg class="egg-svg" viewBox="0 0 '+EGG.W+' '+EGG.H+'" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="코스톨라니 달걀 — 현재 '+P.k+' '+P.ph+'">'
   +  '<defs><filter id="eggGl" x="-55%" y="-55%" width="210%" height="210%">'
   +    '<feGaussianBlur stdDeviation="3.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'
   +  '<path d="'+eggArc(0,1)+' Z" fill="rgba(255,255,255,.022)" stroke="rgba(255,255,255,.07)" stroke-width="1"/>'
   +  segs + labs
-  +  '<text x="96" y="107" text-anchor="middle" font-size="27" font-weight="700" fill="'+P.c+'" letter-spacing="-1">'+P.k+'</text>'
-  +  '<text x="96" y="131" text-anchor="middle" font-size="12" font-weight="640" fill="rgba(255,255,255,.72)">'+P.act+'</text>'
+  +  '<text x="'+EGG.cx+'" y="'+(EGG.cy-11)+'" text-anchor="middle" font-size="26" font-weight="700" fill="'+P.c+'" letter-spacing="-1">'+P.k+'</text>'
+  +  '<text x="'+EGG.cx+'" y="'+(EGG.cy+12)+'" text-anchor="middle" font-size="11.5" font-weight="640" fill="rgba(255,255,255,.72)">'+P.act+'</text>'
   +  '<circle cx="'+m[0].toFixed(2)+'" cy="'+m[1].toFixed(2)+'" r="6" fill="none" stroke="'+P.c+'" stroke-width="1.6" opacity=".75">'
   +    '<animate attributeName="r" values="6;12;6" dur="2.6s" repeatCount="indefinite"/>'
   +    '<animate attributeName="opacity" values=".75;0;.75" dur="2.6s" repeatCount="indefinite"/></circle>'
   +  '<circle cx="'+m[0].toFixed(2)+'" cy="'+m[1].toFixed(2)+'" r="4.8" fill="'+P.c+'" stroke="#11181d" stroke-width="1.6"/>'
   +'</svg>'
   +'<div class="egg-cap"><div class="pn">'+P.ph+'</div>'
-  +'<div class="ps">위치 '+posN+' · '+dirTxt+' · 코스톨라니 원전: '+P.act+'</div>'
-  +cmp+'<div class="hint">'+P.h+'</div></div>';
+  +'<div class="ps'+(agree?'':' clash')+'">위치 '+posN+' · '+dirTxt+' · 래더 '+wP+'%'+(agree?'':' 상충')+'</div></div>';
 }
 function openKosto(){
   const b=document.getElementById('kostoRows');
   if(b && !b.childElementCount){
     b.innerHTML=KOSTO_PH.map((p,i)=>'<tr><td class="kc" style="color:'+p.c+'">'+p.k+'</td><td>'+p.ph.replace(/^[^·]+· /,'')
+      +'<div style="font-size:11.5px;margin-top:3px;color:var(--text-2)">'+p.h+'</div>'
       +'<div class="muted" style="font-size:11.5px;margin-top:3px;line-height:1.45">'+p.d+'</div></td>'
       +'<td class="ka" style="color:'+p.c+'">'+p.act+'</td></tr>').join('');
   }
@@ -1588,7 +1587,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='13.3.0';
+const APP_VERSION='13.4.0';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
