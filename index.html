@@ -1704,7 +1704,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='14.2.0';
+const APP_VERSION='14.3.0';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -2114,71 +2114,57 @@ function renderAssetChart(data){
      의존하지 않으므로 이런 방식으로 깨질 수 없다. 기본 애니메이션은 Chart.js에 맡긴다. */
   /* v13.8 연출 ② — 끝점 발광. 가격 차트의 끝점 마커와 같은 언어를 쓰되,
      여기서는 정적이다(매 프레임 재드로우 없음 → 항상 도는 루프를 늘리지 않는다). */
-  /* 와이프는 **한 번**뿐이라 놓치면 끝이다(§74). 가격 차트처럼 **상시** 움직이는 신호를 둔다 —
-     끝점이 숨 쉬고, 거기서 파문이 퍼져 나간다. 탭이 보일 때만 20fps로 되그린다. */
-  const slowM=(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  /* 월별 자산 추이의 상시 효과(§76 재작성).
+     · 광점은 **평가금액 선 위의 정확한 점**을 따라간다. 폴리라인 꼭짓점에 스냅하지 않고
+       두 점 사이를 선형 보간하므로, 달 수가 적어도 뚝뚝 끊기지 않는다.
+     · 색은 흰색이 아니라 평가금액 선 색(#85a5c5)이다. 초반에 원금을 따라가는 것처럼 보였던 것은
+       두 선이 실제로 겹쳐 있기 때문인데, 선 색을 맞추면 어느 쪽인지 바로 읽힌다.
+     · 끝점 고정 광점은 제거했다. 남긴 것은 현재 평가금액 **기준선**(점선)뿐이다. */
+  const GL='133,165,197';                                   // 평가금액 선 #85a5c5
+  const slowM2=(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const assetGlow={id:'assetGlow',afterDatasetsDraw(chart){
-    const meta=chart.getDatasetMeta(0); if(!meta||!meta.data||!meta.data.length) return;
-    const pt=meta.data[meta.data.length-1], area=chart.chartArea, c=chart.ctx;
-    if(!pt||!area||pt.x<area.left-1||pt.x>area.right+1) return;
-    const now=Date.now();
-    const t=slowM?0:((now%2800)/2800);
-    const k=(1-Math.cos(t*2*Math.PI))/2;                      // 0 → 1 → 0
-    c.save();
-    /* 차트 내부 효과 ① — 현재 평가금액 기준선(§75).
-       끝점 높이에서 왼쪽으로 점선을 그어 과거 각 달이 지금보다 위인지 아래인지 한눈에 보이게 한다.
-       장식이 아니라 읽을거리를 더하는 쪽을 택했다. */
-    c.setLineDash([3,5]); c.lineWidth=1;
-    c.strokeStyle='rgba(133,165,197,'+(0.16+0.16*k).toFixed(3)+')';
-    c.beginPath(); c.moveTo(area.left,pt.y); c.lineTo(pt.x,pt.y); c.stroke();
-    c.setLineDash([]);
-    /* 차트 내부 효과 ② — 평가금액 선을 따라 흐르는 광점.
-       5.2초마다 한 번, 2.6초에 걸쳐 왼쪽에서 끝점까지 훑고 지나간다. */
-    if(!slowM){
-      const CYC=5200, TRV=2600, ph=now%CYC;
-      if(ph<TRV){
-        const prog=ph/TRV, W=area.right-area.left;
-        const headX=area.left+W*prog, tail=W*0.17;
-        c.save();
-        c.beginPath(); c.rect(area.left,area.top,W,area.bottom-area.top); c.clip();
-        c.lineJoin='round'; c.lineCap='round';
-        for(const ps of [{blur:15,w:4.2,a:.42},{blur:0,w:1.8,a:.92}]){
-          c.beginPath(); let on=false;
-          for(const p of meta.data){ const d=headX-p.x;
-            if(d<0) break;
-            if(d<=tail){ if(!on){c.moveTo(p.x,p.y);on=true;} else c.lineTo(p.x,p.y); } }
-          c.shadowColor='#cfe3f5'; c.shadowBlur=ps.blur;
-          c.strokeStyle='rgba(207,227,245,'+ps.a+')'; c.lineWidth=ps.w; c.stroke();
-        }
-        c.shadowBlur=0;
-        let hy=null; for(const p of meta.data){ if(p.x<=headX) hy=p.y; else break; }
-        if(hy!=null){
-          const hg=c.createRadialGradient(headX,hy,0,headX,hy,11);
-          hg.addColorStop(0,'rgba(255,255,255,.92)'); hg.addColorStop(1,'rgba(133,165,197,0)');
-          c.fillStyle=hg; c.beginPath(); c.arc(headX,hy,11,0,Math.PI*2); c.fill();
-        }
-        c.restore();
-      }
+    const meta=chart.getDatasetMeta(0); if(!meta||!meta.data||meta.data.length<2) return;
+    const pts=meta.data, area=chart.chartArea, c=chart.ctx; if(!area) return;
+    const last=pts[pts.length-1], now=Date.now();
+    if(last && last.x>=area.left-1){                         // 현재 평가금액 기준선
+      const k=slowM2?0:(1-Math.cos((now%2800)/2800*2*Math.PI))/2;
+      c.save(); c.setLineDash([3,5]); c.lineWidth=1;
+      c.strokeStyle='rgba('+GL+','+(0.16+0.16*k).toFixed(3)+')';
+      c.beginPath(); c.moveTo(area.left,last.y); c.lineTo(last.x,last.y); c.stroke(); c.restore();
     }
-    if(!slowM){                                               // 퍼지는 파문
-      const rr=5+15*t;
-      c.strokeStyle='rgba(133,165,197,'+(0.55*(1-t)).toFixed(3)+')'; c.lineWidth=1.6;
-      c.beginPath(); c.arc(pt.x,pt.y,rr,0,Math.PI*2); c.stroke();
+    if(slowM2) return;
+    const CYC=5600, TRV=3200, ph=now%CYC;
+    if(ph<TRV){
+      const e=ph/TRV, x0=pts[0].x, x1=last.x;                // 등속 — 가감속을 주면 끊겨 보인다
+      const headX=x0+(x1-x0)*e, tail=Math.max(38,(x1-x0)*0.20);
+      const yAt=x=>{                                         // 폴리라인 위 정확한 y (보간)
+        if(x<=pts[0].x) return pts[0].y;
+        for(let i=1;i<pts.length;i++){ if(x<=pts[i].x){
+          const a=pts[i-1],b=pts[i],t=(b.x-a.x)?(x-a.x)/(b.x-a.x):0; return a.y+(b.y-a.y)*t; } }
+        return last.y; };
+      const sx=Math.max(x0,headX-tail);
+      const build=()=>{ c.beginPath(); c.moveTo(sx,yAt(sx));
+        for(const q of pts){ if(q.x>sx && q.x<headX) c.lineTo(q.x,q.y); }
+        c.lineTo(headX,yAt(headX)); };
+      c.save();
+      c.beginPath(); c.rect(area.left,area.top,area.right-area.left,area.bottom-area.top); c.clip();
+      c.lineJoin='round'; c.lineCap='round';
+      for(const ps of [{blur:16,w:5,a:.28},{blur:0,w:2.2,a:.88}]){
+        build(); c.shadowColor='rgba('+GL+',.9)'; c.shadowBlur=ps.blur;
+        c.strokeStyle='rgba('+GL+','+ps.a+')'; c.lineWidth=ps.w; c.stroke(); }
+      c.shadowBlur=0;
+      const hy=yAt(headX);
+      const hg=c.createRadialGradient(headX,hy,0,headX,hy,9);
+      hg.addColorStop(0,'rgba(198,222,242,.95)'); hg.addColorStop(.5,'rgba('+GL+',.45)'); hg.addColorStop(1,'rgba('+GL+',0)');
+      c.fillStyle=hg; c.beginPath(); c.arc(headX,hy,9,0,Math.PI*2); c.fill();
+      c.restore();
     }
-    const R=11+6*k;
-    const gg=c.createRadialGradient(pt.x,pt.y,1,pt.x,pt.y,R);
-    gg.addColorStop(0,'rgba(133,165,197,'+(0.62+0.30*k).toFixed(3)+')');
-    gg.addColorStop(.45,'rgba(133,165,197,.30)'); gg.addColorStop(1,'rgba(133,165,197,0)');
-    c.fillStyle=gg; c.beginPath(); c.arc(pt.x,pt.y,R,0,Math.PI*2); c.fill();
-    c.fillStyle='#d3d8db'; c.beginPath(); c.arc(pt.x,pt.y,3.2,0,Math.PI*2); c.fill();
-    c.lineWidth=2; c.strokeStyle='#85a5c5'; c.beginPath(); c.arc(pt.x,pt.y,3.2,0,Math.PI*2); c.stroke();
-    c.restore();
-    if(slowM || chart.$beat) return;
+    if(chart.$pending) return;                               // 통과 중엔 rAF(부드럽게), 휴지 중엔 다음 통과까지 잠금
     const tab=document.getElementById('tab-dash');
-    if(tab && tab.classList.contains('hidden')) return;       // 다른 탭이면 루프 정지
-    // 광점이 지나가는 동안만 촘촘히(≈30fps), 나머지는 느슨하게(≈16fps) 되그린다
-    const busy=(now%5200)<2600;
-    chart.$beat=setTimeout(()=>{ chart.$beat=null; if(chart.ctx) chart.draw(); }, busy?33:62);
+    if(tab && tab.classList.contains('hidden')) return;
+    chart.$pending=true;
+    const again=()=>{ chart.$pending=false; if(chart.ctx) chart.draw(); };
+    if(ph<TRV) requestAnimationFrame(again); else setTimeout(again, Math.max(60, CYC-ph));
   }};
   assetChart=new Chart(ctx,{type:'line',data:{labels,datasets:ds},plugins:[assetGlow],
     options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
@@ -2750,11 +2736,12 @@ async function renderProfit(){
       if(pv==null||cp==null) return;      // 전일/당일 시세가 없는 종목은 제외 — NaN이 합계 전체를 오염시킨다
       todayPL += (+H[r.k].qty) * (cp-pv) * fxNow;
     }); }
+  const evalCls = invested>0 ? (evalPL>=0?'up':'down') : '';   // 평가금액도 매수원금 대비 손익으로 물들인다(§76)
   const cards=[
     ['총자산 (현금포함)', totalAssets, '','amt'],
-    ['원금 (매수원금)', invested, '','amt'],
-    ['평가금액', curVal, '','amt'],
     ['현금', cash, '','amt'],
+    ['원금 (매수원금)', invested, '','amt'],
+    ['평가금액', curVal, evalCls,'amt'],
     ['금일손익', todayPL, todayPL>=0?'up':'down','amt'],
     ['평가손익', evalPL, evalPL>=0?'up':'down','amtpct'],
   ];
@@ -2763,12 +2750,12 @@ async function renderProfit(){
   const accRet=netDeposits>0?accPL/netDeposits:null;
   const cumCards=[
     ['총자산', totalAssets, '','amt',null],
-    ['누적원금 (입금누계)', netDeposits, '','amt',null],
-    ['매수원금 (보유분)', invested, '','amt',null],
-    ['평가금액', curVal, '','amt',null],
     ['현금', cash, '','amt',null],
-    ['실현손익', totalRealized, totalRealized>=0?'up':'down','amt',null],
+    ['누적원금 (입금누계)', netDeposits, '','amt',null],
     ['배당금', totalDividend, totalDividend>0?'up':'','amt',null],
+    ['매수원금 (보유분)', invested, '','amt',null],
+    ['평가금액', curVal, evalCls,'amt',null],
+    ['실현손익', totalRealized, totalRealized>=0?'up':'down','amt',null],
     ['총수익 (총자산−입금누계)', accPL, accPL>=0?'up':'down','amtpct',accRet],
   ];
   const cumEl=document.getElementById('cumSummary');
