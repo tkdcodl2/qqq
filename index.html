@@ -223,11 +223,11 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .state-sub{font-size:12.5px;color:var(--text-2);max-width:94%;line-height:1.45;position:relative;z-index:1}
 .gauge-row{display:flex;gap:5px;margin-top:10px;position:relative;z-index:1;align-items:center}
 .gpip{flex:1;height:8px;border-radius:var(--r-pill);background:var(--ov06);border:.5px solid rgba(255,255,255,.08);position:relative;overflow:hidden;
-  transform-origin:left center;animation:pipIn .52s var(--ease) both;animation-delay:var(--d,0s)}
+  transform-origin:left center;animation:pipIn .62s var(--ease) both;animation-delay:var(--d,0s)}
 @keyframes pipIn{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
 /* 게이지 오른쪽에 목표 비중 숫자. 칸 5개로는 20% 단위밖에 못 읽어서 실제 값을 같이 보여준다. */
 .gauge-pct{flex:0 0 auto;margin-left:9px;font-family:var(--font-num);font-weight:700;font-size:13px;
-  letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--rc,var(--accent));
+  letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--rt,var(--rc,var(--accent)));
   text-shadow:0 0 16px color-mix(in srgb, var(--rc,var(--accent)) 45%, transparent);transition:color .5s var(--ease)}
 .state-name{transition:color .5s var(--ease)}
 /* 이전에는 단계색 → 시안으로 그라디언트가 걸려 그 자리에만 없는 색조가 끼어들었다.
@@ -235,6 +235,9 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .gpip.on{background:linear-gradient(90deg,var(--rc,var(--accent)),color-mix(in srgb, var(--rc,var(--accent)) 62%, #fff));border-color:transparent;box-shadow:0 0 14px -3px color-mix(in srgb, var(--rc,var(--accent)) 42%, transparent), var(--shadow-hi)}
 .gpip.on::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-100%);
   animation:sheen 3.4s ease-in-out infinite;animation-delay:var(--d,0s)}
+/* 셔머는 흰색이다. v13.8까지 적립 단계 게이지가 거의 흰색(#d3d8db)이어서 흰 빛이 흰 막대 위를
+   지나가느라 아무것도 안 보였다 — 효과가 없던 게 아니라 대비가 없던 것이다(§70).
+   적립을 연두로 바꾸면서 해소됐고, 어두운 색조 단계에서 과하지 않게 세기도 낮춘다. */
 /* animation-delay는 상속되지 않는다 — 그래서 부모 .gpip에 인라인으로 준 지연은
    ::after의 sheen에 전혀 걸리지 않아 다섯 칸이 동시에 번쩍였다(v13.7까지의 죽은 코드).
    상속되는 커스텀 속성 --d로 바꿔 부모에서 한 번만 지정하고 양쪽이 함께 쓴다. */
@@ -262,12 +265,15 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .abar-label{font-family:var(--font-text);font-size:10px;color:var(--text2);margin-bottom:7px;letter-spacing:.08em;font-weight:590;text-transform:uppercase}
 .abar{display:flex;height:30px;border-radius:var(--r-pill);overflow:hidden;position:relative;isolation:isolate;
   background:var(--ov03);
-  border:.5px solid rgba(255,255,255,.12);
-  box-shadow:inset 0 1px 3px rgba(0,0,0,.3), inset 0 -.5px 0 rgba(255,255,255,.10)}
+  border:.5px solid rgba(255,255,255,.07);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.20)}
+/* §71: 짙은 내부그림자 + 위아래 광택은 2010년대식 유광 마감이라 색만 바꿔도 낡아 보인다.
+   그림자를 얕게, 테두리를 옅게 하고 조각 위 광택도 상단 한 겹만 남긴다. */
 .abar.faded{border-style:dashed;border-color:var(--border2)}
-.abar>div{position:relative;display:flex;align-items:center;justify-content:center;color:#0d0d0d;min-width:0;white-space:nowrap;
+.abar>div{position:relative;display:flex;align-items:center;justify-content:center;color:rgba(12,16,18,.84);min-width:0;white-space:nowrap;
   transition:width 1.1s var(--ease);
-  background-image:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.01) 46%,rgba(0,0,0,.09))}
+  background-image:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.02) 62%,rgba(0,0,0,.04))}
+.abar>div+div{box-shadow:inset 1px 0 0 rgba(0,0,0,.22)}   /* 조각 경계를 광택이 아니라 얇은 선 하나로 */
 /* 넓고 부드러운 스페큘러 글라이드 (번개 대신 유리 위 빛의 이동) */
 /* 유리를 통과하는 프리즘 광선: 넓고 느린 본체 + 상·하 모서리 커스틱 + 옅은 색분산 */
 .abar::before{content:"";position:absolute;inset:0;z-index:4;pointer-events:none;border-radius:inherit;mix-blend-mode:screen;
@@ -283,21 +289,26 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
   will-change:background-position;
   animation:barSweep 5.6s linear infinite}
 .abar::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:5;
-  background:linear-gradient(180deg,rgba(255,255,255,.07),transparent 40%,transparent 84%,rgba(255,255,255,.03))}
+  background:linear-gradient(180deg,rgba(255,255,255,.05),transparent 38%)}
 /* 막대도 같은 원리: 요소는 고정, 빛(배경)만 흘려보내고 좌우는 mask 로 먹인다.
    등속(linear)으로 막대 위 체류 약 2.6초, 이후 약 3초 휴지 */
 @keyframes barSweep{
   0%,4%    {background-position:-400% 0%,-400% 100%,-400% 0%}
   50%,100% {background-position:500% 0%,500% 100%,500% 0%}}
 .abar.faded::before{animation-delay:2.8s}
+/* 차트가 왼쪽에서 오른쪽으로 드러난다(v13.8.1). 캔버스를 건드리지 않고 컨테이너를 잘라내는
+   방식이라 Chart.js 설정과 무관하게 항상 동작하고, 오버레이가 아니므로 경계선이 생기지 않는다. */
+.chart-wipe.wipe{animation:chartWipe 1.05s var(--ease) both}
+@keyframes chartWipe{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@media(prefers-reduced-motion:reduce){.chart-wipe.wipe{animation:none}}
 /* v13.8: '유리 반사'(.chart-glass)를 제거했다.
    배경 레이어 하나가 background-size:64% 1px — 높이 1px짜리 띠였고, 그것이 컨테이너 상단을
    가로지르며 '경계선'으로 읽혔다. 두께를 키우거나 지우는 대신, 차트에는 차트다운 연출을 쓴다:
    ① 선이 왼쪽에서 오른쪽으로 그려지는 진입 애니메이션 ② 끝점 정적 발광(renderAssetChart).
    둘 다 캔버스 안에서 일어나므로 컨테이너 모서리에 인공적인 선이 생기지 않는다. */
 @media(prefers-reduced-motion:reduce){.abar::before{animation:none;opacity:0}}
-.abar-seg-t{position:relative;z-index:6;font-size:10px;font-weight:700;letter-spacing:-.01em;line-height:1;color:#0d0d0d;margin-right:5px}
-.abar-seg-p{position:relative;z-index:6;font-family:var(--font-num);font-size:11px;font-weight:700;line-height:1;color:#0d0d0d;font-variant-numeric:tabular-nums}
+.abar-seg-t{position:relative;z-index:6;font-size:10px;font-weight:700;letter-spacing:-.01em;line-height:1;color:rgba(12,16,18,.84);margin-right:5px}
+.abar-seg-p{position:relative;z-index:6;font-family:var(--font-num);font-size:11px;font-weight:700;line-height:1;color:rgba(12,16,18,.84);font-variant-numeric:tabular-nums}
 /* ── 코스톨라니 달걀 (v13.1) ────────────────────────────────────────
    시장 순환 위치를 6국면(A1~B3) 달걀 둘레 위의 한 점으로 표시한다.
    표시 전용 지표다 — 래더의 매매 판단(computeSeries)에는 일절 관여하지 않는다. */
@@ -317,7 +328,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .fg-num{font-family:var(--font-num);font-weight:700;font-size:30px;line-height:1;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
 .fg-lab{font-family:var(--font-text);font-size:12.5px;font-weight:640;letter-spacing:-.02em;margin-top:5px}
 .fg-bar{position:relative;height:9px;border-radius:var(--r-pill);margin-top:12px;
-  background:linear-gradient(90deg,#428968,#8eb985 26%,#85a5c5 50%,#EBCB8B 74%,#BF616A);
+  background:linear-gradient(90deg,#3F8C6B,#86B98C 26%,#7FA6C9 50%,#E3B15F 74%,#E2685A);
   box-shadow:inset 0 1px 3px rgba(0,0,0,.34), inset 0 -.5px 0 rgba(255,255,255,.12)}
 .fg-tick{position:absolute;top:-4.5px;width:3px;height:18px;border-radius:2px;background:#fff;
   box-shadow:0 0 9px rgba(255,255,255,.65);transform:translateX(-50%);transition:left 1.1s var(--ease)}
@@ -520,7 +531,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{margin-left:2px;opacity:.5
 .regime-card .h{display:flex;align-items:center;gap:10px;margin-bottom:6px}
 .chip{font-family:var(--font-text);font-weight:640;font-size:13px;letter-spacing:-.01em;padding:4px 12px;border-radius:var(--r-pill)}
 .wbar{display:flex;height:22px;border-radius:var(--r-pill);overflow:hidden;border:.5px solid var(--border);margin-top:8px;font-size:11px}
-.wbar div{display:flex;align-items:center;justify-content:center;color:#0d0d0d;font-weight:700;font-family:var(--font-num);font-variant-numeric:tabular-nums}
+.wbar div{display:flex;align-items:center;justify-content:center;color:rgba(12,16,18,.84);font-weight:700;font-family:var(--font-num);font-variant-numeric:tabular-nums}
 .note{font-size:12.5px;color:var(--text-2);line-height:1.62}
 .disclaim{font-size:11.5px;color:var(--text-2);line-height:1.62;border-top:.5px solid var(--border);margin-top:18px;padding-top:14px}
 .hidden{display:none!important}
@@ -648,7 +659,7 @@ details.sandbox .stage-edit{background:var(--ov01)}
       </div>
       <div class="card">
         <div class="section-title"><span class="dot"></span>월별 자산 추이</div>
-        <div style="height:300px"><canvas id="assetChart"></canvas></div>
+        <div id="assetWrap" class="chart-wipe" style="height:300px"><canvas id="assetChart"></canvas></div>
       </div>
     </div>
 
@@ -765,10 +776,10 @@ details.sandbox .stage-edit{background:var(--ov01)}
       </div>
       <div class="field" style="margin-bottom:12px"><label>비교 지수 (동일 적립 — 중복 선택 가능)</label>
         <div style="display:flex;gap:14px;flex-wrap:wrap;padding:4px 0">
-          <label class="wcell"><input type="checkbox" id="bt_bm_QQQ" checked style="width:16px;height:16px"><span style="color:#bd96b5">QQQ</span></label>
-          <label class="wcell"><input type="checkbox" id="bt_bm_QLD" checked style="width:16px;height:16px"><span style="color:#e5a182">QLD</span></label>
-          <label class="wcell"><input type="checkbox" id="bt_bm_TQQQ" checked style="width:16px;height:16px"><span style="color:#BF616A">TQQQ</span></label>
-          <label class="wcell"><input type="checkbox" id="bt_bm_GLD" style="width:16px;height:16px"><span style="color:#EBCB8B">GLD</span></label>
+          <label class="wcell"><input type="checkbox" id="bt_bm_QQQ" checked style="width:16px;height:16px"><span style="color:#A98BC7">QQQ</span></label>
+          <label class="wcell"><input type="checkbox" id="bt_bm_QLD" checked style="width:16px;height:16px"><span style="color:#D08A62">QLD</span></label>
+          <label class="wcell"><input type="checkbox" id="bt_bm_TQQQ" checked style="width:16px;height:16px"><span style="color:#E2685A">TQQQ</span></label>
+          <label class="wcell"><input type="checkbox" id="bt_bm_GLD" style="width:16px;height:16px"><span style="color:#E3B15F">GLD</span></label>
         </div>
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -875,9 +886,9 @@ details.sandbox .stage-edit{background:var(--ov01)}
     <div class="tbl-scroll"><table style="font-size:12.5px;min-width:520px">
       <thead><tr><th>신호</th><th>조건 (QQQ 기준)</th><th>동작</th></tr></thead>
       <tbody>
-        <tr><td class="tkr" style="color:#e5a182">과열</td><td>주간 RSI(14) ≥ <b>70</b> <b>또는</b> 성숙 천장(200일선 위 <b>360거래일(≈1.4년)</b> & 전고점 <b>98%</b> 이내)</td><td class="mono">매주 TQQQ <b>−30%p</b> → 방어자산(GLD·SGOV)</td></tr>
-        <tr><td class="tkr" style="color:#BF616A">광기</td><td>200일선 이격 <b>+28%</b> & 고점권(−3% 이내) <span class="muted">(RSI 동반조건 없음 — 이격 단독)</span></td><td class="mono">즉시 전량 방어자산. 해제: 고점 −3% 회복 / 추세 회복(200일선 +1% & 50일선 동반) → 매주 +10%p 점진 복귀</td></tr>
-        <tr><td class="tkr" style="color:#a56f60">급락</td><td>50일 고점 대비 <b>−16% ~ −30%</b> (코로나·관세형 급락)</td><td class="mono">낙폭에 비례해 TQQQ 상한을 매주 하향 (−30%에서 0%)</td></tr>
+        <tr><td class="tkr" style="color:#E09B52">과열</td><td>주간 RSI(14) ≥ <b>70</b> <b>또는</b> 성숙 천장(200일선 위 <b>360거래일(≈1.4년)</b> & 전고점 <b>98%</b> 이내)</td><td class="mono">매주 TQQQ <b>−30%p</b> → 방어자산(GLD·SGOV)</td></tr>
+        <tr><td class="tkr" style="color:#EF9A9A">광기</td><td>200일선 이격 <b>+28%</b> & 고점권(−3% 이내) <span class="muted">(RSI 동반조건 없음 — 이격 단독)</span></td><td class="mono">즉시 전량 방어자산. 해제: 고점 −3% 회복 / 추세 회복(200일선 +1% & 50일선 동반) → 매주 +10%p 점진 복귀</td></tr>
+        <tr><td class="tkr" style="color:#B592C4">급락</td><td>50일 고점 대비 <b>−16% ~ −30%</b> (코로나·관세형 급락)</td><td class="mono">낙폭에 비례해 TQQQ 상한을 매주 하향 (−30%에서 0%)</td></tr>
         <tr><td class="tkr" style="color:#85a5c5">이탈</td><td>200일선 아래 <b>16거래일(≈3주) 연속</b></td><td class="mono">전량 방어자산(GLD·SGOV)</td></tr>
         <tr><td class="tkr" style="color:#85a5c5">복귀</td><td>위 신호가 모두 꺼짐. 이탈 후엔 ①200일선 <b>+1%</b> 재돌파(50일선 동반) <b>또는</b> ②저점 <b>+22%</b> 추력 & 50일선 위 (V반등 캡처, 차트 ▲ 표시)</td><td class="mono">추력 복귀는 매주 <b>+35%p</b> 가속, 그 외 매주 +10%p (100%까지)</td></tr>
         <tr><td class="tkr" style="color:#bd96b5">변동성 상한</td><td>최근 <b>10거래일</b> 실현변동성 기준 (하이브리드 오버레이)</td><td class="mono">TQQQ 상한 = min(목표 <b>70%</b> ÷ (3×최근변동성), 100%)를 래더 위에 덧씌움 — 출렁이면 자동 축소→방어자산</td></tr>
@@ -1265,10 +1276,10 @@ const REG_SUB={
   6:'200일선 아래 16거래일 연속 = 추세 붕괴 확정. 전량 방어자산(GLD·SGOV)으로 통과합니다. 복귀는 ①200일선 +1% 재돌파(50일선 동반) 또는 ②이탈 후 저점 추력(얕은급락 +15%·일반 +22%) & 50일선 위(V반등 캡처 — 이후 매주 35%p 가속 복귀, 재이탈 판정은 16거래일 새로 카운트, 차트에 ▲ 표시) — 둘 중 빠른 쪽.'
 };
 const REG_COLOR={2:'green',1:'green',3:'gold',4:'red',5:'red',6:'blue'};
-const REG_LINE={2:'#d3d8db',1:'#8eb985',3:'#EBCB8B',4:'#BF616A',5:'#bd96b5',6:'#85a5c5'};   // 선·면(비텍스트)
+const REG_LINE={2:'#B4CE90',1:'#63A45F',3:'#E09B52',4:'#C25E52',5:'#B592C4',6:'#7FA6C9'};   // 선·면(비텍스트) — §71 시안A: 적립=연두·복귀=녹색·과열=주황
 // 광기(#BF616A)는 넓은 조각용 톤이라 글자로 쓰면 카드면에서 3.6:1까지 떨어진다.
 // 지정 사양의 '하락(숫자)' 톤으로 갈아끼운 맵을 따로 둔다.
-const REG_TEXT={2:'#d3d8db',1:'#8eb985',3:'#EBCB8B',4:'#EF9A9A',5:'#bd96b5',6:'#85a5c5'};   // 4=광기: 조각용 #BF616A는 글자로 쓰면 3.6:1 → '밝은 붉은 글자' 역할은 지정값 #EF9A9A 하나로 통일
+const REG_TEXT={2:'#B4CE90',1:'#63A45F',3:'#E09B52',4:'#EF9A9A',5:'#B592C4',6:'#7FA6C9'};   // 4=광기: 조각용 #BF616A는 글자로 쓰면 3.6:1 → '밝은 붉은 글자' 역할은 지정값 #EF9A9A 하나로 통일
 
 /* ===================== 코스톨라니 달걀 (v13.1) =====================
    원전(André Kostolany)의 달걀 모형은 시장을 상승 3국면(A1 조정·A2 동행·A3 과장)
@@ -1409,7 +1420,7 @@ const FG_AX=[
   ['추세 강도','50일선이 200일선보다 얼마나 위에 있는가']
 ];
 const fgLab=v=>v<25?'극도의 공포':v<45?'공포':v<=55?'중립':v<=75?'탐욕':'극도의 탐욕';
-const fgCol=v=>v<25?'#428968':v<45?'#8eb985':v<=55?'#85a5c5':v<=75?'#EBCB8B':'#BF616A';
+const fgCol=v=>v<25?'#3F8C6B':v<45?'#86B98C':v<=55?'#7FA6C9':v<=75?'#E3B15F':'#E2685A';
 function computeFG(out){
   const n=out.length, q=out.map(r=>+r.qqq), W=252;
   const g=out.map(r=>{const v=(r&&r.gold!=null)?+r.gold:NaN; return isNaN(v)?NaN:v;});
@@ -1653,7 +1664,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='13.8.0';
+const APP_VERSION='13.9.0';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -1677,8 +1688,8 @@ function runCountUp(){
 }
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
 const pct = n => (n>=0?'+':'')+ (n*100).toFixed(1)+'%';
-const ALLOC_COLORS={TQQQ:'#BF616A',QLD:'#a56f60',QQQ:'#bd96b5',SCHD:'#85a5c5',GLD:'#EBCB8B',SGOV:'#8eb985',CASH:'#828b91'};   // 차트 10슬롯 + 중립 슬레이트. GLD=금 톤(#EBCB8B, §41 gold — 레짐3 선색과 공유하나 차트 종류가 달라 충돌 없음)
-const ALLOC_GRAD={TQQQ:'#BF616A',QLD:'#a56f60',QQQ:'#bd96b5',SCHD:'#85a5c5',GLD:'#EBCB8B',SGOV:'#8eb985',CASH:'#828b91'};
+const ALLOC_COLORS={TQQQ:'#E2685A',QLD:'#D08A62',QQQ:'#A98BC7',SCHD:'#7FA6C9',GLD:'#E3B15F',SGOV:'#86B98C',CASH:'#8A9199'};   // 차트 10슬롯 + 중립 슬레이트. GLD=금 톤(#EBCB8B, §41 gold — 레짐3 선색과 공유하나 차트 종류가 달라 충돌 없음)
+const ALLOC_GRAD={TQQQ:'#E2685A',QLD:'#D08A62',QQQ:'#A98BC7',SCHD:'#7FA6C9',GLD:'#E3B15F',SGOV:'#86B98C',CASH:'#8A9199'};
 const ALLOC_DISP={TQQQ:'TQQQ',QLD:'QLD',QQQ:'QQQ',SCHD:'SCHD',GLD:'GLD',SGOV:'SGOV',CASH:'현금'};
 const SCHD_FALLBACK=32.3;                                  // 시세 미수집 시 임시 단가($)
 const schdPx=row=>(row&&row.schd!=null&&!isNaN(+row.schd))?+row.schd:SCHD_FALLBACK;
@@ -1749,12 +1760,13 @@ function renderDashboard(){
   sc.className='card card-hov state-box '+REG_COLOR[reg];
   const rc=REG_LINE[reg]||'var(--accent)';
   sc.style.setProperty('--rc', rc);                                    // 단계 색 → 오로라/게이지/도트
+  sc.style.setProperty('--rt', REG_TEXT[reg]||rc);                     // 글자용(광기는 조각색이 3.55:1로 부족)
   document.getElementById('stateName').textContent = (reg===1&&r.fast) ? '복귀(추력발동)' : REG_NAME[reg];
   // gauge: TQQQ 목표 비중을 5칸으로 표시
   const gr=document.getElementById('gaugeRow'); gr.innerHTML='';
   const pips=Math.round(w*5);
   for(let k=0;k<5;k++){const p=document.createElement('div');p.className='gpip'+(k<pips?' on':'');
-    p.style.setProperty('--d',(k*0.11).toFixed(2)+'s');   // 점등·셔머 지연을 함께 태운다(상속되는 커스텀 속성)
+    p.style.setProperty('--d',(k*0.16).toFixed(2)+'s');   // 점등·셔머 지연을 함께 태운다(상속되는 커스텀 속성)
     gr.appendChild(p);}
   const gp=document.createElement('div'); gp.className='gauge-pct'; gp.id='gaugePct'; gp.textContent='0%';
   gr.appendChild(gp);
@@ -2051,23 +2063,13 @@ function renderAssetChart(data){
       grid:{display:false},border:{display:false},
       ticks:{color:CH.tickDiv,font:{size:9},maxTicksLimit:4,
         callback:v=>v<=0?'':(v>=1e4?Math.round(v/1e4).toLocaleString()+'만':Math.round(v).toLocaleString())}} : undefined;
-  /* v13.8 연출 ① — 선이 왼쪽에서 오른쪽으로 그려진다.
-     점마다 x·y 애니메이션 시작을 index만큼 늦추면 '그려지는' 것처럼 보인다.
-     전체 1.1초를 점 개수로 나누되 점이 적을 때 너무 느려지지 않게 18ms로 자른다. */
-  const slowM=(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)||IS_MOBILE();
-  const dl=labels.length?Math.min(18,1100/labels.length):0;
-  const prevY=c2=>{ const sc=c2.chart.scales.y;
-    if(c2.index===0) return sc?sc.getPixelForValue(sc.min):0;
-    const m=c2.chart.getDatasetMeta(c2.datasetIndex).data[c2.index-1];
-    return m?m.getProps(['y'],true).y:(sc?sc.getPixelForValue(sc.min):0); };
-  const drawIn = slowM ? false : {
-    x:{type:'number',easing:'linear',duration:dl,from:NaN,
-       delay(c2){ if(c2.type!=='data'||c2.xStarted) return 0; c2.xStarted=true; return c2.index*dl; }},
-    y:{type:'number',easing:'linear',duration:dl,from:prevY,
-       delay(c2){ if(c2.type!=='data'||c2.yStarted) return 0; c2.yStarted=true; return c2.index*dl; }}
-  };
-  ds[0].animation=drawIn; ds[1].animation=drawIn;
-  if(ds[2]) ds[2].animation = slowM?false:{duration:700,easing:'easeOutQuart'};
+  /* v13.8.1 — v13.8에서 넣었던 '점마다 지연을 주는 진입 애니메이션'을 걷어냈다.
+     Chart.js에서 x·y 같은 **속성별 애니메이션**은 `options.animations`(복수)가 받는 자리인데
+     데이터셋의 `animation`(단수)에 넣어 두어 아무도 처리하지 않았고,
+     `from:NaN`이 그대로 남아 좌표가 NaN에 묶이면서 **선이 한 줄도 그려지지 않았다**
+     (축과 눈금은 데이터로 계산되므로 정상 표시돼 '축만 있고 선이 없는' 화면이 됐다).
+     같은 연출은 캔버스 밖 CSS 클립 애니메이션(.chart-wipe)으로 대신한다 — Chart.js 내부에
+     의존하지 않으므로 이런 방식으로 깨질 수 없다. 기본 애니메이션은 Chart.js에 맡긴다. */
   /* v13.8 연출 ② — 끝점 발광. 가격 차트의 끝점 마커와 같은 언어를 쓰되,
      여기서는 정적이다(매 프레임 재드로우 없음 → 항상 도는 루프를 늘리지 않는다). */
   const assetGlow={id:'assetGlow',afterDatasetsDraw(chart){
@@ -2082,6 +2084,8 @@ function renderAssetChart(data){
     c.lineWidth=2; c.strokeStyle='#85a5c5'; c.beginPath(); c.arc(pt.x,pt.y,3,0,Math.PI*2); c.stroke();
     c.restore();
   }};
+  const wrap=document.getElementById('assetWrap');
+  if(wrap){ wrap.classList.remove('wipe'); void wrap.offsetWidth; wrap.classList.add('wipe'); }   // 재생성마다 다시 재생
   assetChart=new Chart(ctx,{type:'line',data:{labels,datasets:ds},plugins:[assetGlow],
     options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
     plugins:{legend:{labels:{color:CH.tick,boxWidth:12,font:{size:11}}},
