@@ -171,11 +171,11 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .card-hov:hover{transform:translateY(-3px);border-color:var(--border2);background:var(--ov08);box-shadow:var(--shadow-hi), var(--shadow-24), 0 0 0 .5px rgba(255,255,255,.07)}
 /* entrance — 스프링 이징 */
 @keyframes riseIn{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}
-#tab-dash .hero>.card,#tab-dash .summary-grid>.card,#tab-dash .ind-grid>.ind{animation:riseIn .7s var(--ease) both}
-#tab-dash .hero>.card:nth-child(2){animation-delay:.07s}
-#tab-dash .hero>.card:nth-child(3){animation-delay:.14s}
+#tab-dash .hero-l>.card,#tab-dash .hero-r>.card,#tab-dash .summary-grid>.card,#tab-dash .ind-grid>.ind{animation:riseIn .7s var(--ease) both}
+#tab-dash .hero-l>.card:nth-child(2){animation-delay:.07s}
+#tab-dash .hero-r>.card:nth-child(2){animation-delay:.14s}
 #tab-dash .summary-grid>.card:nth-child(n){animation-delay:.05s}
-@media(prefers-reduced-motion:reduce){#tab-dash .hero>.card,#tab-dash .summary-grid>.card,#tab-dash .ind-grid>.ind{animation:none}}
+@media(prefers-reduced-motion:reduce){#tab-dash .hero-l>.card,#tab-dash .hero-r>.card,#tab-dash .summary-grid>.card,#tab-dash .ind-grid>.ind{animation:none}}
 .grid{display:grid;gap:16px}
 .section-title{font-family:var(--font-text);font-weight:640;letter-spacing:-.02em;font-size:17px;color:var(--text);margin:6px 0 13px;display:flex;align-items:center;gap:9px}
 .section-title .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--glow);position:relative}
@@ -194,13 +194,15 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
    ├─────────┴──────────────┤ (2행) │
    │      공포·탐욕 지수      │       │
    └────────────────────────┴───────┘ */
-.hero{display:grid;grid-template-columns:minmax(286px,2.0fr) minmax(142px,.88fr) minmax(176px,1.12fr);
-  grid-template-rows:auto auto;gap:13px;align-items:stretch}
-#stateCard{grid-area:1/1/2/2} #allocCard{grid-area:2/1/3/2;padding:16px 18px}
-#fgCard{grid-area:1/2/3/3}    #eggCard{grid-area:1/3/3/4}
-/* 중간 폭: 왼쪽 열을 넓히고 게이지·달걀을 좁힌다 (행 구조는 동일) */
+/* §78: 좌/우 경계를 아래 차트 행(#chartRow: 1fr 1fr · gap 16px)과 **구조적으로** 일치시킨다.
+   전에는 3열 비율(2.0 / .88 / 1.12)이라 좌:우가 대략 50:50이었을 뿐 정확히 맞지 않았다.
+   바깥을 1fr 1fr 로 두면 경계 x좌표가 (폭−16)/2로 아래와 같아진다. 반쪽 안에서 다시 나눈다. */
+.hero{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:stretch}
+.hero-l{display:flex;flex-direction:column;gap:16px;min-width:0}
+.hero-r{display:grid;grid-template-columns:minmax(0,1.16fr) minmax(0,.84fr);gap:16px;min-width:0}
+#allocCard{padding:16px 18px}
 @media(max-width:1080px) and (min-width:861px){
-  .hero{grid-template-columns:minmax(244px,1.86fr) minmax(126px,.86fr) minmax(158px,1.05fr);gap:11px}
+  .hero,.hero-l,.hero-r{gap:12px}
 }
 .state-box{display:flex;flex-direction:column;justify-content:center;gap:6px;min-height:74px;padding:15px 18px;position:relative;overflow:hidden;
   background:
@@ -282,7 +284,16 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 
 /* allocation bars (§77) — 위: 현재 비중 분절 알약 / 아래: 종목별 굵은 행 */
 .abar-label{font-family:var(--font-text);font-size:10px;color:var(--text2);margin-bottom:8px;letter-spacing:.08em;font-weight:590;text-transform:uppercase}
-.pbar{display:flex;gap:4px;height:26px;margin-bottom:14px}
+/* 스캔은 조각마다 걸면 조각 폭만큼만 지나가 안 보인다(§74에서 게이지로 겪은 것과 같다).
+   막대 전체에 한 겹 덮되, 가로 그라디언트 사각형은 위아래 변이 선으로 보이므로 타원으로 감쇠시킨다. */
+.pbar{display:flex;gap:4px;height:26px;margin-bottom:14px;position:relative}
+.pbar::after{content:"";position:absolute;inset:-7px 0;pointer-events:none;z-index:3;
+  mix-blend-mode:screen;background-repeat:no-repeat;
+  background-image:radial-gradient(closest-side ellipse at 50% 50%,
+    rgba(255,255,255,.52), rgba(255,255,255,.16) 44%, transparent 74%);
+  background-size:26% 100%;background-position:-70% 50%;
+  animation:allocScan 4.4s linear infinite}
+@keyframes allocScan{0%,10%{background-position:-70% 50%}60%,100%{background-position:170% 50%}}
 .pseg{flex:1;min-width:0;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:5px;
   white-space:nowrap;overflow:hidden;color:rgba(12,16,18,.84);
   background-image:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,0) 62%);
@@ -299,20 +310,41 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .arow .k i{width:9px;height:9px;border-radius:3px;display:inline-block;box-shadow:inset 0 .5px 0 rgba(255,255,255,.45)}
 .arow .rail{flex:1;min-width:0;position:relative;height:26px;border-radius:8px;background:var(--ov04);
   border:.5px solid rgba(255,255,255,.06);display:flex;align-items:center}
+/* 세 행에 시간차를 줘 위에서 아래로 빛이 흘러내리게 한다(--d3는 renderAllocBars가 넣는다) */
+.arow .rail::after{content:"";position:absolute;inset:-6px 0;pointer-events:none;z-index:3;
+  mix-blend-mode:screen;background-repeat:no-repeat;
+  background-image:radial-gradient(closest-side ellipse at 50% 50%,
+    rgba(255,255,255,.44), rgba(255,255,255,.13) 44%, transparent 74%);
+  background-size:24% 100%;background-position:-70% 50%;
+  animation:allocScan 4.4s linear infinite;animation-delay:var(--d3,0s)}
 .arow .rail b{height:100%;border-radius:8px;display:flex;align-items:center;justify-content:center;
   white-space:nowrap;overflow:hidden;color:rgba(12,16,18,.84);
   background-image:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,0) 62%);
-  transition:width .8s var(--ease)}
+  transition:width .8s var(--ease);animation:barWipe .9s var(--ease) var(--d3,0s) both}
 .arow .rail b .p{font-family:var(--font-num);font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums}
 .arow .rail .out{font-family:var(--font-num);font-size:11px;font-weight:640;color:var(--text-2);
   margin-left:8px;white-space:nowrap;font-variant-numeric:tabular-nums}
-.arow .rail u{position:absolute;top:-3px;bottom:-3px;width:2px;background:#fff;border-radius:2px;z-index:2;
-  transform:translateX(-50%);box-shadow:0 0 8px rgba(255,255,255,.75)}
+/* 목표 눈금 (§80)
+   §79에서는 `top:4px;bottom:4px`로 레일 안쪽에 밀어넣어 끝단 삐짐을 막았는데,
+   그 대가로 **중간에서 눈금이 레일을 꽉 채우지 못해 떠 보였다**.
+   해결: 눈금을 레일 높이만큼(top:0;bottom:0) 채우고, 레일과 같은 곡률의 클립 레이어(.mkc)
+         안에 넣어 **모서리 곡선대로 잘라낸다**. 중간에서는 꽉 차고, 양끝에서는 곡선을 따라
+         자연스럽게 깎인다 — 안쪽으로 밀어넣지 않고도 양쪽을 동시에 만족한다.
+   글로우는 box-shadow 대신 좌우로 감쇠하는 그라디언트로 낸다(클립되면 그림자는 잘려 사라진다). */
+.arow .rail .mkc{position:absolute;inset:0;border-radius:8px;overflow:hidden;pointer-events:none;z-index:4}
+.arow .rail u{position:absolute;top:0;bottom:0;width:8px;transform:translateX(-50%);
+  background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.32) 26%,
+    #fff 44%,#fff 56%,rgba(255,255,255,.32) 74%,rgba(255,255,255,0));
+  animation:mkBeat 2.6s ease-in-out infinite}
+@keyframes mkBeat{0%,100%{opacity:.74}50%{opacity:1}}
 .arow .act{flex:0 0 62px;text-align:right;font-family:var(--font-num);font-size:11.5px;font-weight:640;
   font-variant-numeric:tabular-nums}
 .arow-cap{font-size:10.5px;color:var(--muted);margin-top:11px;line-height:1.45}
 @media(max-width:420px){.arow .k{flex:0 0 60px;font-size:11px}.arow .act{flex:0 0 54px;font-size:11px}
   .arow .rail{height:23px}.pbar{height:23px}}
+@media(prefers-reduced-motion:reduce){
+  .pbar::after,.arow .rail::after{animation:none;opacity:0}
+  .pseg,.arow .rail b{animation:none}.arow .rail u{animation:none;opacity:.9}}
 /* ── 코스톨라니 달걀 (v13.1) ────────────────────────────────────────
    시장 순환 위치를 6국면(A1~B3) 달걀 둘레 위의 한 점으로 표시한다.
    표시 전용 지표다 — 래더의 매매 판단(computeSeries)에는 일절 관여하지 않는다. */
@@ -368,8 +400,8 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
    히어로가 정적으로 느껴져 살아 있는 계기판처럼 보이도록 넣은 연출.
    전부 합성(transform·opacity·filter)만 써서 레이아웃 재계산이 없고,
    맨 아래 prefers-reduced-motion 블록에서 한 번에 꺼진다. */
-.hero>.card{animation:cardIn .58s var(--ease) both}
-.hero>#allocCard{animation-delay:.07s} .hero>#fgCard{animation-delay:.14s} .hero>#eggCard{animation-delay:.21s}
+.hero-l>.card,.hero-r>.card{animation:cardIn .58s var(--ease) both}
+#allocCard{animation-delay:.07s} #fgCard{animation-delay:.14s} #eggCard{animation-delay:.21s}
 @keyframes cardIn{from{opacity:0;transform:translateY(11px) scale(.985)}to{opacity:1;transform:none}}
 
 /* 달걀 뒤에서 국면 색으로 천천히 숨 쉬는 오로라 */
@@ -404,7 +436,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 @keyframes fgGrow{from{transform:scaleX(0);opacity:.35}to{transform:scaleX(1);opacity:1}}
 
 @media(prefers-reduced-motion:reduce){
-  .hero>.card{animation:none}
+  .hero-l>.card,.hero-r>.card{animation:none}
   .egg-box::before{animation:none;opacity:.5}
   .fg-bar::after{animation:none;opacity:0}
   .fg-tick{animation:none}
@@ -570,9 +602,9 @@ details.sandbox .stage-edit{background:var(--ov01)}
 @media(max-width:860px){
   /* 모바일(§67): 위 두 카드는 전폭, 공포탐욕·달걀은 아래 한 행에 좌우로 나란히.
      세로로 쌓으면 달걀이 화면 폭만큼 커져 한 화면에 안 들어온다. */
-  .hero{grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;gap:11px}
-  #stateCard{grid-area:1/1/2/3} #allocCard{grid-area:2/1/3/3}
-  #fgCard{grid-area:3/1/4/2}    #eggCard{grid-area:3/2/4/3}
+  /* 모바일: 위 두 카드는 전폭으로 쌓고, 공포탐욕·달걀은 아래 한 행에 좌우로 나란히(§67) */
+  .hero{grid-template-columns:1fr;gap:11px}
+  .hero-l{gap:11px} .hero-r{grid-template-columns:1fr 1fr;gap:11px}
   .ind-grid{grid-template-columns:repeat(2,1fr)}
   .summary-grid{grid-template-columns:repeat(2,1fr)}
   .row3{grid-template-columns:1fr}
@@ -637,20 +669,24 @@ details.sandbox .stage-edit{background:var(--ov01)}
   <!-- ===== DASHBOARD ===== -->
   <section id="tab-dash">
     <div class="hero">
-      <div class="card green card-hov state-box" id="stateCard">
-        <div class="state-head">
-          <div class="state-name" id="stateName">—</div>
-          <div class="gauge-row" id="gaugeRow"></div>
+      <div class="hero-l">
+        <div class="card green card-hov state-box" id="stateCard">
+          <div class="state-head">
+            <div class="state-name" id="stateName">—</div>
+            <div class="gauge-row" id="gaugeRow"></div>
+          </div>
+        </div>
+        <div class="card card-hov" id="allocCard">
+          <div id="allocBars"></div>
         </div>
       </div>
-      <div class="card card-hov" id="allocCard">
-        <div id="allocBars"></div>
-      </div>
-      <div class="card card-hov egg-box" id="eggCard" onclick="openKosto()" title="코스톨라니 달걀 — 클릭하면 6국면 설명">
-        <div id="eggBody"></div>
-      </div>
-      <div class="card card-hov fg-box" id="fgCard" onclick="openFG()" title="공포·탐욕 지수 — 클릭하면 산출 방법 설명">
-        <div id="fgBody"></div>
+      <div class="hero-r">
+        <div class="card card-hov fg-box" id="fgCard" onclick="openFG()" title="공포·탐욕 지수 — 클릭하면 산출 방법 설명">
+          <div id="fgBody"></div>
+        </div>
+        <div class="card card-hov egg-box" id="eggCard" onclick="openKosto()" title="코스톨라니 달걀 — 클릭하면 6국면 설명">
+          <div id="eggBody"></div>
+        </div>
       </div>
     </div>
 
@@ -1669,7 +1705,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='14.4.0';
+const APP_VERSION='14.6.1';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -1857,10 +1893,10 @@ function renderAllocBars(){
     else if(sh>0) act=`<b class="up">+${shN}주</b>`;
     else act=`<b class="down">−${shN}주</b>`;
     const wide=v>=0.16;
-    return `<div class="arow"><span class="k"><i style="background:${ALLOC_COLORS[k]}"></i>${k}</span>`
+    return `<div class="arow" style="--d3:${(0.10+TK.indexOf(k)*0.16).toFixed(2)}s"><span class="k"><i style="background:${ALLOC_COLORS[k]}"></i>${k}</span>`
       + `<span class="rail"><b style="width:${Math.max(v*100,1.6).toFixed(1)}%;background:${ALLOC_GRAD[k]}">`
       + (wide?`<span class="p">${Math.round(v*100)}%</span>`:'') + `</b>`
-      + `<u style="left:${(tg*100).toFixed(1)}%" title="목표 ${Math.round(tg*100)}%"></u>`
+      + `<span class="mkc"><u style="left:calc((100% - 8px) * ${tg.toFixed(4)} + 4px)" title="목표 ${Math.round(tg*100)}%"></u></span>`
       + (wide?'':`<span class="out">${Math.round(v*100)}%</span>`) + `</span>`
       + `<span class="act">${act}</span></div>`;
   }).join('');
@@ -2101,23 +2137,29 @@ function renderAssetChart(data){
     }
     if(slowM2) return;
     const CYC=5600, TRV=3200, ph=now%CYC;
-    if(ph<TRV){
-      const e=ph/TRV, x0=pts[0].x, x1=last.x;                // 등속 — 가감속을 주면 끊겨 보인다
-      const headX=x0+(x1-x0)*e;
-      const yAt=x=>{                                         // 폴리라인 위 정확한 y (보간)
-        if(x<=pts[0].x) return pts[0].y;
-        for(let i=1;i<pts.length;i++){ if(x<=pts[i].x){
-          const a=pts[i-1],b=pts[i],t=(b.x-a.x)?(x-a.x)/(b.x-a.x):0; return a.y+(b.y-a.y)*t; } }
-        return last.y; };
-      // §77: 꼬리(덧그린 밝은 선분)를 없애고 **머리 광점만** 흐르게 한다.
-      //      꼬리는 선을 두껍게 덧칠해 원래 선 위에 얼룩처럼 남아 보였다.
+    if(ph<TRV+900){
+      /* §79: 평가금액 광점 뒤를 원금 광점이 따라간다. 색은 각 선 색을 그대로 쓴다
+         (평가금액 #85a5c5 / 원금 #e5a182). lag만큼 늦게 출발해 앞뒤 간격이 생긴다. */
+      const HEADS=[{di:0,rgb:GL,      core:'228,240,252',lag:0},
+                   {di:1,rgb:'229,161,130',core:'252,232,220',lag:0.17}];
       c.save();
       c.beginPath(); c.rect(area.left,area.top,area.right-area.left,area.bottom-area.top); c.clip();
-      const hy=yAt(headX);
-      const hg=c.createRadialGradient(headX,hy,0,headX,hy,9);
-      hg.addColorStop(0,'rgba(198,222,242,.95)'); hg.addColorStop(.5,'rgba('+GL+',.45)'); hg.addColorStop(1,'rgba('+GL+',0)');
-      c.fillStyle=hg; c.beginPath(); c.arc(headX,hy,9,0,Math.PI*2); c.fill();
-      c.fillStyle='rgba(228,240,252,.95)'; c.beginPath(); c.arc(headX,hy,2.4,0,Math.PI*2); c.fill();
+      for(const H of HEADS){
+        const m2=chart.getDatasetMeta(H.di);
+        if(!m2||!m2.data||m2.data.length<2||m2.hidden) continue;
+        const P2=m2.data, e=(ph/TRV)-H.lag;
+        if(e<0||e>1) continue;
+        const a0=P2[0], a1=P2[P2.length-1];
+        const hx=a0.x+(a1.x-a0.x)*e;
+        let hy=a1.y;                                         // 폴리라인 위 정확한 y (꼭짓점 스냅 금지)
+        if(hx<=a0.x) hy=a0.y;
+        else for(let i=1;i<P2.length;i++){ if(hx<=P2[i].x){
+          const p=P2[i-1],q=P2[i],t=(q.x-p.x)?(hx-p.x)/(q.x-p.x):0; hy=p.y+(q.y-p.y)*t; break; } }
+        const hg=c.createRadialGradient(hx,hy,0,hx,hy,9);
+        hg.addColorStop(0,'rgba('+H.core+',.95)'); hg.addColorStop(.5,'rgba('+H.rgb+',.45)'); hg.addColorStop(1,'rgba('+H.rgb+',0)');
+        c.fillStyle=hg; c.beginPath(); c.arc(hx,hy,9,0,Math.PI*2); c.fill();
+        c.fillStyle='rgba('+H.core+',.95)'; c.beginPath(); c.arc(hx,hy,2.4,0,Math.PI*2); c.fill();
+      }
       c.restore();
     }
     if(chart.$pending) return;                               // 통과 중엔 rAF(부드럽게), 휴지 중엔 다음 통과까지 잠금
@@ -2125,7 +2167,7 @@ function renderAssetChart(data){
     if(tab && tab.classList.contains('hidden')) return;
     chart.$pending=true;
     const again=()=>{ chart.$pending=false; if(chart.ctx) chart.draw(); };
-    if(ph<TRV) requestAnimationFrame(again); else setTimeout(again, Math.max(60, CYC-ph));
+    if(ph<TRV+900) requestAnimationFrame(again); else setTimeout(again, Math.max(60, CYC-ph));
   }};
   assetChart=new Chart(ctx,{type:'line',data:{labels,datasets:ds},plugins:[assetGlow],
     options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
