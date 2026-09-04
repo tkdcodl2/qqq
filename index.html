@@ -221,12 +221,24 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .state-name::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--rc,var(--accent));box-shadow:0 0 14px var(--rc,var(--glow));flex:0 0 auto;animation:livePulse 2.4s ease-in-out infinite}
 @keyframes livePulse{0%,100%{box-shadow:0 0 6px var(--rc,var(--glow))}50%{box-shadow:0 0 18px 3px var(--rc,var(--glow))}}
 .state-sub{font-size:12.5px;color:var(--text-2);max-width:94%;line-height:1.45;position:relative;z-index:1}
-.gauge-row{display:flex;gap:5px;margin-top:10px;position:relative;z-index:1}
-.gpip{flex:1;height:8px;border-radius:var(--r-pill);background:var(--ov06);border:.5px solid rgba(255,255,255,.08);position:relative;overflow:hidden}
+.gauge-row{display:flex;gap:5px;margin-top:10px;position:relative;z-index:1;align-items:center}
+.gpip{flex:1;height:8px;border-radius:var(--r-pill);background:var(--ov06);border:.5px solid rgba(255,255,255,.08);position:relative;overflow:hidden;
+  transform-origin:left center;animation:pipIn .52s var(--ease) both;animation-delay:var(--d,0s)}
+@keyframes pipIn{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
+/* 게이지 오른쪽에 목표 비중 숫자. 칸 5개로는 20% 단위밖에 못 읽어서 실제 값을 같이 보여준다. */
+.gauge-pct{flex:0 0 auto;margin-left:9px;font-family:var(--font-num);font-weight:700;font-size:13px;
+  letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--rc,var(--accent));
+  text-shadow:0 0 16px color-mix(in srgb, var(--rc,var(--accent)) 45%, transparent);transition:color .5s var(--ease)}
+.state-name{transition:color .5s var(--ease)}
 /* 이전에는 단계색 → 시안으로 그라디언트가 걸려 그 자리에만 없는 색조가 끼어들었다.
    같은 색조를 밝게 뽑는 방식으로 바꿔 단계색 하나로 읽히게 한다. */
 .gpip.on{background:linear-gradient(90deg,var(--rc,var(--accent)),color-mix(in srgb, var(--rc,var(--accent)) 62%, #fff));border-color:transparent;box-shadow:0 0 14px -3px color-mix(in srgb, var(--rc,var(--accent)) 42%, transparent), var(--shadow-hi)}
-.gpip.on::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-100%);animation:sheen 3.4s ease-in-out infinite}
+.gpip.on::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-100%);
+  animation:sheen 3.4s ease-in-out infinite;animation-delay:var(--d,0s)}
+/* animation-delay는 상속되지 않는다 — 그래서 부모 .gpip에 인라인으로 준 지연은
+   ::after의 sheen에 전혀 걸리지 않아 다섯 칸이 동시에 번쩍였다(v13.7까지의 죽은 코드).
+   상속되는 커스텀 속성 --d로 바꿔 부모에서 한 번만 지정하고 양쪽이 함께 쓴다. */
+@media(prefers-reduced-motion:reduce){.gpip{animation:none}.gpip.on::after{animation:none;opacity:0}}
 @keyframes sheen{0%{transform:translateX(-100%)}55%,100%{transform:translateX(220%)}}
 .reco-box{display:flex;flex-direction:column;gap:12px;justify-content:center;align-items:center;text-align:center;min-height:112px}
 .reco-weights{display:flex;flex-wrap:wrap;gap:8px 14px;justify-content:center;font-size:15px;color:var(--text);font-weight:640}
@@ -278,31 +290,11 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
   0%,4%    {background-position:-400% 0%,-400% 100%,-400% 0%}
   50%,100% {background-position:500% 0%,500% 100%,500% 0%}}
 .abar.faded::before{animation-delay:2.8s}
-/* 차트 위를 지나가는 유리 반사 — 캔버스 재드로우 없이 CSS 합성만 사용 */
-.chart-glass{position:relative;overflow:hidden;border-radius:14px}
-/* 이전 방식: 58% 폭의 박스를 translateX 로 밀고 overflow:hidden 으로 잘라냄
-   → 박스의 좌/우 변이 그대로 '칼자국' 경계선으로 보였다.
-   지금 방식: 요소는 컨테이너에 고정(inset:0)하고 배경(빛)만 background-position 으로 흘려보낸다.
-   컨테이너에 고정된 mask 가 좌우 가장자리를 항상 부드럽게 먹여주므로
-   빛이 들어오고 나가는 순간에도 잘린 단면이 생기지 않는다. */
-.chart-glass::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;mix-blend-mode:screen;
-  background-repeat:no-repeat;
-  background-image:
-    /* 상단 커스틱 하이라이트 */
-    linear-gradient(90deg,transparent 0%,rgba(255,255,255,.02) 14%,rgba(255,255,255,.07) 28%,rgba(255,255,255,.18) 40%,rgba(255,255,255,.34) 50%,rgba(255,255,255,.18) 60%,rgba(255,255,255,.07) 72%,rgba(255,255,255,.02) 86%,transparent 100%),
-    /* 본체: 스톱을 촘촘히 깔아 종형(bell) 감쇠 — 계단/띠 없이 사라진다 */
-    linear-gradient(101deg,transparent 0%,rgba(100,210,255,.012) 9%,rgba(120,205,255,.03) 18%,rgba(255,255,255,.055) 27%,rgba(255,255,255,.09) 36%,rgba(255,255,255,.145) 44%,rgba(255,255,255,.175) 50%,rgba(255,255,255,.145) 56%,rgba(255,255,255,.09) 64%,rgba(255,255,255,.055) 73%,rgba(255,200,160,.03) 82%,rgba(255,186,140,.012) 91%,transparent 100%);
-  background-size:64% 1px,64% 100%;
-  background-position:-178% 0%,-178% 0%;
-  -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.28) 5%,rgba(0,0,0,.75) 11%,#000 17%,#000 83%,rgba(0,0,0,.75) 89%,rgba(0,0,0,.28) 95%,transparent 100%);
-  mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.28) 5%,rgba(0,0,0,.75) 11%,#000 17%,#000 83%,rgba(0,0,0,.75) 89%,rgba(0,0,0,.28) 95%,transparent 100%);
-  will-change:background-position;
-  animation:chartGlass 9s linear infinite}
-/* 등속으로 한 번 지나가고(약 3.9초) 나머지는 화면 밖에서 대기 → opacity 를 껐다 켤 필요가 없다 */
-@keyframes chartGlass{
-  0%,3%    {background-position:-178% 0%,-178% 0%}
-  46%,100% {background-position:278% 0%,278% 0%}}
-@media(prefers-reduced-motion:reduce){.chart-glass::after{animation:none;opacity:0}}
+/* v13.8: '유리 반사'(.chart-glass)를 제거했다.
+   배경 레이어 하나가 background-size:64% 1px — 높이 1px짜리 띠였고, 그것이 컨테이너 상단을
+   가로지르며 '경계선'으로 읽혔다. 두께를 키우거나 지우는 대신, 차트에는 차트다운 연출을 쓴다:
+   ① 선이 왼쪽에서 오른쪽으로 그려지는 진입 애니메이션 ② 끝점 정적 발광(renderAssetChart).
+   둘 다 캔버스 안에서 일어나므로 컨테이너 모서리에 인공적인 선이 생기지 않는다. */
 @media(prefers-reduced-motion:reduce){.abar::before{animation:none;opacity:0}}
 .abar-seg-t{position:relative;z-index:6;font-size:10px;font-weight:700;letter-spacing:-.01em;line-height:1;color:#0d0d0d;margin-right:5px}
 .abar-seg-p{position:relative;z-index:6;font-family:var(--font-num);font-size:11px;font-weight:700;line-height:1;color:#0d0d0d;font-variant-numeric:tabular-nums}
@@ -656,7 +648,7 @@ details.sandbox .stage-edit{background:var(--ov01)}
       </div>
       <div class="card">
         <div class="section-title"><span class="dot"></span>월별 자산 추이</div>
-        <div class="chart-glass" style="height:300px"><canvas id="assetChart"></canvas></div>
+        <div style="height:300px"><canvas id="assetChart"></canvas></div>
       </div>
     </div>
 
@@ -1471,13 +1463,14 @@ function renderFG(){
 }
 /* 0 → 목표값 카운트업. 지표가 '측정되는' 느낌을 준다.
    reduced-motion이면 즉시 최종값만 쓴다(애니메이션을 아예 시작하지 않는다). */
-function countTo(el,target,ms){
+function countTo(el,target,ms,suffix){
   if(!el) return;
+  const sfx=suffix||'';
   let slow=false; try{ slow=window.matchMedia('(prefers-reduced-motion:reduce)').matches; }catch(e){}
-  if(slow){ el.textContent=target; return; }
+  if(slow){ el.textContent=target+sfx; return; }
   const t0=performance.now();
   const step=now=>{ const k=Math.min(1,(now-t0)/ms), e=1-Math.pow(1-k,3);   // easeOutCubic
-    el.textContent=Math.round(target*e);
+    el.textContent=Math.round(target*e)+sfx;
     if(k<1) requestAnimationFrame(step); };
   requestAnimationFrame(step);
 }
@@ -1660,7 +1653,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='13.7.0';
+const APP_VERSION='13.8.0';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -1761,8 +1754,11 @@ function renderDashboard(){
   const gr=document.getElementById('gaugeRow'); gr.innerHTML='';
   const pips=Math.round(w*5);
   for(let k=0;k<5;k++){const p=document.createElement('div');p.className='gpip'+(k<pips?' on':'');
-    p.style.animationDelay=(k*.12)+'s';
+    p.style.setProperty('--d',(k*0.11).toFixed(2)+'s');   // 점등·셔머 지연을 함께 태운다(상속되는 커스텀 속성)
     gr.appendChild(p);}
+  const gp=document.createElement('div'); gp.className='gauge-pct'; gp.id='gaugePct'; gp.textContent='0%';
+  gr.appendChild(gp);
+  countTo(gp, Math.round(w*100), 850, '%');   // 칸 5개로는 20% 단위밖에 못 읽으므로 실제 비중을 같이 센다
   // 이번 주 동작
   let act;
   if(reg===4) act='전량 방어(GLD·SGOV) 중 — 고점 −3% 회복 또는 추세 회복까지';
@@ -2055,7 +2051,38 @@ function renderAssetChart(data){
       grid:{display:false},border:{display:false},
       ticks:{color:CH.tickDiv,font:{size:9},maxTicksLimit:4,
         callback:v=>v<=0?'':(v>=1e4?Math.round(v/1e4).toLocaleString()+'만':Math.round(v).toLocaleString())}} : undefined;
-  assetChart=new Chart(ctx,{type:'line',data:{labels,datasets:ds},
+  /* v13.8 연출 ① — 선이 왼쪽에서 오른쪽으로 그려진다.
+     점마다 x·y 애니메이션 시작을 index만큼 늦추면 '그려지는' 것처럼 보인다.
+     전체 1.1초를 점 개수로 나누되 점이 적을 때 너무 느려지지 않게 18ms로 자른다. */
+  const slowM=(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)||IS_MOBILE();
+  const dl=labels.length?Math.min(18,1100/labels.length):0;
+  const prevY=c2=>{ const sc=c2.chart.scales.y;
+    if(c2.index===0) return sc?sc.getPixelForValue(sc.min):0;
+    const m=c2.chart.getDatasetMeta(c2.datasetIndex).data[c2.index-1];
+    return m?m.getProps(['y'],true).y:(sc?sc.getPixelForValue(sc.min):0); };
+  const drawIn = slowM ? false : {
+    x:{type:'number',easing:'linear',duration:dl,from:NaN,
+       delay(c2){ if(c2.type!=='data'||c2.xStarted) return 0; c2.xStarted=true; return c2.index*dl; }},
+    y:{type:'number',easing:'linear',duration:dl,from:prevY,
+       delay(c2){ if(c2.type!=='data'||c2.yStarted) return 0; c2.yStarted=true; return c2.index*dl; }}
+  };
+  ds[0].animation=drawIn; ds[1].animation=drawIn;
+  if(ds[2]) ds[2].animation = slowM?false:{duration:700,easing:'easeOutQuart'};
+  /* v13.8 연출 ② — 끝점 발광. 가격 차트의 끝점 마커와 같은 언어를 쓰되,
+     여기서는 정적이다(매 프레임 재드로우 없음 → 항상 도는 루프를 늘리지 않는다). */
+  const assetGlow={id:'assetGlow',afterDatasetsDraw(chart){
+    const meta=chart.getDatasetMeta(0); if(!meta||!meta.data||!meta.data.length) return;
+    const pt=meta.data[meta.data.length-1], area=chart.chartArea, c=chart.ctx;
+    if(!pt||!area||pt.x<area.left-1||pt.x>area.right+1) return;
+    c.save();
+    const gg=c.createRadialGradient(pt.x,pt.y,1,pt.x,pt.y,13);
+    gg.addColorStop(0,'rgba(133,165,197,.80)'); gg.addColorStop(.45,'rgba(133,165,197,.30)'); gg.addColorStop(1,'rgba(133,165,197,0)');
+    c.fillStyle=gg; c.beginPath(); c.arc(pt.x,pt.y,13,0,Math.PI*2); c.fill();
+    c.fillStyle='#d3d8db'; c.beginPath(); c.arc(pt.x,pt.y,3,0,Math.PI*2); c.fill();
+    c.lineWidth=2; c.strokeStyle='#85a5c5'; c.beginPath(); c.arc(pt.x,pt.y,3,0,Math.PI*2); c.stroke();
+    c.restore();
+  }};
+  assetChart=new Chart(ctx,{type:'line',data:{labels,datasets:ds},plugins:[assetGlow],
     options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
     plugins:{legend:{labels:{color:CH.tick,boxWidth:12,font:{size:11}}},
       tooltip:{callbacks:{label:c=>c.dataset.label+': '+won(c.parsed.y)}}},
