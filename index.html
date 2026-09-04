@@ -331,16 +331,23 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
   box-shadow:0 0 9px rgba(255,255,255,.65);transform:translateX(-50%);transition:left 1.1s var(--ease)}
 .fg-scale{display:flex;justify-content:space-between;margin-top:6px;font-size:9px;color:var(--muted);letter-spacing:.01em}
 .fg-comp{flex:0 0 auto;min-width:0;display:flex;flex-direction:column;gap:7px;
-  border-left:.5px solid var(--border);padding-left:19px}
+  border-top:.5px solid var(--border);padding-top:12px}
+/* 세로 배치로 바뀐 뒤에도 가로 배치 시절의 border-left/padding-left:19px가 남아 있었다.
+   그 19px 들여쓰기 때문에 '안전자산 선호'가 두 줄로 접혔다 → 구분선을 위쪽으로 옮긴다(§68). */
 .fg-row{display:flex;align-items:center;gap:10px;font-size:11px}
-.fg-row .n{flex:0 0 60px;color:var(--text2);letter-spacing:-.02em}
+.fg-row .n{flex:0 0 70px;color:var(--text2);letter-spacing:-.03em;white-space:nowrap}   /* '안전자산 선호'(6자)가 한 줄에 들어가는 최소 폭 */
 .fg-row .b{flex:1;min-width:30px;height:5px;border-radius:var(--r-pill);background:var(--ov06);overflow:hidden}
 .fg-row .b i{display:block;height:100%;border-radius:var(--r-pill);transition:width 1.1s var(--ease)}
 .fg-row .v{flex:0 0 24px;text-align:right;font-family:var(--font-num);font-variant-numeric:tabular-nums;font-weight:640}
 /* 좁은 세로 열이 기본이므로 항상 위아래로 쌓는다. 모바일(1열)에서는 폭이 넓어지므로 가로로 편다. */
 /* 모바일에서도 반쪽 폭이라 세로 배치를 그대로 쓴다. 아주 좁은 화면에서만 더 조인다. */
 @media(max-width:420px){.fg-grid{gap:10px}.fg-num{font-size:26px}
-  .fg-row{font-size:10.5px;gap:7px}.fg-row .n{flex:0 0 52px}.fg-row .v{flex:0 0 20px}}
+  .fg-row{font-size:10px;gap:6px}.fg-row .n{flex:0 0 64px}.fg-row .v{flex:0 0 19px}
+  .fg-comp{padding-top:10px;gap:6px}}
+/* SE 1세대급(≤344px)에서는 반쪽 열이 116px밖에 안 돼 한 행이 15px 넘친다 → 여기서만 더 조인다 */
+@media(max-width:344px){.fg-box{padding:11px 11px 10px}.fg-num{font-size:23px}.fg-lab{font-size:11.5px}
+  .fg-row{font-size:9.5px;gap:5px}.fg-row .n{flex:0 0 56px}.fg-row .b{min-width:22px}.fg-row .v{flex:0 0 17px}
+  .fg-scale{font-size:8px}}
 .kg-tbl{width:100%;border-collapse:collapse;margin-top:10px;font-size:12.5px}
 .kg-tbl th,.kg-tbl td{text-align:left;padding:9px 10px;border-bottom:.5px solid var(--border);vertical-align:top}
 .kg-tbl th{color:var(--text2);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:590}
@@ -349,6 +356,46 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 @media(max-width:860px){.egg-svg{flex:0 0 auto;height:auto;min-height:0;max-width:200px}}
 /* 반쪽 폭이라도 태블릿 세로(600~860px)에서는 한 칸이 280~410px까지 벌어진다.
    상한을 걸지 않으면 달걀만 400px 넘게 커지므로 200px에서 자르고 가운데 정렬한다(§67). */
+
+/* ═══ 동적 효과 (v13.7) ═══════════════════════════════════════════
+   히어로가 정적으로 느껴져 살아 있는 계기판처럼 보이도록 넣은 연출.
+   전부 합성(transform·opacity·filter)만 써서 레이아웃 재계산이 없고,
+   맨 아래 prefers-reduced-motion 블록에서 한 번에 꺼진다. */
+.hero>.card{animation:cardIn .58s var(--ease) both}
+.hero>#allocCard{animation-delay:.07s} .hero>#fgCard{animation-delay:.14s} .hero>#eggCard{animation-delay:.21s}
+@keyframes cardIn{from{opacity:0;transform:translateY(11px) scale(.985)}to{opacity:1;transform:none}}
+
+/* 달걀 뒤에서 국면 색으로 천천히 숨 쉬는 오로라 */
+.egg-box{position:relative}
+.egg-box::before{content:"";position:absolute;left:-6%;right:-6%;top:2%;height:78%;z-index:0;pointer-events:none;
+  background:radial-gradient(58% 52% at 50% 46%, color-mix(in srgb, var(--pc,var(--accent)) 20%, transparent), transparent 72%);
+  filter:blur(16px);animation:eggAura 7.5s ease-in-out infinite}
+@keyframes eggAura{0%,100%{opacity:.42;transform:scale(1)}50%{opacity:.92;transform:scale(1.06)}}
+.egg-box>*{position:relative;z-index:1}
+.egg-cap .pn{transition:color .5s var(--ease)}
+
+/* 공포·탐욕 게이지: 눈금이 자리를 찾아 내려오고, 띠 위로 빛이 지나간다 */
+.fg-bar{overflow:hidden}
+.fg-bar::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;mix-blend-mode:screen;
+  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.10) 38%,rgba(255,255,255,.42) 50%,rgba(255,255,255,.10) 62%,transparent 100%);
+  background-size:46% 100%;background-repeat:no-repeat;background-position:-70% 0;
+  animation:fgSweep 6.4s linear infinite}
+@keyframes fgSweep{0%,6%{background-position:-70% 0}52%,100%{background-position:170% 0}}
+.fg-tick{animation:tickIn .8s var(--ease) both .2s}
+@keyframes tickIn{from{opacity:0;transform:translateX(-50%) scaleY(.2)}to{opacity:1;transform:translateX(-50%) scaleY(1)}}
+.fg-num{transition:color .5s var(--ease)}
+/* 축 바가 왼쪽에서 순차적으로 자라난다 (지연은 renderFG가 인라인으로 준다) */
+.fg-row .b i{transform-origin:left center;animation:fgGrow .78s var(--ease) both}
+@keyframes fgGrow{from{transform:scaleX(0);opacity:.35}to{transform:scaleX(1);opacity:1}}
+
+@media(prefers-reduced-motion:reduce){
+  .hero>.card{animation:none}
+  .egg-box::before{animation:none;opacity:.5}
+  .fg-bar::after{animation:none;opacity:0}
+  .fg-tick{animation:none}
+  .fg-row .b i{animation:none}
+  .egg-runner{display:none}
+}
 .range-pills{display:inline-flex;gap:3px;padding:3px;border-radius:var(--r-pill);background:var(--surface2)}
 .range-pills button{font-family:var(--font-num);font-size:10.5px;font-weight:640;color:var(--text2);background:none;border:none;border-radius:var(--r-pill);padding:4px 11px;cursor:pointer;transition:.28s var(--ease);letter-spacing:-.01em}
 .range-pills button:hover{color:var(--text);background:var(--st-hover)}
@@ -1410,16 +1457,29 @@ function renderFG(){
     const p=r.fgc[i];
     if(isNaN(p)) return '<div class="fg-row"><span class="n">'+ax[0]+'</span><span class="b"></span><span class="v muted">—</span></div>';
     return '<div class="fg-row" title="'+ax[1]+'"><span class="n">'+ax[0]+'</span>'
-      +'<span class="b"><i style="width:'+p.toFixed(0)+'%;background:'+fgCol(p)+'"></i></span>'
+      +'<span class="b"><i style="width:'+p.toFixed(0)+'%;background:'+fgCol(p)+';animation-delay:'+(0.22+i*0.09).toFixed(2)+'s"></i></span>'
       +'<span class="v" style="color:'+fgCol(p)+'">'+Math.round(p)+'</span></div>';
   }).join('');
   el.innerHTML='<div class="fg-grid"><div class="fg-main">'
-    +'<div class="fg-num" style="color:'+c+'">'+v+'</div>'
+    +'<div class="fg-num" id="fgNum" style="color:'+c+'">'+v+'</div>'
     +'<div class="fg-lab" style="color:'+c+'">'+fgLab(v)
     +'<span class="muted" style="font-weight:500;font-size:10px;margin-left:6px">자체 산출 · 1년 백분위</span></div>'
     +'<div class="fg-bar"><div class="fg-tick" style="left:'+Math.min(99.4,Math.max(0.6,v))+'%"></div></div>'
     +'<div class="fg-scale"><span>극도의 공포</span><span>중립</span><span>극도의 탐욕</span></div>'
     +'</div><div class="fg-comp">'+rows+'</div></div>';
+  countTo(document.getElementById('fgNum'), v, 900);
+}
+/* 0 → 목표값 카운트업. 지표가 '측정되는' 느낌을 준다.
+   reduced-motion이면 즉시 최종값만 쓴다(애니메이션을 아예 시작하지 않는다). */
+function countTo(el,target,ms){
+  if(!el) return;
+  let slow=false; try{ slow=window.matchMedia('(prefers-reduced-motion:reduce)').matches; }catch(e){}
+  if(slow){ el.textContent=target; return; }
+  const t0=performance.now();
+  const step=now=>{ const k=Math.min(1,(now-t0)/ms), e=1-Math.pow(1-k,3);   // easeOutCubic
+    el.textContent=Math.round(target*e);
+    if(k<1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
 }
 function openFG(){
   const b=document.getElementById('fgRows');
@@ -1431,6 +1491,7 @@ function openFG(){
 
 function renderEgg(){
   const el=document.getElementById('eggBody'); if(!el) return;
+  const card=document.getElementById('eggCard');
   const r=CUR;   // 카드 제목(날짜)은 §64에서 제거 — 시세 기준일은 왼쪽 '현재 시장' 카드에 표시된다
   if(!r || r.kPh==null || r.kPh<0 || isNaN(r.kAlpha)){
     el.innerHTML='<div class="muted" style="font-size:12px;text-align:center;padding:34px 0">200일선 형성 전 — 판정 불가</div>'; return; }
@@ -1446,6 +1507,7 @@ function renderEgg(){
       +'" opacity="'+(i===r.kPh?1:0.46)+'">'+p.k+'</text>';
   }).join('');
   const posN=Math.round(r.kPos*100), dirTxt=(r.kDir>0?'상승':'하락');
+  if(card) card.style.setProperty('--pc', P.c);   // 뒤쪽 오로라가 국면 색을 따라간다
   // 달걀의 처방은 '코스톨라니 원전의 교리'일 뿐 이 앱의 지시가 아니다.
   // 래더가 실제 지시이므로 나란히 보여주고, 어긋나면 어느 쪽을 따를지 화면에서 못박는다.
   const wP=Math.round((r.w||0)*100);
@@ -1456,7 +1518,14 @@ function renderEgg(){
   +  '<defs><filter id="eggGl" x="-55%" y="-55%" width="210%" height="210%">'
   +    '<feGaussianBlur stdDeviation="3.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'
   +  '<path d="'+eggArc(0,1)+' Z" fill="rgba(255,255,255,.022)" stroke="rgba(255,255,255,.07)" stroke-width="1"/>'
-  +  segs + labs
+  +  segs
+  //  현재 국면 호 위를 한 점의 빛이 지난다. pathLength=100으로 정규화해
+  //  구간 길이를 몰라도 대시 패턴을 비율로 지정할 수 있다.
+  +  '<path class="egg-runner" d="'+eggArc(r.kPh/6+0.005,(r.kPh+1)/6-0.005)+'" fill="none" stroke="#fff" stroke-width="3.4"'
+  +    ' stroke-linecap="round" opacity=".62" pathLength="100" stroke-dasharray="11 89">'
+  +    '<animate attributeName="stroke-dashoffset" from="11" to="-89" dur="3.1s" repeatCount="indefinite"/>'
+  +    '<animate attributeName="opacity" values="0;.62;.62;0" keyTimes="0;.12;.8;1" dur="3.1s" repeatCount="indefinite"/></path>'
+  +  labs
   +  '<text x="'+EGG.cx+'" y="'+(EGG.cy-11)+'" text-anchor="middle" font-size="26" font-weight="700" fill="'+P.c+'" letter-spacing="-1">'+P.k+'</text>'
   +  '<text x="'+EGG.cx+'" y="'+(EGG.cy+12)+'" text-anchor="middle" font-size="11.5" font-weight="640" fill="rgba(255,255,255,.72)">'+P.act+'</text>'
   +  '<circle cx="'+m[0].toFixed(2)+'" cy="'+m[1].toFixed(2)+'" r="6" fill="none" stroke="'+P.c+'" stroke-width="1.6" opacity=".75">'
@@ -1591,7 +1660,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='13.6.0';
+const APP_VERSION='13.7.0';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
