@@ -223,13 +223,18 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .state-sub{font-size:12.5px;color:var(--text-2);max-width:94%;line-height:1.45;position:relative;z-index:1}
 .gauge-row{display:flex;gap:5px;margin-top:10px;position:relative;z-index:1;align-items:center}
 /* 칸마다 따로 도는 셔머는 한 칸 폭(≈40px)만 지나가느라 사실상 안 보였다(§72).
-   줄 전체를 한 번에 훑는 스캔을 위에 덮어 '계기판이 살아 있는' 인상을 만든다. */
-.gauge-row::after{content:"";position:absolute;inset:-2px 0;pointer-events:none;z-index:3;border-radius:var(--r-pill);
+   줄 전체를 한 번에 훑는 스캔을 덮는다. 단 스캔은 **칸이 놓인 트랙에만** 걸어야 한다 —
+   .gauge-row에 걸면 오른쪽 비중 숫자까지 훑고, 줄 높이가 숫자에 맞춰 커져 있어 빛이 위아래로 넘친다. */
+.gauge-track{flex:1;min-width:0;display:flex;gap:5px;position:relative}
+/* 빛을 **가로 그라디언트로 칠한 사각형**으로 만들면 위아래 변이 그대로 잘린 선으로 보인다(§74).
+   가로로만 감쇠하고 세로로는 끝까지 불투명하기 때문이다. 사방으로 감쇠하는 타원으로 바꾼다. */
+.gauge-track::after{content:"";position:absolute;inset:-8px 0;pointer-events:none;z-index:3;
   mix-blend-mode:screen;background-repeat:no-repeat;
-  background-image:linear-gradient(100deg,transparent 0%,rgba(255,255,255,.08) 32%,rgba(255,255,255,.62) 50%,rgba(255,255,255,.08) 68%,transparent 100%);
-  background-size:40% 100%;background-position:-70% 0;
+  background-image:radial-gradient(closest-side ellipse at 50% 50%,
+    rgba(255,255,255,.58), rgba(255,255,255,.18) 42%, transparent 74%);
+  background-size:30% 100%;background-position:-70% 50%;
   animation:gaugeScan 3.2s linear infinite}
-@keyframes gaugeScan{0%,10%{background-position:-70% 0}62%,100%{background-position:170% 0}}
+@keyframes gaugeScan{0%,10%{background-position:-70% 50%}62%,100%{background-position:170% 50%}}
 .gpip{flex:1;height:8px;border-radius:var(--r-pill);background:var(--ov06);border:.5px solid rgba(255,255,255,.08);position:relative;overflow:hidden;
   transform-origin:left center;animation:pipIn .62s var(--ease) both;animation-delay:var(--d,0s)}
 @keyframes pipIn{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
@@ -254,7 +259,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 /* animation-delay는 상속되지 않는다 — 그래서 부모 .gpip에 인라인으로 준 지연은
    ::after의 sheen에 전혀 걸리지 않아 다섯 칸이 동시에 번쩍였다(v13.7까지의 죽은 코드).
    상속되는 커스텀 속성 --d로 바꿔 부모에서 한 번만 지정하고 양쪽이 함께 쓴다. */
-@media(prefers-reduced-motion:reduce){.gpip,.gpip.on{animation:none}.gpip.on::after,.gauge-row::after{animation:none;opacity:0}}
+@media(prefers-reduced-motion:reduce){.gpip,.gpip.on{animation:none}.gpip.on::after,.gauge-track::after{animation:none;opacity:0}}
 @keyframes sheen{0%{transform:translateX(-100%)}55%,100%{transform:translateX(220%)}}
 .reco-box{display:flex;flex-direction:column;gap:12px;justify-content:center;align-items:center;text-align:center;min-height:112px}
 .reco-weights{display:flex;flex-wrap:wrap;gap:8px 14px;justify-content:center;font-size:15px;color:var(--text);font-weight:640}
@@ -318,13 +323,13 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 /* 차트가 왼쪽에서 오른쪽으로 드러난다(v13.8.1). 캔버스를 건드리지 않고 컨테이너를 잘라내는
    방식이라 Chart.js 설정과 무관하게 항상 동작하고, 오버레이가 아니므로 경계선이 생기지 않는다. */
 .chart-wipe{position:relative}
-.chart-wipe.wipe{animation:chartWipe 1.15s cubic-bezier(.22,.61,.36,1) both}
+.chart-wipe.wipe{animation:chartWipe 1.35s cubic-bezier(.22,.61,.36,1) both}
 @keyframes chartWipe{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
 /* 드러나는 경계에 광선을 함께 달려보낸다 — 그냥 잘라내기만 하면 눈이 알아채지 못한다 */
 .chart-wipe.wipe::after{content:"";position:absolute;top:0;bottom:0;width:15%;pointer-events:none;z-index:3;
   mix-blend-mode:screen;border-radius:14px;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.14) 55%,rgba(255,255,255,.50));
-  animation:chartEdge 1.15s cubic-bezier(.22,.61,.36,1) both}
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.18) 55%,rgba(255,255,255,.62));
+  animation:chartEdge 1.35s cubic-bezier(.22,.61,.36,1) both}
 @keyframes chartEdge{from{left:-15%;opacity:1}85%{opacity:.85}to{left:100%;opacity:0}}
 @media(prefers-reduced-motion:reduce){.chart-wipe.wipe,.chart-wipe.wipe::after{animation:none}}
 /* v13.8: '유리 반사'(.chart-glass)를 제거했다.
@@ -1699,7 +1704,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='13.10.0';
+const APP_VERSION='14.1.0';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -1799,10 +1804,12 @@ function renderDashboard(){
   document.getElementById('stateName').textContent = (reg===1&&r.fast) ? '복귀(추력발동)' : REG_NAME[reg];
   // gauge: TQQQ 목표 비중을 5칸으로 표시
   const gr=document.getElementById('gaugeRow'); gr.innerHTML='';
+  const trk=document.createElement('div'); trk.className='gauge-track';   // 스캔은 칸이 놓인 트랙에만 건다(§74)
   const pips=Math.round(w*5);
   for(let k=0;k<5;k++){const p=document.createElement('div');p.className='gpip'+(k<pips?' on':'');
     p.style.setProperty('--d',(k*0.16).toFixed(2)+'s');   // 점등·셔머 지연을 함께 태운다(상속되는 커스텀 속성)
-    gr.appendChild(p);}
+    trk.appendChild(p);}
+  gr.appendChild(trk);
   const gp=document.createElement('div'); gp.className='gauge-pct'; gp.id='gaugePct'; gp.textContent='0%';
   gr.appendChild(gp);
   countTo(gp, Math.round(w*100), 850, '%');   // 칸 5개로는 20% 단위밖에 못 읽으므로 실제 비중을 같이 센다
@@ -2107,17 +2114,33 @@ function renderAssetChart(data){
      의존하지 않으므로 이런 방식으로 깨질 수 없다. 기본 애니메이션은 Chart.js에 맡긴다. */
   /* v13.8 연출 ② — 끝점 발광. 가격 차트의 끝점 마커와 같은 언어를 쓰되,
      여기서는 정적이다(매 프레임 재드로우 없음 → 항상 도는 루프를 늘리지 않는다). */
+  /* 와이프는 **한 번**뿐이라 놓치면 끝이다(§74). 가격 차트처럼 **상시** 움직이는 신호를 둔다 —
+     끝점이 숨 쉬고, 거기서 파문이 퍼져 나간다. 탭이 보일 때만 20fps로 되그린다. */
+  const slowM=(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const assetGlow={id:'assetGlow',afterDatasetsDraw(chart){
     const meta=chart.getDatasetMeta(0); if(!meta||!meta.data||!meta.data.length) return;
     const pt=meta.data[meta.data.length-1], area=chart.chartArea, c=chart.ctx;
     if(!pt||!area||pt.x<area.left-1||pt.x>area.right+1) return;
+    const t=slowM?0:((Date.now()%2800)/2800);
+    const k=(1-Math.cos(t*2*Math.PI))/2;                      // 0 → 1 → 0
     c.save();
-    const gg=c.createRadialGradient(pt.x,pt.y,1,pt.x,pt.y,13);
-    gg.addColorStop(0,'rgba(133,165,197,.80)'); gg.addColorStop(.45,'rgba(133,165,197,.30)'); gg.addColorStop(1,'rgba(133,165,197,0)');
-    c.fillStyle=gg; c.beginPath(); c.arc(pt.x,pt.y,13,0,Math.PI*2); c.fill();
-    c.fillStyle='#d3d8db'; c.beginPath(); c.arc(pt.x,pt.y,3,0,Math.PI*2); c.fill();
-    c.lineWidth=2; c.strokeStyle='#85a5c5'; c.beginPath(); c.arc(pt.x,pt.y,3,0,Math.PI*2); c.stroke();
+    if(!slowM){                                               // 퍼지는 파문
+      const rr=5+15*t;
+      c.strokeStyle='rgba(133,165,197,'+(0.55*(1-t)).toFixed(3)+')'; c.lineWidth=1.6;
+      c.beginPath(); c.arc(pt.x,pt.y,rr,0,Math.PI*2); c.stroke();
+    }
+    const R=11+6*k;
+    const gg=c.createRadialGradient(pt.x,pt.y,1,pt.x,pt.y,R);
+    gg.addColorStop(0,'rgba(133,165,197,'+(0.62+0.30*k).toFixed(3)+')');
+    gg.addColorStop(.45,'rgba(133,165,197,.30)'); gg.addColorStop(1,'rgba(133,165,197,0)');
+    c.fillStyle=gg; c.beginPath(); c.arc(pt.x,pt.y,R,0,Math.PI*2); c.fill();
+    c.fillStyle='#d3d8db'; c.beginPath(); c.arc(pt.x,pt.y,3.2,0,Math.PI*2); c.fill();
+    c.lineWidth=2; c.strokeStyle='#85a5c5'; c.beginPath(); c.arc(pt.x,pt.y,3.2,0,Math.PI*2); c.stroke();
     c.restore();
+    if(slowM || chart.$beat) return;
+    const tab=document.getElementById('tab-dash');
+    if(tab && tab.classList.contains('hidden')) return;       // 다른 탭이면 루프 정지
+    chart.$beat=setTimeout(()=>{ chart.$beat=null; if(chart.ctx) chart.draw(); },50);
   }};
   assetChart=new Chart(ctx,{type:'line',data:{labels,datasets:ds},plugins:[assetGlow],
     options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
@@ -2131,8 +2154,13 @@ function renderAssetChart(data){
      v13.8.1은 new Chart() 앞에서 걸었는데, Chart.js가 자체 애니메이션으로 1초에 걸쳐 그리는 바람에
      와이프는 '아직 비어 있는 캔버스'를 훑고 끝나 아무것도 드러내지 않았다.
      animation:false로 생성 시점에 완성된 그림을 그리게 한 뒤 여기서 재생한다. */
-  const wrap=document.getElementById('assetWrap');
-  if(wrap){ wrap.classList.remove('wipe'); void wrap.offsetWidth; wrap.classList.add('wipe'); }
+  playAssetWipe();
+}
+/* 와이프 재생. 렌더 직후뿐 아니라 대시보드 탭으로 돌아올 때도 다시 튼다 —
+   한 번만 재생하면 페이지를 처음 여는 순간을 놓친 사용자에게는 없는 효과나 마찬가지다(§74). */
+function playAssetWipe(){
+  const w=document.getElementById('assetWrap'); if(!w) return;
+  w.classList.remove('wipe'); void w.offsetWidth; w.classList.add('wipe');
 }
 async function renderMonthly(){
   const list=await getMonthly();
@@ -3222,6 +3250,7 @@ function switchTab(t){
   ['dash','setup','trades','bt'].forEach(x=>document.getElementById('tab-'+x).classList.toggle('hidden',x!==t));
   document.querySelectorAll('.tab-btn,[data-tab]').forEach(b=>{if(b.dataset.tab)b.classList.toggle('active',b.dataset.tab===t);});
   if(t==='dash' && priceChart && priceChart.resize) priceChart.resize();   // 탭 복귀 시 캔버스 크기 보정
+  if(t==='dash'){ playAssetWipe(); if(assetChart && assetChart.draw) assetChart.draw(); }   // 와이프 재생 + 맥동 루프 재개(§74)
   window.scrollTo(0,0);                                                    // 화면 전환 시 항상 최상단부터
 }
 /* ===== 시세 갱신 =====
