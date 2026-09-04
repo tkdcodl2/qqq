@@ -286,7 +286,11 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .abar-label{font-family:var(--font-text);font-size:10px;color:var(--text2);margin-bottom:8px;letter-spacing:.08em;font-weight:590;text-transform:uppercase}
 /* 스캔은 조각마다 걸면 조각 폭만큼만 지나가 안 보인다(§74에서 게이지로 겪은 것과 같다).
    막대 전체에 한 겹 덮되, 가로 그라디언트 사각형은 위아래 변이 선으로 보이므로 타원으로 감쇠시킨다. */
-.pbar{display:flex;gap:4px;height:26px;margin-bottom:14px;position:relative}
+/* 조각들이 얹히는 홈. 100%짜리 한 조각일 때는 안 보이지만, 갈라지면 조각 사이로 드러나
+   '파인 트랙 위에 알약이 놓였다'는 인상을 만든다. */
+.pbar{display:flex;gap:4px;height:26px;margin-bottom:14px;position:relative;
+  border-radius:9px;background:var(--ov03);
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.30), inset 0 -.5px 0 rgba(255,255,255,.05)}
 .pbar::after{content:"";position:absolute;inset:-7px 0;pointer-events:none;z-index:3;
   mix-blend-mode:screen;background-repeat:no-repeat;
   background-image:radial-gradient(closest-side ellipse at 50% 50%,
@@ -294,12 +298,27 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
   background-size:26% 100%;background-position:-70% 50%;
   animation:allocScan 4.4s linear infinite}
 @keyframes allocScan{0%,10%{background-position:-70% 50%}60%,100%{background-position:170% 50%}}
+/* 색을 `--c` 변수로 받는다(§81). 전에는 background에 색을 직접 인라인으로 박아
+   CSS에서 그 색을 참조할 수 없었고, 그래서 조각 색으로 물든 그림자를 만들 수 없었다. */
 .pseg{flex:1;min-width:0;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:5px;
   white-space:nowrap;overflow:hidden;color:rgba(12,16,18,.84);
-  background-image:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,0) 62%);
-  animation:barWipe .95s var(--ease) both}
+  background-color:var(--c,var(--accent));
+  background-image:
+    linear-gradient(90deg,transparent 0%,rgba(255,255,255,.08) 34%,rgba(255,255,255,.80) 50%,rgba(255,255,255,.08) 66%,transparent 100%),
+    linear-gradient(180deg,rgba(255,255,255,.20),rgba(255,255,255,.03) 52%,rgba(0,0,0,.10));
+  background-repeat:no-repeat,no-repeat;
+  background-size:32% 100%,100% 100%;
+  background-position:-40% 0,0 0;
+  box-shadow:
+    0 6px 18px -9px color-mix(in srgb, var(--c,var(--accent)) 80%, transparent),
+    0 1px 0 rgba(255,255,255,.10) inset,
+    inset 0 0 0 .5px rgba(255,255,255,.18),
+    inset 0 -4px 9px -5px rgba(0,0,0,.30);
+  animation:barWipe .95s var(--ease) both, fillEdge .95s var(--ease) both}
+/* 드러나는 경계를 따라 광선이 달린다. clip-path만 있으면 '그냥 나타남'과 구별이 안 된다. */
+@keyframes fillEdge{from{background-position:-40% 0,0 0}to{background-position:140% 0,0 0}}
 .pseg.empty{background:var(--ov04);color:var(--text2);font-size:12px;font-weight:500;
-  border:.5px dashed var(--border2);background-image:none}
+  border:.5px dashed var(--border2);background-image:none;box-shadow:none;animation:barWipe .95s var(--ease) both}
 .pseg .t{font-size:10px;font-weight:700;letter-spacing:-.01em}
 .pseg .p{font-family:var(--font-num);font-size:11px;font-weight:700;font-variant-numeric:tabular-nums}
 @keyframes barWipe{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
@@ -308,8 +327,10 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .arow:last-child{margin-bottom:0}
 .arow .k{flex:0 0 72px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:640;color:var(--text)}
 .arow .k i{width:9px;height:9px;border-radius:3px;display:inline-block;box-shadow:inset 0 .5px 0 rgba(255,255,255,.45)}
-.arow .rail{flex:1;min-width:0;position:relative;height:26px;border-radius:8px;background:var(--ov04);
-  border:.5px solid rgba(255,255,255,.06);display:flex;align-items:center}
+.arow .rail{flex:1;min-width:0;position:relative;height:26px;border-radius:8px;background:var(--ov03);
+  display:flex;align-items:center;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.32), inset 0 0 0 .5px rgba(255,255,255,.05),
+             inset 0 -.5px 0 rgba(255,255,255,.05)}
 /* 세 행에 시간차를 줘 위에서 아래로 빛이 흘러내리게 한다(--d3는 renderAllocBars가 넣는다) */
 .arow .rail::after{content:"";position:absolute;inset:-6px 0;pointer-events:none;z-index:3;
   mix-blend-mode:screen;background-repeat:no-repeat;
@@ -319,8 +340,19 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
   animation:allocScan 4.4s linear infinite;animation-delay:var(--d3,0s)}
 .arow .rail b{height:100%;border-radius:8px;display:flex;align-items:center;justify-content:center;
   white-space:nowrap;overflow:hidden;color:rgba(12,16,18,.84);
-  background-image:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,0) 62%);
-  transition:width .8s var(--ease);animation:barWipe .9s var(--ease) var(--d3,0s) both}
+  background-color:var(--c,var(--accent));
+  background-image:
+    linear-gradient(90deg,transparent 0%,rgba(255,255,255,.08) 34%,rgba(255,255,255,.80) 50%,rgba(255,255,255,.08) 66%,transparent 100%),
+    linear-gradient(180deg,rgba(255,255,255,.20),rgba(255,255,255,.03) 52%,rgba(0,0,0,.10));
+  background-repeat:no-repeat,no-repeat;
+  background-size:32% 100%,100% 100%;
+  background-position:-40% 0,0 0;
+  box-shadow:
+    0 5px 15px -9px color-mix(in srgb, var(--c,var(--accent)) 85%, transparent),
+    inset 0 0 0 .5px rgba(255,255,255,.18),
+    inset 0 -4px 9px -5px rgba(0,0,0,.30);
+  transition:width .8s var(--ease);
+  animation:barWipe .9s var(--ease) var(--d3,0s) both, fillEdge .9s var(--ease) var(--d3,0s) both}
 .arow .rail b .p{font-family:var(--font-num);font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums}
 .arow .rail .out{font-family:var(--font-num);font-size:11px;font-weight:640;color:var(--text-2);
   margin-left:8px;white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -344,7 +376,10 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
   .arow .rail{height:23px}.pbar{height:23px}}
 @media(prefers-reduced-motion:reduce){
   .pbar::after,.arow .rail::after{animation:none;opacity:0}
-  .pseg,.arow .rail b{animation:none}.arow .rail u{animation:none;opacity:.9}}
+  /* 애니메이션을 끄면 background-position이 시작값(-40%)에 멈춰 광선이 왼쪽 밖에 걸린다.
+     문제는 없지만, 확실히 하기 위해 광선 레이어를 화면 밖으로 보내 둔다. */
+  .pseg,.arow .rail b{animation:none;background-position:-200% 0,0 0}
+  .arow .rail u{animation:none;opacity:.9}}
 /* ── 코스톨라니 달걀 (v13.1) ────────────────────────────────────────
    시장 순환 위치를 6국면(A1~B3) 달걀 둘레 위의 한 점으로 표시한다.
    표시 전용 지표다 — 래더의 매매 판단(computeSeries)에는 일절 관여하지 않는다. */
@@ -1705,7 +1740,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='14.6.1';
+const APP_VERSION='14.7.0';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -1879,7 +1914,7 @@ function renderAllocBars(){
   const banded = reband>0 && curWt!=null && Math.abs(curWt-w)<reband;         // 밴드 내면 매매 생략
   const shown = cur.filter(([,v])=>v>0.0001);
   const pill = shown.length
-    ? shown.map(([n,v])=>`<div class="pseg" style="flex:${v};background:${ALLOC_GRAD[n]}" title="${ALLOC_DISP[n]} ${Math.round(v*1000)/10}%">`
+    ? shown.map(([n,v])=>`<div class="pseg" style="flex:${v};--c:${ALLOC_GRAD[n]}" title="${ALLOC_DISP[n]} ${Math.round(v*1000)/10}%">`
         +(v>=0.17?`<span class="t">${ALLOC_DISP[n]}</span>`:'')
         +(v>=0.09?`<span class="p">${Math.round(v*100)}%</span>`:'')+`</div>`).join('')
     : '<div class="pseg empty">보유 종목이 없습니다</div>';
@@ -1894,7 +1929,7 @@ function renderAllocBars(){
     else act=`<b class="down">−${shN}주</b>`;
     const wide=v>=0.16;
     return `<div class="arow" style="--d3:${(0.10+TK.indexOf(k)*0.16).toFixed(2)}s"><span class="k"><i style="background:${ALLOC_COLORS[k]}"></i>${k}</span>`
-      + `<span class="rail"><b style="width:${Math.max(v*100,1.6).toFixed(1)}%;background:${ALLOC_GRAD[k]}">`
+      + `<span class="rail"><b style="width:${Math.max(v*100,1.6).toFixed(1)}%;--c:${ALLOC_GRAD[k]}">`
       + (wide?`<span class="p">${Math.round(v*100)}%</span>`:'') + `</b>`
       + `<span class="mkc"><u style="left:calc((100% - 8px) * ${tg.toFixed(4)} + 4px)" title="목표 ${Math.round(tg*100)}%"></u></span>`
       + (wide?'':`<span class="out">${Math.round(v*100)}%</span>`) + `</span>`
