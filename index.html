@@ -187,8 +187,8 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .sub-usd{font-family:var(--font-num);font-size:10.5px;color:var(--text2);font-weight:400;margin-top:3px;letter-spacing:0;font-variant-numeric:tabular-nums}
 
 /* state hero — 시그니처: 단계 색으로 물드는 회전 림 라이트 */
-.hero{display:grid;grid-template-columns:minmax(180px,1fr) minmax(360px,2.6fr);gap:14px}   /* 매수종목 카드 제거 → 2열 */
-.state-box{display:flex;flex-direction:column;justify-content:center;gap:6px;min-height:112px;position:relative;overflow:hidden;
+.hero{display:grid;grid-template-columns:minmax(158px,.9fr) minmax(286px,2.02fr) minmax(194px,1.04fr);gap:13px}   /* v13.1: 달걀 카드 추가 → 3열 (앞 두 칸을 조금씩 줄여 자리를 만든다) */
+.state-box{display:flex;flex-direction:column;justify-content:center;gap:5px;min-height:104px;position:relative;overflow:hidden;
   background:
     radial-gradient(150% 130% at 92% -20%, color-mix(in srgb, var(--rc,var(--accent)) 13%, transparent), transparent 58%),
     radial-gradient(120% 120% at 6% 120%, color-mix(in srgb, var(--rc,var(--accent)) 7%, transparent), transparent 60%),
@@ -203,7 +203,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
   mask-image:radial-gradient(closest-side, transparent 56%, #000 80%);
   filter:blur(13px);opacity:.64;animation:heroPulse 12s linear infinite}
 @keyframes heroPulse{to{transform:rotate(360deg)}}
-.state-name{font-family:var(--font-text);font-weight:700;font-size:30px;letter-spacing:-.035em;line-height:1.04;display:flex;align-items:center;gap:10px;position:relative;z-index:1}
+.state-name{font-family:var(--font-text);font-weight:700;font-size:26px;letter-spacing:-.035em;line-height:1.04;display:flex;align-items:center;gap:10px;position:relative;z-index:1}
 .state-name::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--rc,var(--accent));box-shadow:0 0 14px var(--rc,var(--glow));flex:0 0 auto;animation:livePulse 2.4s ease-in-out infinite}
 @keyframes livePulse{0%,100%{box-shadow:0 0 6px var(--rc,var(--glow))}50%{box-shadow:0 0 18px 3px var(--rc,var(--glow))}}
 .state-sub{font-size:12.5px;color:var(--text-2);max-width:94%;line-height:1.45;position:relative;z-index:1}
@@ -232,9 +232,9 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .up{color:var(--up)} .down{color:var(--down)}   /* 숫자는 지정값 #81C784/#EF9A9A, 넓은 조각은 --red #BF616A */ .neutral{color:var(--gold)}
 
 /* allocation bars (현재 vs 목표) */
-.abar-row{margin:0 0 14px}
-.abar-label{font-family:var(--font-text);font-size:10px;color:var(--text2);margin-bottom:7px;letter-spacing:.08em;font-weight:590;text-transform:uppercase}
-.abar{display:flex;height:30px;border-radius:var(--r-pill);overflow:hidden;position:relative;isolation:isolate;
+.abar-row{margin:0 0 11px}
+.abar-label{font-family:var(--font-text);font-size:9.5px;color:var(--text2);margin-bottom:5px;letter-spacing:.08em;font-weight:590;text-transform:uppercase}
+.abar{display:flex;height:26px;border-radius:var(--r-pill);overflow:hidden;position:relative;isolation:isolate;
   background:var(--ov03);
   border:.5px solid rgba(255,255,255,.12);
   box-shadow:inset 0 1px 3px rgba(0,0,0,.3), inset 0 -.5px 0 rgba(255,255,255,.10)}
@@ -292,6 +292,21 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 @media(prefers-reduced-motion:reduce){.abar::before{animation:none;opacity:0}}
 .abar-seg-t{position:relative;z-index:6;font-size:10px;font-weight:700;letter-spacing:-.01em;line-height:1;color:#0d0d0d;margin-right:5px}
 .abar-seg-p{position:relative;z-index:6;font-family:var(--font-num);font-size:11px;font-weight:700;line-height:1;color:#0d0d0d;font-variant-numeric:tabular-nums}
+/* ── 코스톨라니 달걀 (v13.1) ────────────────────────────────────────
+   시장 순환 위치를 6국면(A1~B3) 달걀 둘레 위의 한 점으로 표시한다.
+   표시 전용 지표다 — 래더의 매매 판단(computeSeries)에는 일절 관여하지 않는다. */
+.egg-box{display:flex;flex-direction:column;min-height:104px;padding:15px 13px 11px;cursor:pointer}
+.egg-box .label{margin-bottom:2px}
+.egg-svg{display:block;width:100%;height:auto;max-height:214px;margin:0 auto}
+.egg-cap{margin-top:5px;text-align:center;line-height:1.3}
+.egg-cap .pn{font-family:var(--font-text);font-weight:700;font-size:12.5px;letter-spacing:-.02em;color:var(--text)}
+.egg-cap .ps{font-family:var(--font-num);font-size:10px;color:var(--text2);margin-top:3px;font-variant-numeric:tabular-nums;letter-spacing:0}
+.kg-tbl{width:100%;border-collapse:collapse;margin-top:10px;font-size:12.5px}
+.kg-tbl th,.kg-tbl td{text-align:left;padding:9px 10px;border-bottom:.5px solid var(--border);vertical-align:top}
+.kg-tbl th{color:var(--text2);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:590}
+.kg-tbl td.kc{font-family:var(--font-num);font-weight:700;white-space:nowrap}
+.kg-tbl td.ka{white-space:nowrap;font-weight:640}
+@media(max-width:860px){.egg-svg{max-height:250px}}
 .range-pills{display:inline-flex;gap:3px;padding:3px;border-radius:var(--r-pill);background:var(--surface2)}
 .range-pills button{font-family:var(--font-num);font-size:10.5px;font-weight:640;color:var(--text2);background:none;border:none;border-radius:var(--r-pill);padding:4px 11px;cursor:pointer;transition:.28s var(--ease);letter-spacing:-.01em}
 .range-pills button:hover{color:var(--text);background:var(--st-hover)}
@@ -300,14 +315,14 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .nowrap-table td{padding-right:18px}
 .abar-empty{display:flex;align-items:center;justify-content:center;width:100%;color:var(--text2);font-weight:500;font-size:12px}
 .abar-legend{margin-top:15px;display:flex;flex-direction:column;gap:9px;border-top:.5px solid var(--border);padding-top:13px}
-.alloc-grid{display:flex;gap:18px;align-items:center}
+.alloc-grid{display:flex;gap:14px;align-items:center}
 .alloc-bars{flex:1;min-width:0}
-.alloc-grid .abar-legend{flex:0 0 auto;min-width:128px;margin-top:0;border-top:none;padding-top:0;border-right:.5px solid var(--border);padding-right:16px;align-self:stretch;justify-content:center;gap:12px}
+.alloc-grid .abar-legend{flex:0 0 auto;min-width:110px;margin-top:0;border-top:none;padding-top:0;border-right:.5px solid var(--border);padding-right:13px;align-self:stretch;justify-content:center;gap:12px}
 @media(max-width:760px){.alloc-grid{flex-direction:column;align-items:stretch;gap:0}.alloc-bars{order:1}.alloc-grid .abar-legend{order:2;border-right:none;padding-right:0;border-top:.5px solid var(--border);padding-top:13px;margin-top:14px}}
 .abar-leg{display:flex;justify-content:space-between;align-items:center;font-size:12px}
 .abar-leg-n{display:flex;align-items:center;font-weight:640;letter-spacing:-.01em}
 .abar-leg-v{display:flex;align-items:center;gap:12px;font-family:var(--font-num);font-variant-numeric:tabular-nums}
-.abar-act{min-width:92px;text-align:right;font-variant-numeric:tabular-nums}
+.abar-act{min-width:84px;text-align:right;font-variant-numeric:tabular-nums}
 .dotc{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:9px;box-shadow:inset 0 .5px 0 rgba(255,255,255,.5);vertical-align:-1px}
 .appver{text-align:center;color:var(--muted);font-size:11px;letter-spacing:.04em;padding:28px 0 12px;font-family:var(--font-mono)}
 
@@ -530,6 +545,10 @@ details.sandbox .stage-edit{background:var(--ov01)}
       </div>
       <div class="card card-hov" id="allocCard">
         <div id="allocBars"></div>
+      </div>
+      <div class="card card-hov egg-box" id="eggCard" onclick="openKosto()" title="코스톨라니 달걀 — 클릭하면 6국면 설명">
+        <div class="label">코스톨라니 달걀 · <span id="eggDate" class="mono" style="letter-spacing:0;text-transform:none"></span></div>
+        <div id="eggBody"></div>
       </div>
     </div>
 
@@ -794,6 +813,32 @@ details.sandbox .stage-edit{background:var(--ov01)}
     <p class="note" style="margin-top:10px">⚠️ v13.0의 방어자산 교체(SCHD40/SGOV60 → GLD70/SGOV30)는 <b>§48 연구</b>에서 채택: 금/장기국채/SCHD/현금 조합 30여 개를 동일 엔진·세후 조건으로 비교해 금 계열만 <b>6개 창(전체·2011~·99-10·07-20·18-26·21-26) 전부 승리</b>했고, 금 비중 60~80이 넓은 고원이었습니다. 장기국채(TLT)는 전체구간 수치가 더 크지만 1999→2020 금리 하락이라는 일회성 순풍 의존이라 최근 창(18-26·21-26) 전패 + MDD 악화로 기각했습니다. 최근 창의 큰 격차(+4.8%p)에는 2024-26 금 랠리 수혜가 섞여 있어 <b>구조 효과의 보수적 추정은 +1.7~2.2%p</b>입니다. 전 구간 인샘플 비교라 <b>표본 의존성 위험은 남아 있고</b>, 전체구간 MDD −60%는 그대로이며 <b>창별 MDD는 +1.6~2.0%p 더 깊어졌습니다</b>. 나머지(트림 −30%p · 복귀 +35%p · 변동성 70%/10일 · 연말수확 · 적립스티어링)는 v12(§35)와 동일합니다. GLD 2004-11·QLD 2006-06·TQQQ 2010-02·SCHD 2011-10 이전과 2020년 이전 현금은 <b>합성 근사</b>입니다. 세금 이연 계좌(연금·ISA)에서는 세전 순위가 적용됩니다. 인앱 백테스트(샌드박스)로 각 구간·설정을 직접 재확인하세요.</p>
 
     <div class="disclaim">⚠️ 본 자료는 과거 데이터 기반 시뮬레이션이며 투자 조언이 아닙니다. 과거 성과가 미래를 보장하지 않으며, 레버리지 ETF는 변동성 끌림(decay)과 -90% 이상의 실제 손실 위험이 있고, 본 전략의 MDD -58%는 실전에서 견디기 매우 어려운 수준입니다. 모든 투자 책임은 본인에게 있습니다.</div>
+  </div>
+</div>
+
+<!-- ===== KOSTOLANY MODAL (v13.1) ===== -->
+<div class="modal-overlay" id="kostoModal">
+  <div class="modal" style="max-width:640px">
+    <span class="close" onclick="closeModal('kostoModal')">&times;</span>
+    <h2>코스톨라니 달걀 — 지금 어느 국면인가</h2>
+    <p class="note" style="margin-bottom:14px">앙드레 코스톨라니는 시장을 <b>상승 3국면(A1 조정 · A2 동행 · A3 과장)</b>과 <b>하락 3국면(B1 조정 · B2 동행 · B3 과장)</b>이 끝없이 도는 <b>닫힌 순환</b>으로 봤습니다. 달걀의 <b>아래쪽 끝이 바닥, 위쪽 끝이 천장</b>이고, 오른쪽을 타고 올라갔다가 왼쪽으로 내려옵니다. 핵심 주장은 하나입니다 — <b>A1과 B3에서 사고, A3에서 판다.</b> 나머지 구간은 기다리는 시간입니다.</p>
+    <table class="kg-tbl">
+      <thead><tr><th>국면</th><th>성격</th><th>코스톨라니의 처방</th></tr></thead>
+      <tbody id="kostoRows"></tbody>
+    </table>
+    <div class="section-title" style="font-size:16px;margin-top:22px"><span class="dot"></span>이 앱이 국면을 판정하는 방법</div>
+    <p class="note">원전의 판정축은 <b>거래량과 주식 보유자 구성</b>(소신파 vs 부화뇌동파)입니다. 그런데 <span class="mono">market_data</span>에는 거래량·수급 데이터가 없습니다. 그래서 같은 순환을 <b>가격이 만들어내는 두 축</b>으로 근사합니다.</p>
+    <p class="note" style="margin-top:10px">① <b>방향</b> — 달걀의 <b>좌/우</b>(오른쪽 반원이 상승, 왼쪽이 하락). 50일선의 20일 기울기와 종가의 50일선 상대위치로 판정합니다. 다만 <b>50일 고점 대비 −10% 이탈이면 즉시 하락으로 전환</b>합니다. 급락은 계단이 아니라 엘리베이터라, 기울기만 보면 코로나·2022년처럼 몇 주씩 늦기 때문입니다. 반대로 상승 전환은 천천히 두되 엔진이 <b>추력 복귀</b>를 확정하면 즉시 올립니다.</p>
+    <p class="note" style="margin-top:10px">② <b>위치(0=바닥 ~ 100=천장)</b> — 달걀에서의 <b>높이</b>. 여기가 핵심인데, <b>2단계</b>로 만듭니다.<br>
+    · <b>상승</b>: 먼저 <b>전고점 회복도</b>(2년 고점 대비 −16%~0%)가 A1 구간을 채우고, 회복이 끝난 뒤에야 <b>과열도</b>(이격 44% · 주간RSI 32% · 성숙도 24%)가 작동해 A2→A3로 올라갑니다.<br>
+    · <b>하락</b>: 먼저 <b>낙폭 진행도</b>(2년 고점 대비 0%~−22%)가 B1을 채우고, 충분히 깊어진 뒤에야 <b>패닉도</b>(변동성 폭발 45% · RSI 저하 55%)가 작동해 B2→B3로 내려갑니다.</p>
+    <p class="note" style="margin-top:10px">왜 2단계인가 — 단순 가중평균으로 만들면 <b>바닥 직후 반등에서 이격·RSI가 원래 튀기 때문에</b> A1을 건너뛰고 곧장 A3로 점프합니다(실측 A1 비중 5%). 회복이 끝나기 전에는 과열 지표를 거의 무시하도록 바꾸자 A1이 <b>16%</b>로 정상화됐습니다. 하락축도 같은 이유로, 이 분리 덕분에 <b>2008·2020년 투매는 B3, 2022년 완만한 약세장은 B2</b>로 갈립니다.</p>
+    <p class="note" style="margin-top:10px">기준선은 전부 <b>전략 설정 값을 그대로</b> 씁니다 — 이격은 광기 임계(기본 +28%), RSI는 트림 임계(기본 70), 성숙도는 matDays(기본 360일). 파라미터를 바꾸면 달걀도 같이 움직입니다. 낙폭은 <b>사상 최고가가 아니라 2년 롤링 고점</b> 기준입니다(ATH 기준이면 닷컴 붕괴 이후 10년이 통째로 '바닥권'으로 찍혀 2007년 천장이 A2로 나옵니다). 마지막으로 5일 EMA와 국면 경계 히스테리시스(±0.03)로 경계에서 매일 왔다갔다 하는 것을 막습니다.</p>
+    <div class="section-title" style="font-size:16px;margin-top:22px"><span class="dot"></span>1999~2026 실측</div>
+    <p class="note">6,863거래일 판정 결과 — 분포는 <span class="mono">A1 16% · A2 33% · A3 17% · B1 16% · B2 11% · B3 7%</span>(상승 66% / 하락 34%)이고, 국면은 평균 <b>21거래일</b> 유지됩니다(연 11.7회 전환). 주요 변곡점 대조: 2007-10 천장 <b>A3</b> · 2008-10 금융위기 투매 <b>B3</b> · 2009-08 회복 <b>A1</b> · 2020-02 코로나 직전 <b>A3</b> · 2020-03 저점 <b>B3</b> · 2021-11 천장 <b>A3</b> · 2022-10 저점 <b>B2</b> · 2023-06 회복 <b>A1</b> · 2024-07 고점권 <b>A3</b>. 검증 스크립트는 <span class="mono">scripts/kosto_check.js</span>입니다.</p>
+    <div class="section-title" style="font-size:16px;margin-top:22px"><span class="dot"></span>래더 단계와의 관계</div>
+    <p class="note">달걀은 <b>표시 전용</b>입니다. 매매(목표 TQQQ 비중 w)는 <b>오직 래더 엔진이 단독으로</b> 결정하며 달걀은 그 판단에 전혀 개입하지 않습니다(§52 Pine 대조 검증 유효). 둘은 보는 각도가 다릅니다 — 래더 단계는 <b>"지금 무엇을 할 것인가"</b>(행동 상태), 달걀은 <b>"순환의 어디쯤 와 있나"</b>(위치)입니다. 대개 같은 방향을 가리키지만, 예컨대 래더가 '적립'(정상)인 구간이 달걀에서는 A1 후반일 수도 A2 한복판일 수도 있습니다. 어긋날 때는 <b>래더를 따르십시오</b> — 성과가 검증된 쪽은 래더입니다.</p>
+    <div class="disclaim" style="margin-top:18px">⚠️ 달걀 모형은 사후적으로 아름답지만 <b>실시간으로는 국면 경계가 흐릿합니다</b>. 특히 A3(과장)와 B1(조정)의 경계 = 천장은 지나고 나서야 알 수 있고, 이 지표도 예외가 아닙니다. 참고용 나침반이며 매매 신호가 아닙니다.</div>
   </div>
 </div>
 
@@ -1114,6 +1159,147 @@ const REG_LINE={2:'#d3d8db',1:'#8eb985',3:'#EBCB8B',4:'#BF616A',5:'#bd96b5',6:'#
 // 지정 사양의 '하락(숫자)' 톤으로 갈아끼운 맵을 따로 둔다.
 const REG_TEXT={2:'#d3d8db',1:'#8eb985',3:'#EBCB8B',4:'#EF9A9A',5:'#bd96b5',6:'#85a5c5'};   // 4=광기: 조각용 #BF616A는 글자로 쓰면 3.6:1 → '밝은 붉은 글자' 역할은 지정값 #EF9A9A 하나로 통일
 
+/* ===================== 코스톨라니 달걀 (v13.1) =====================
+   원전(André Kostolany)의 달걀 모형은 시장을 상승 3국면(A1 조정·A2 동행·A3 과장)
+   + 하락 3국면(B1 조정·B2 동행·B3 과장)의 닫힌 순환으로 본다.
+   원전의 판정축은 '거래량 + 보유자 구성'인데 market_data에는 그 데이터가 없다.
+   그래서 같은 순환을 가격이 만드는 두 축으로 근사한다.
+
+   ① 방향 kDir(±1) → 달걀의 좌/우 (오른쪽 반원=상승, 왼쪽 반원=하락)
+        50일선의 20일 기울기 + 종가의 50일선 상대위치. 단 50일 고점 대비 −10%
+        이탈이면 즉시 하락으로 전환하고(급락은 계단이 아니라 엘리베이터라
+        기울기만 보면 코로나·2022년처럼 몇 주씩 늦는다), 상승 전환은 느리게 두되
+        엔진이 추력 복귀를 확정하면(o.fast) 즉시 올린다.
+
+   ② 위치 kPos(0=바닥 ~ 1=천장) → 달걀의 높이. **2단계**로 만든다.
+        상승: [전고점 회복도] → 회복이 끝난 뒤에야 [과열도]가 작동
+              (반등 직후엔 이격·RSI가 원래 튀므로, 그것만 보면 바닥에서 곧장
+               A3로 건너뛰어 A1이 사라진다 — 실측 5% → 2단계 적용 후 16%)
+        하락: [낙폭 진행도] → 깊어진 뒤에야 [패닉도(변동성·RSI저하)]가 작동
+              (이 분리 덕에 2008·2020 투매는 B3, 2022 완만한 약세장은 B2로 갈린다)
+        기준선은 전략 파라미터를 그대로 쓴다 — 이격은 광기 임계, RSI는 트림 임계,
+        성숙도는 matDays. 파라미터를 바꾸면 달걀도 함께 움직인다.
+        낙폭은 ATH가 아니라 **2년 롤링 고점** 기준이다(ATH 기준이면 닷컴 이후
+        10년이 통째로 '바닥권'으로 찍혀 2007년 천장이 A2로 나온다).
+
+   ③ 국면 경계에는 히스테리시스(±0.03)를 둬 경계에서 매일 왔다갔다 하는 것을 막는다.
+
+   ※ 표시 전용. 매매(w)는 computeSeries가 단독 결정하며 달걀은 개입하지 않는다. */
+const KOSTO_PH=[
+  {k:'A1',ph:'상승 · 조정 국면',act:'매수',c:'#8eb985',
+   d:'바닥을 지나 추세가 돌아서는 구간. 거래량도 관심도 아직 낮고, 소신파가 조용히 사 모으는 때.'},
+  {k:'A2',ph:'상승 · 동행 국면',act:'보유',c:'#85a5c5',
+   d:'가격과 거래량이 나란히 늘며 안정적으로 오르는 구간. 새로 담기보다 들고 가는 시기.'},
+  {k:'A3',ph:'상승 · 과장 국면',act:'매도',c:'#EBCB8B',
+   d:'거래량과 참여자가 폭증하며 가격이 실체보다 앞서 나가는 구간. 부화뇌동파가 몰려들 때 소신파는 판다.'},
+  {k:'B1',ph:'하락 · 조정 국면',act:'관망',c:'#e5a182',
+   d:'천장을 지나 처음 꺾이는 구간. 낙폭은 아직 얕고 "일시 조정"이라는 말이 돈다. 새로 살 자리는 아니다.'},
+  {k:'B2',ph:'하락 · 동행 국면',act:'관망',c:'#BF616A',
+   d:'추세가 무너지고 낙폭이 본격적으로 커지는 구간. 현금·방어자산을 들고 기다린다.'},
+  {k:'B3',ph:'하락 · 과장 국면',act:'매수',c:'#428968',
+   d:'투매가 나오며 거래량이 다시 폭증하는 구간. 가장 견디기 어렵지만 코스톨라니가 다시 사라고 한 자리.'}
+];
+function computeKosto(out,P){
+  P=P||STRAT.params;
+  const q=out.map(r=>+r.qqq), n=out.length, cl=v=>v<0?0:(v>1?1:v);
+  const extTop=Math.max(0.12,(+P.maniaExt||28)/100);       // 이격 만점 = 광기 임계
+  const rsiTop=Math.max(45,(+P.rsiHi||70)+3);              // RSI 만점 = 트림 임계 +3
+  const matD =Math.max(60,(+P.matDays||360));              // 성숙도 만점 = 성숙천장 일수
+  { const W=504, dq=[];                                    // 2년 롤링 고점 (단조 데크, O(n))
+    for(let i=0;i<n;i++){ while(dq.length&&q[dq[dq.length-1]]<=q[i])dq.pop(); dq.push(i);
+      while(dq[0]<=i-W)dq.shift(); out[i].dd2y=q[i]/q[dq[0]]-1; } }
+  let dir=1, pS=null, ph=1;
+  for(let i=0;i<n;i++){
+    const o=out[i];
+    if(isNaN(o.sma200)||isNaN(o.sma50)){ o.kPos=NaN; o.kDir=1; o.kAlpha=NaN; o.kPh=-1; continue; }
+    let up=false, dn=false, j=i-20;                        // ① 방향
+    if(j>=0 && !isNaN(out[j].sma50) && out[j].sma50>0){
+      const sl=o.sma50/out[j].sma50-1;
+      up=(sl>0.002 && q[i]>=o.sma50); dn=(sl<-0.002 && q[i]<o.sma50);
+    }
+    if(o.ddr50<=-0.10) dn=true;                            // 급락은 즉시 하락으로
+    if(o.fast) up=true;                                    // 추력 복귀 확정은 즉시 상승으로
+    if(dn&&!up) dir=-1; else if(up&&!dn) dir=1;
+    let pos;                                               // ② 위치 (2단계)
+    if(dir>0){
+      const rec=cl(1+o.dd2y/0.16);                                        // 전고점 회복도
+      const e1=cl((o.ext200+0.05)/(extTop+0.05));                         // 이격
+      const e2=isNaN(o.rsiW)?0.5:cl((o.rsiW-40)/Math.max(1,rsiTop-40));   // 주간 RSI
+      const e3=cl(o.above/matD);                                          // 성숙도
+      pos=0.34*rec + 0.66*(0.44*e1+0.32*e2+0.24*e3)*rec*rec;              // 회복 전엔 과열이 거의 안 먹는다
+    }else{
+      const dep=cl(-o.dd2y/0.22);                                         // 낙폭 진행도
+      const f1=isNaN(o.rvol)?0:cl((o.rvol-0.20)/0.40);                    // 변동성 폭발
+      const f2=isNaN(o.rsiW)?0:cl((50-o.rsiW)/22);                        // RSI 저하
+      pos=1-(0.34*dep + 0.66*(0.45*f1+0.55*f2)*dep*dep);                  // 얕은 하락엔 패닉이 거의 안 먹는다
+    }
+    pS=(pS==null)?pos:pS+(pos-pS)*0.32;                                   // 5일 EMA 상당
+    const a = dir>0 ? Math.min(0.4999,cl(pS)*0.5) : Math.min(0.9999,Math.max(0.5,1-cl(pS)*0.5));
+    const tgt=Math.min(5,Math.max(0,Math.floor(a*6)));
+    if(tgt!==ph){ const lo=ph/6, hi=(ph+1)/6; if(a>hi+0.03 || a<lo-0.03) ph=tgt; }   // 경계 히스테리시스
+    o.kPos=pS; o.kDir=dir; o.kAlpha=a; o.kPh=ph;
+  }
+  return out;
+}
+/* 달걀 도형: 아래가 넓고 위가 좁은 타원. a=0 바닥 → 0.25 우측 → 0.5 천장 → 0.75 좌측 (시계방향) */
+const EGG={cx:96,cy:118,rx:50,ry:82,k:0.20};
+function eggPt(a){
+  const A=(90-a*360)*Math.PI/180, sn=Math.sin(A);
+  const rx=EGG.rx*(1+EGG.k*sn);                    // sn=+1(바닥) → 넓게, sn=−1(천장) → 좁게
+  return [EGG.cx+rx*Math.cos(A), EGG.cy+EGG.ry*sn];
+}
+function eggOut(a,off){
+  const p=eggPt(a), dx=p[0]-EGG.cx, dy=p[1]-EGG.cy, L=Math.hypot(dx,dy)||1;
+  return [p[0]+dx/L*off, p[1]+dy/L*off];
+}
+function eggArc(a0,a1){
+  let d='';
+  for(let i=0;i<=24;i++){ const p=eggPt(a0+(a1-a0)*i/24); d+=(i?'L':'M')+p[0].toFixed(2)+' '+p[1].toFixed(2)+' '; }
+  return d.trim();
+}
+function renderEgg(){
+  const el=document.getElementById('eggBody'); if(!el) return;
+  const r=CUR, de=document.getElementById('eggDate'); if(de) de.textContent=(r&&r.date)||'';
+  if(!r || r.kPh==null || r.kPh<0 || isNaN(r.kAlpha)){
+    el.innerHTML='<div class="muted" style="font-size:12px;text-align:center;padding:34px 0">200일선 형성 전 — 판정 불가</div>'; return; }
+  const P=KOSTO_PH[r.kPh], a=r.kAlpha, m=eggPt(a);
+  const segs=KOSTO_PH.map((p,i)=>{
+    const on=(i===r.kPh);
+    return '<path d="'+eggArc(i/6+0.005,(i+1)/6-0.005)+'" fill="none" stroke="'+p.c+'" stroke-width="'+(on?9.5:6.5)
+      +'" stroke-linecap="round" opacity="'+(on?1:0.24)+'"'+(on?' filter="url(#eggGl)"':'')+'/>';
+  }).join('');
+  const labs=KOSTO_PH.map((p,i)=>{
+    const q=eggOut((i+0.5)/6,15);
+    return '<text x="'+q[0].toFixed(1)+'" y="'+(q[1]+3.6).toFixed(1)+'" text-anchor="middle" font-size="10.5" font-weight="700" fill="'+p.c
+      +'" opacity="'+(i===r.kPh?1:0.46)+'">'+p.k+'</text>';
+  }).join('');
+  const posN=Math.round(r.kPos*100), dirTxt=(r.kDir>0?'상승':'하락');
+  el.innerHTML =
+   '<svg class="egg-svg" viewBox="0 0 192 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="코스톨라니 달걀 — 현재 '+P.k+' '+P.ph+'">'
+  +  '<defs><filter id="eggGl" x="-55%" y="-55%" width="210%" height="210%">'
+  +    '<feGaussianBlur stdDeviation="3.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'
+  +  '<path d="'+eggArc(0,1)+' Z" fill="rgba(255,255,255,.022)" stroke="rgba(255,255,255,.07)" stroke-width="1"/>'
+  +  segs + labs
+  +  '<text x="96" y="107" text-anchor="middle" font-size="27" font-weight="700" fill="'+P.c+'" letter-spacing="-1">'+P.k+'</text>'
+  +  '<text x="96" y="131" text-anchor="middle" font-size="12" font-weight="640" fill="rgba(255,255,255,.72)">'+P.act+'</text>'
+  +  '<circle cx="'+m[0].toFixed(2)+'" cy="'+m[1].toFixed(2)+'" r="6" fill="none" stroke="'+P.c+'" stroke-width="1.6" opacity=".75">'
+  +    '<animate attributeName="r" values="6;12;6" dur="2.6s" repeatCount="indefinite"/>'
+  +    '<animate attributeName="opacity" values=".75;0;.75" dur="2.6s" repeatCount="indefinite"/></circle>'
+  +  '<circle cx="'+m[0].toFixed(2)+'" cy="'+m[1].toFixed(2)+'" r="4.8" fill="'+P.c+'" stroke="#11181d" stroke-width="1.6"/>'
+  +'</svg>'
+  +'<div class="egg-cap"><div class="pn">'+P.ph+'</div>'
+  +'<div class="ps">위치 '+posN+' · '+dirTxt+' · 코스톨라니: '+P.act+'</div></div>';
+}
+function openKosto(){
+  const b=document.getElementById('kostoRows');
+  if(b && !b.childElementCount){
+    b.innerHTML=KOSTO_PH.map((p,i)=>'<tr><td class="kc" style="color:'+p.c+'">'+p.k+'</td><td>'+p.ph.replace(/^[^·]+· /,'')
+      +'<div class="muted" style="font-size:11.5px;margin-top:3px;line-height:1.45">'+p.d+'</div></td>'
+      +'<td class="ka" style="color:'+p.c+'">'+p.act+'</td></tr>').join('');
+  }
+  document.getElementById('kostoModal').classList.add('open');
+}
+
 function sma(arr,n,i){ if(i<n-1)return NaN; let s=0; for(let k=i-n+1;k<=i;k++)s+=arr[k]; return s/n; }
 function computeSeries(md,P,EX){
   P=P||STRAT.params; EX=EX||STRAT.ex||{};
@@ -1224,7 +1410,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='13.0.1';
+const APP_VERSION='13.1.0';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -1295,7 +1481,7 @@ async function init(){
   loadStrategy(SETTINGS);                 // 사용자 전략 설정(비중·파라미터) 적용 후 단계 계산
   loadUserDefault(SETTINGS);              // 사용자 지정 기본값(초기화 복원값) 로드: 클라우드 우선 → 로컬
   loadTaxcfg(SETTINGS);                   // 세금·수수료 설정 로드: 클라우드 우선 → 로컬
-  SERIES = computeSeries(RAW_MD);
+  SERIES = computeKosto(computeSeries(RAW_MD));
   CUR = SERIES[SERIES.length-1];
   FXNOW = (CUR && CUR.fx) ? +CUR.fx : 1380;
   document.getElementById('cadenceSel').value = SETTINGS.cadence;
@@ -1341,6 +1527,7 @@ function renderDashboard(){
   ae.textContent=act;
   renderIndicators(r);
   renderAllocBars();
+  renderEgg();
   renderPriceChart();
 }
 
@@ -2408,7 +2595,7 @@ function loadStrategy(settings){
 }
 function applyStrategy(){
   if(!RAW_MD.length) return;            // 데이터 로드 전 저장 시 가드
-  SERIES=computeSeries(RAW_MD);
+  SERIES=computeKosto(computeSeries(RAW_MD));
   CUR=SERIES[SERIES.length-1];
   renderDashboard();
   renderModalRegimes();
@@ -2731,7 +2918,7 @@ async function updatePrices(btn){
   }catch(e){ fnErr=e; }
   try{
     RAW_MD = attachCash(synthesizeMissing(await getMarketData()));
-    SERIES = computeSeries(RAW_MD);
+    SERIES = computeKosto(computeSeries(RAW_MD));
     CUR = SERIES[SERIES.length-1];
     FXNOW = (CUR && CUR.fx) ? +CUR.fx : FXNOW;
     renderDashboard();
