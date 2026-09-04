@@ -315,8 +315,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 /* flex-basis:0 + height:0 — SVG의 고유 비율(176:250)이 카드 높이를 밀어올리지 못하게 막는다.
    이게 없으면 달걀이 좌측 두 카드를 억지로 늘려 히어로 전체가 세로로 커진다(§63). */
 .egg-cap{margin-top:4px;text-align:center;line-height:1.3;flex:0 0 auto}
-.egg-cap .pn.clash{color:var(--gold)}   /* 달걀 처방이 래더 지시와 어긋날 때 — 설명은 모달에서 */
-.egg-cap .pn{font-family:var(--font-text);font-weight:700;font-size:12.5px;letter-spacing:-.02em;color:var(--text)}
+.egg-cap .pn{font-family:var(--font-text);font-weight:700;font-size:12.5px;letter-spacing:-.02em}   /* 색은 renderEgg가 국면 색으로 지정 */
 /* ── 공포·탐욕 지수 (v13.2) — 5축 자체 산출. CNN 지수가 아니다. ── */
 .fg-box{display:flex;flex-direction:column;cursor:pointer;padding:13px 14px 12px;overflow:hidden}
 #fgBody{flex:1;display:flex;align-items:center}
@@ -1262,7 +1261,7 @@ const KOSTO_PH=[
   {k:'A3',ph:'상승 · 과열 국면',act:'분할매도',c:'#c9604f',
    h:'고점은 못 맞춘다 — 매주 나눠서 덜어내는 구간',
    d:'거래량과 참여자가 폭증하며 가격이 실체보다 앞서 나가는 구간. 부화뇌동파가 몰려들 때 소신파는 판다.'},
-  {k:'B1',ph:'하락 · 전환 국면',act:'대량매도',c:'#e08553',
+  {k:'B1',ph:'하락 · 전환 국면',act:'적극매도',c:'#e08553',
    h:'천장이 확인된 자리 — 남은 물량을 정리한다',
    d:'천장을 지나 추세가 실제로 꺾인 구간. 아직 "일시 조정"이라는 말이 돌지만, 되돌림에 기대지 않고 정리할 자리.'},
   {k:'B2',ph:'하락 · 동행 국면',act:'현금유지',c:'#89b8d6',
@@ -1444,7 +1443,7 @@ function renderEgg(){
   // 달걀의 처방은 '코스톨라니 원전의 교리'일 뿐 이 앱의 지시가 아니다.
   // 래더가 실제 지시이므로 나란히 보여주고, 어긋나면 어느 쪽을 따를지 화면에서 못박는다.
   const wP=Math.round((r.w||0)*100);
-  //  A1·B3 매수계열 / A2 보유 / A3 분할매도 / B1 대량매도·B2 현금유지 = 현금계열
+  //  A1·B3 매수계열 / A2 보유 / A3 분할매도 / B1 적극매도·B2 현금유지 = 현금계열
   const agree = (r.kPh===2) ? wP<100 : (r.kPh===3||r.kPh===4) ? wP<=30 : (r.kPh===0||r.kPh===5) ? wP>=70 : true;
   el.innerHTML =
    '<svg class="egg-svg" viewBox="0 0 '+EGG.W+' '+EGG.H+'" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="코스톨라니 달걀 — 현재 '+P.k+' '+P.ph+'">'
@@ -1459,11 +1458,11 @@ function renderEgg(){
   +    '<animate attributeName="opacity" values=".75;0;.75" dur="2.6s" repeatCount="indefinite"/></circle>'
   +  '<circle cx="'+m[0].toFixed(2)+'" cy="'+m[1].toFixed(2)+'" r="4.8" fill="'+P.c+'" stroke="#11181d" stroke-width="1.6"/>'
   +'</svg>'
-  // 캡션은 한 줄뿐이다(§64). 래더와 어긋나는 경우는 글자색(금색)과 ⚠로만 알리고,
-  // 자세한 설명은 카드를 눌러 여는 모달이 맡는다 — 화면 높이를 한 줄도 더 쓰지 않는다.
-  +'<div class="egg-cap"><div class="pn'+(agree?'':' clash')+'"'
+  // 캡션은 한 줄뿐이고 글자색은 현재 국면 색과 맞춘다(§65).
+  // 래더와 어긋나는 경우는 마우스오버 툴팁으로만 알리고, 자세한 설명은 모달이 맡는다.
+  +'<div class="egg-cap"><div class="pn" style="color:'+P.c+'"'
   +(agree?'':' title="래더 지시(TQQQ '+wP+'%)와 달걀 처방이 어긋납니다 — 래더를 따르세요"')
-  +'>'+P.ph+' ('+posN+')'+(agree?'':' ⚠')+'</div></div>';
+  +'>'+P.ph+' ('+posN+')</div></div>';
 }
 function openKosto(){
   const b=document.getElementById('kostoRows');
@@ -1586,7 +1585,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='13.5.0';
+const APP_VERSION='13.5.1';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
