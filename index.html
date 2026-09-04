@@ -194,17 +194,15 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
    ├─────────┴──────────────┤ (2행) │
    │      공포·탐욕 지수      │       │
    └────────────────────────┴───────┘ */
-.hero{display:grid;grid-template-columns:minmax(148px,.82fr) minmax(300px,1.86fr) minmax(198px,1fr);
+.hero{display:grid;grid-template-columns:minmax(292px,2.08fr) minmax(146px,.92fr) minmax(160px,1fr);
   grid-template-rows:auto auto;gap:13px;align-items:stretch}
-#stateCard{grid-area:1/1/2/2} #allocCard{grid-area:1/2/2/3}
-#eggCard{grid-area:1/3/3/4}   #fgCard{grid-area:2/1/3/3}
-/* 중간 폭: 2×2 — 달걀과 게이지를 아래 행에 나란히 */
+#stateCard{grid-area:1/1/2/2} #allocCard{grid-area:2/1/3/2}
+#fgCard{grid-area:1/2/3/3}    #eggCard{grid-area:1/3/3/4}
+/* 중간 폭: 왼쪽 열을 넓히고 게이지·달걀을 좁힌다 (행 구조는 동일) */
 @media(max-width:1080px) and (min-width:861px){
-  .hero{grid-template-columns:minmax(150px,.9fr) minmax(280px,1.6fr);grid-template-rows:auto auto}
-  #stateCard{grid-area:1/1/2/2} #allocCard{grid-area:1/2/2/3}
-  #fgCard{grid-area:2/1/3/2}    #eggCard{grid-area:2/2/3/3}
+  .hero{grid-template-columns:minmax(250px,1.9fr) minmax(132px,.9fr) minmax(146px,.95fr);gap:11px}
 }
-.state-box{display:flex;flex-direction:column;justify-content:center;gap:5px;min-height:104px;position:relative;overflow:hidden;
+.state-box{display:flex;flex-direction:column;justify-content:center;gap:6px;min-height:112px;position:relative;overflow:hidden;
   background:
     radial-gradient(150% 130% at 92% -20%, color-mix(in srgb, var(--rc,var(--accent)) 13%, transparent), transparent 58%),
     radial-gradient(120% 120% at 6% 120%, color-mix(in srgb, var(--rc,var(--accent)) 7%, transparent), transparent 60%),
@@ -219,7 +217,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
   mask-image:radial-gradient(closest-side, transparent 56%, #000 80%);
   filter:blur(13px);opacity:.64;animation:heroPulse 12s linear infinite}
 @keyframes heroPulse{to{transform:rotate(360deg)}}
-.state-name{font-family:var(--font-text);font-weight:700;font-size:26px;letter-spacing:-.035em;line-height:1.04;display:flex;align-items:center;gap:10px;position:relative;z-index:1}
+.state-name{font-family:var(--font-text);font-weight:700;font-size:30px;letter-spacing:-.035em;line-height:1.04;display:flex;align-items:center;gap:10px;position:relative;z-index:1}
 .state-name::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--rc,var(--accent));box-shadow:0 0 14px var(--rc,var(--glow));flex:0 0 auto;animation:livePulse 2.4s ease-in-out infinite}
 @keyframes livePulse{0%,100%{box-shadow:0 0 6px var(--rc,var(--glow))}50%{box-shadow:0 0 18px 3px var(--rc,var(--glow))}}
 .state-sub{font-size:12.5px;color:var(--text-2);max-width:94%;line-height:1.45;position:relative;z-index:1}
@@ -248,9 +246,9 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .up{color:var(--up)} .down{color:var(--down)}   /* 숫자는 지정값 #81C784/#EF9A9A, 넓은 조각은 --red #BF616A */ .neutral{color:var(--gold)}
 
 /* allocation bars (현재 vs 목표) */
-.abar-row{margin:0 0 11px}
-.abar-label{font-family:var(--font-text);font-size:9.5px;color:var(--text2);margin-bottom:5px;letter-spacing:.08em;font-weight:590;text-transform:uppercase}
-.abar{display:flex;height:26px;border-radius:var(--r-pill);overflow:hidden;position:relative;isolation:isolate;
+.abar-row{margin:0 0 14px}
+.abar-label{font-family:var(--font-text);font-size:10px;color:var(--text2);margin-bottom:7px;letter-spacing:.08em;font-weight:590;text-transform:uppercase}
+.abar{display:flex;height:30px;border-radius:var(--r-pill);overflow:hidden;position:relative;isolation:isolate;
   background:var(--ov03);
   border:.5px solid rgba(255,255,255,.12);
   box-shadow:inset 0 1px 3px rgba(0,0,0,.3), inset 0 -.5px 0 rgba(255,255,255,.10)}
@@ -311,20 +309,24 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 /* ── 코스톨라니 달걀 (v13.1) ────────────────────────────────────────
    시장 순환 위치를 6국면(A1~B3) 달걀 둘레 위의 한 점으로 표시한다.
    표시 전용 지표다 — 래더의 매매 판단(computeSeries)에는 일절 관여하지 않는다. */
-.egg-box{display:flex;flex-direction:column;min-height:104px;padding:15px 13px 13px;cursor:pointer}
+.egg-box{display:flex;flex-direction:column;min-height:0;padding:14px 11px 12px;cursor:pointer;overflow:hidden}
 .egg-box .label{margin-bottom:2px;flex:0 0 auto}
 #eggBody{flex:1;min-height:0;display:flex;flex-direction:column}
-.egg-svg{display:block;width:100%;flex:1;min-height:150px;margin:0 auto}   /* 2행 높이를 남김없이 채운다 */
+.egg-svg{display:block;width:100%;height:100%;flex:1 1 auto;min-height:0;margin:0 auto}   /* 2행 높이에 맞춰 축소 — preserveAspectRatio가 비율 유지 */
 .egg-cap{margin-top:6px;text-align:center;line-height:1.3;flex:0 0 auto}
 .egg-cap .hint{font-size:10.5px;color:var(--muted);margin-top:5px;line-height:1.4;padding:0 2px}
+.egg-cmp{margin-top:6px;font-size:10px;font-family:var(--font-num);letter-spacing:0;font-weight:640;
+  border-radius:var(--r-pill);padding:4px 8px;display:inline-block;
+  color:var(--text-2);background:var(--ov06);border:.5px solid var(--border)}
+.egg-cmp.clash{color:var(--gold);background:color-mix(in srgb, var(--gold) 12%, transparent);border-color:color-mix(in srgb, var(--gold) 32%, transparent)}
 .egg-cap .pn{font-family:var(--font-text);font-weight:700;font-size:12.5px;letter-spacing:-.02em;color:var(--text)}
 .egg-cap .ps{font-family:var(--font-num);font-size:10px;color:var(--text2);margin-top:3px;font-variant-numeric:tabular-nums;letter-spacing:0}
 /* ── 공포·탐욕 지수 (v13.2) — 5축 자체 산출. CNN 지수가 아니다. ── */
-.fg-box{display:flex;flex-direction:column;cursor:pointer;padding:15px 18px 15px}
+.fg-box{display:flex;flex-direction:column;cursor:pointer;padding:14px 14px 13px;overflow:hidden}
 #fgBody{flex:1;display:flex;align-items:center}
-.fg-grid{display:flex;gap:20px;align-items:center;width:100%}
-.fg-main{flex:0 0 158px;display:flex;flex-direction:column;justify-content:center}
-.fg-num{font-family:var(--font-num);font-weight:700;font-size:33px;line-height:1;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
+.fg-grid{display:flex;flex-direction:column;gap:13px;width:100%;flex:1;min-height:0;justify-content:center}
+.fg-main{flex:0 0 auto;display:flex;flex-direction:column;justify-content:center}
+.fg-num{font-family:var(--font-num);font-weight:700;font-size:30px;line-height:1;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
 .fg-lab{font-family:var(--font-text);font-size:12.5px;font-weight:640;letter-spacing:-.02em;margin-top:5px}
 .fg-bar{position:relative;height:9px;border-radius:var(--r-pill);margin-top:12px;
   background:linear-gradient(90deg,#428968,#8eb985 26%,#85a5c5 50%,#EBCB8B 74%,#BF616A);
@@ -332,21 +334,23 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .fg-tick{position:absolute;top:-4.5px;width:3px;height:18px;border-radius:2px;background:#fff;
   box-shadow:0 0 9px rgba(255,255,255,.65);transform:translateX(-50%);transition:left 1.1s var(--ease)}
 .fg-scale{display:flex;justify-content:space-between;margin-top:6px;font-size:9px;color:var(--muted);letter-spacing:.01em}
-.fg-comp{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;
+.fg-comp{flex:0 0 auto;min-width:0;display:flex;flex-direction:column;gap:7px;
   border-left:.5px solid var(--border);padding-left:19px}
 .fg-row{display:flex;align-items:center;gap:10px;font-size:11px}
-.fg-row .n{flex:0 0 74px;color:var(--text2);letter-spacing:-.01em}
+.fg-row .n{flex:0 0 60px;color:var(--text2);letter-spacing:-.02em}
 .fg-row .b{flex:1;min-width:30px;height:5px;border-radius:var(--r-pill);background:var(--ov06);overflow:hidden}
 .fg-row .b i{display:block;height:100%;border-radius:var(--r-pill);transition:width 1.1s var(--ease)}
 .fg-row .v{flex:0 0 24px;text-align:right;font-family:var(--font-num);font-variant-numeric:tabular-nums;font-weight:640}
-@media(max-width:1080px){.fg-grid{flex-direction:column;align-items:stretch;gap:14px}
-  .fg-main{flex:0 0 auto}.fg-comp{border-left:none;padding-left:0;border-top:.5px solid var(--border);padding-top:14px}}
+/* 좁은 세로 열이 기본이므로 항상 위아래로 쌓는다. 모바일(1열)에서는 폭이 넓어지므로 가로로 편다. */
+@media(max-width:860px){.fg-grid{flex-direction:row;align-items:center;gap:20px}
+  .fg-main{flex:0 0 150px}.fg-comp{flex:1;border-top:none;padding-top:0;border-left:.5px solid var(--border);padding-left:18px}
+  .fg-row .n{flex:0 0 74px}}
 .kg-tbl{width:100%;border-collapse:collapse;margin-top:10px;font-size:12.5px}
 .kg-tbl th,.kg-tbl td{text-align:left;padding:9px 10px;border-bottom:.5px solid var(--border);vertical-align:top}
 .kg-tbl th{color:var(--text2);font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:590}
 .kg-tbl td.kc{font-family:var(--font-num);font-weight:700;white-space:nowrap}
 .kg-tbl td.ka{white-space:nowrap;font-weight:640}
-@media(max-width:860px){.egg-svg{max-height:250px}}
+@media(max-width:860px){.egg-svg{min-height:230px;max-height:260px}}
 .range-pills{display:inline-flex;gap:3px;padding:3px;border-radius:var(--r-pill);background:var(--surface2)}
 .range-pills button{font-family:var(--font-num);font-size:10.5px;font-weight:640;color:var(--text2);background:none;border:none;border-radius:var(--r-pill);padding:4px 11px;cursor:pointer;transition:.28s var(--ease);letter-spacing:-.01em}
 .range-pills button:hover{color:var(--text);background:var(--st-hover)}
@@ -355,14 +359,14 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .nowrap-table td{padding-right:18px}
 .abar-empty{display:flex;align-items:center;justify-content:center;width:100%;color:var(--text2);font-weight:500;font-size:12px}
 .abar-legend{margin-top:15px;display:flex;flex-direction:column;gap:9px;border-top:.5px solid var(--border);padding-top:13px}
-.alloc-grid{display:flex;gap:14px;align-items:center}
+.alloc-grid{display:flex;gap:18px;align-items:center}
 .alloc-bars{flex:1;min-width:0}
-.alloc-grid .abar-legend{flex:0 0 auto;min-width:110px;margin-top:0;border-top:none;padding-top:0;border-right:.5px solid var(--border);padding-right:13px;align-self:stretch;justify-content:center;gap:12px}
+.alloc-grid .abar-legend{flex:0 0 auto;min-width:128px;margin-top:0;border-top:none;padding-top:0;border-right:.5px solid var(--border);padding-right:16px;align-self:stretch;justify-content:center;gap:12px}
 @media(max-width:760px){.alloc-grid{flex-direction:column;align-items:stretch;gap:0}.alloc-bars{order:1}.alloc-grid .abar-legend{order:2;border-right:none;padding-right:0;border-top:.5px solid var(--border);padding-top:13px;margin-top:14px}}
 .abar-leg{display:flex;justify-content:space-between;align-items:center;font-size:12px}
 .abar-leg-n{display:flex;align-items:center;font-weight:640;letter-spacing:-.01em}
 .abar-leg-v{display:flex;align-items:center;gap:12px;font-family:var(--font-num);font-variant-numeric:tabular-nums}
-.abar-act{min-width:84px;text-align:right;font-variant-numeric:tabular-nums}
+.abar-act{min-width:92px;text-align:right;font-variant-numeric:tabular-nums}
 .dotc{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:9px;box-shadow:inset 0 .5px 0 rgba(255,255,255,.5);vertical-align:-1px}
 .appver{text-align:center;color:var(--muted);font-size:11px;letter-spacing:.04em;padding:28px 0 12px;font-family:var(--font-mono)}
 
@@ -514,7 +518,7 @@ details.sandbox .stage-edit{background:var(--ov01)}
 .mobile-tabbar{display:none}
 @media(max-width:860px){
   .hero{grid-template-columns:1fr;grid-template-rows:none}
-  #stateCard,#allocCard,#eggCard,#fgCard{grid-area:auto}
+  #stateCard,#allocCard,#eggCard,#fgCard{grid-area:auto}   /* 모바일: 1열 스택 */
   .ind-grid{grid-template-columns:repeat(2,1fr)}
   .summary-grid{grid-template-columns:repeat(2,1fr)}
   .row3{grid-template-columns:1fr}
@@ -1315,9 +1319,17 @@ function computeKosto(out,P){
       recM=Math.min(recM,pos);           // 실제로 내려간 만큼만 회복도를 되돌린다
     }
     pS=(pS==null)?pos:pS+(pos-pS)*0.32;                                   // 5일 EMA 상당
-    const a = dir>0 ? Math.min(0.4999,cl(pS)*0.5) : Math.min(0.9999,Math.max(0.5,1-cl(pS)*0.5));
+    let a = dir>0 ? Math.min(0.4999,cl(pS)*0.5) : Math.min(0.9999,Math.max(0.5,1-cl(pS)*0.5));
+    // 추세 게이트(§62): 코스톨라니의 B2(동행)·B3(과장)는 추세가 실제로 꺾인 뒤의 국면이다.
+    // 200일선 위에 있고 래더도 급락·이탈이 아니면 아무리 눌려도 B1(조정)까지만 인정한다.
+    // 이 게이트가 없으면 상승장 중간의 −10% 조정에 '하락 동행 국면 · 현금 유지'가 떠서
+    // 래더의 '적립 · TQQQ 100%'와 정면으로 충돌한다(실측 모순율 18.2% → 5.1%).
+    const gated = (dir<0 && q[i]>=o.sma200 && o.regime!==5 && o.regime!==6);
+    if(gated) a=Math.min(a,0.6655);
     const tgt=Math.min(5,Math.max(0,Math.floor(a*6)));
     if(tgt!==ph){ const lo=ph/6, hi=(ph+1)/6; if(a>hi+0.03 || a<lo-0.03) ph=tgt; }   // 경계 히스테리시스
+    if(gated && ph>3) ph=3;            // 히스테리시스가 B2에 붙들고 있어도 게이트가 우선한다
+    o.kGate=gated?1:0;
     o.kPos=pS; o.kDir=dir; o.kAlpha=a; o.kPh=ph;
   }
   return out;
@@ -1434,6 +1446,11 @@ function renderEgg(){
       +'" opacity="'+(i===r.kPh?1:0.46)+'">'+p.k+'</text>';
   }).join('');
   const posN=Math.round(r.kPos*100), dirTxt=(r.kDir>0?'상승':'하락');
+  // 달걀의 처방은 '코스톨라니 원전의 교리'일 뿐 이 앱의 지시가 아니다.
+  // 래더가 실제 지시이므로 나란히 보여주고, 어긋나면 어느 쪽을 따를지 화면에서 못박는다.
+  const wP=Math.round((r.w||0)*100);
+  const agree = (r.kPh===2) ? wP<100 : (r.kPh===3||r.kPh===4) ? wP<=30 : (r.kPh===0||r.kPh===5) ? wP>=70 : true;
+  const cmp = '<div class="egg-cmp'+(agree?'':' clash')+'">래더 TQQQ '+wP+'% · '+(agree?'같은 방향':'상충 → 래더를 따르세요')+'</div>';
   el.innerHTML =
    '<svg class="egg-svg" viewBox="0 0 192 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="코스톨라니 달걀 — 현재 '+P.k+' '+P.ph+'">'
   +  '<defs><filter id="eggGl" x="-55%" y="-55%" width="210%" height="210%">'
@@ -1448,8 +1465,8 @@ function renderEgg(){
   +  '<circle cx="'+m[0].toFixed(2)+'" cy="'+m[1].toFixed(2)+'" r="4.8" fill="'+P.c+'" stroke="#11181d" stroke-width="1.6"/>'
   +'</svg>'
   +'<div class="egg-cap"><div class="pn">'+P.ph+'</div>'
-  +'<div class="ps">위치 '+posN+' · '+dirTxt+' · 코스톨라니: '+P.act+'</div>'
-  +'<div class="hint">'+P.h+'</div></div>';
+  +'<div class="ps">위치 '+posN+' · '+dirTxt+' · 코스톨라니 원전: '+P.act+'</div>'
+  +cmp+'<div class="hint">'+P.h+'</div></div>';
 }
 function openKosto(){
   const b=document.getElementById('kostoRows');
@@ -1571,7 +1588,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='13.2.0';
+const APP_VERSION='13.3.0';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
