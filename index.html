@@ -202,7 +202,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 @media(max-width:1080px) and (min-width:861px){
   .hero{grid-template-columns:minmax(244px,1.86fr) minmax(126px,.86fr) minmax(158px,1.05fr);gap:11px}
 }
-.state-box{display:flex;flex-direction:column;justify-content:center;gap:6px;min-height:92px;padding:16px 18px;position:relative;overflow:hidden;
+.state-box{display:flex;flex-direction:column;justify-content:center;gap:6px;min-height:74px;padding:15px 18px;position:relative;overflow:hidden;
   background:
     radial-gradient(150% 130% at 92% -20%, color-mix(in srgb, var(--rc,var(--accent)) 13%, transparent), transparent 58%),
     radial-gradient(120% 120% at 6% 120%, color-mix(in srgb, var(--rc,var(--accent)) 7%, transparent), transparent 60%),
@@ -217,11 +217,13 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
   mask-image:radial-gradient(closest-side, transparent 56%, #000 80%);
   filter:blur(13px);opacity:.64;animation:heroPulse 12s linear infinite}
 @keyframes heroPulse{to{transform:rotate(360deg)}}
-.state-name{font-family:var(--font-text);font-weight:700;font-size:30px;letter-spacing:-.035em;line-height:1.04;display:flex;align-items:center;gap:10px;position:relative;z-index:1}
-.state-name::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--rc,var(--accent));box-shadow:0 0 14px var(--rc,var(--glow));flex:0 0 auto;animation:livePulse 2.4s ease-in-out infinite}
+/* §77: 단계명과 게이지를 한 줄에 둔다. 아래 비중 카드가 길어진 만큼 위를 줄인다. */
+.state-head{display:flex;align-items:center;gap:14px;position:relative;z-index:1;flex-wrap:wrap;row-gap:9px}
+.state-name{font-family:var(--font-text);font-weight:700;font-size:21px;letter-spacing:-.03em;line-height:1.04;display:flex;align-items:center;gap:9px;flex:0 0 auto}
+.state-name::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--rc,var(--accent));box-shadow:0 0 14px var(--rc,var(--glow));flex:0 0 auto;animation:livePulse 2.4s ease-in-out infinite}
 @keyframes livePulse{0%,100%{box-shadow:0 0 6px var(--rc,var(--glow))}50%{box-shadow:0 0 18px 3px var(--rc,var(--glow))}}
 .state-sub{font-size:12.5px;color:var(--text-2);max-width:94%;line-height:1.45;position:relative;z-index:1}
-.gauge-row{display:flex;gap:5px;margin-top:10px;position:relative;z-index:1;align-items:center}
+.gauge-row{display:flex;gap:5px;position:relative;z-index:1;align-items:center;flex:1 1 190px;min-width:150px}
 /* 칸마다 따로 도는 셔머는 한 칸 폭(≈40px)만 지나가느라 사실상 안 보였다(§72).
    줄 전체를 한 번에 훑는 스캔을 덮는다. 단 스캔은 **칸이 놓인 트랙에만** 걸어야 한다 —
    .gauge-row에 걸면 오른쪽 비중 숫자까지 훑고, 줄 높이가 숫자에 맞춰 커져 있어 빛이 위아래로 넘친다. */
@@ -278,68 +280,39 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .ind .v{font-family:var(--font-num);font-weight:640;font-size:15px;letter-spacing:-.02em;margin-top:3px;font-variant-numeric:tabular-nums}
 .up{color:var(--up)} .down{color:var(--down)}   /* 숫자는 지정값 #81C784/#EF9A9A, 넓은 조각은 --red #BF616A */ .neutral{color:var(--gold)}
 
-/* allocation bars (현재 vs 목표) */
-.abar-row{margin:0 0 14px}
-.abar-label{font-family:var(--font-text);font-size:10px;color:var(--text2);margin-bottom:7px;letter-spacing:.08em;font-weight:590;text-transform:uppercase}
-.abar{display:flex;height:30px;border-radius:var(--r-pill);overflow:hidden;position:relative;isolation:isolate;
-  background:var(--ov03);
-  border:.5px solid rgba(255,255,255,.07);
-  box-shadow:inset 0 1px 2px rgba(0,0,0,.20)}
-/* §71: 짙은 내부그림자 + 위아래 광택은 2010년대식 유광 마감이라 색만 바꿔도 낡아 보인다.
-   그림자를 얕게, 테두리를 옅게 하고 조각 위 광택도 상단 한 겹만 남긴다. */
-.abar.faded{border-style:dashed;border-color:var(--border2)}
-/* 렌더될 때마다 좌→우로 차오른다. innerHTML을 새로 그리므로 매번 자동 재생된다(§72).
-   width 트랜지션은 새 요소가 이미 최종 폭으로 생성돼 한 번도 발화하지 않았다. */
-.abar{animation:barWipe .95s var(--ease) both}
+/* allocation bars (§77) — 위: 현재 비중 분절 알약 / 아래: 종목별 굵은 행 */
+.abar-label{font-family:var(--font-text);font-size:10px;color:var(--text2);margin-bottom:8px;letter-spacing:.08em;font-weight:590;text-transform:uppercase}
+.pbar{display:flex;gap:4px;height:26px;margin-bottom:14px}
+.pseg{flex:1;min-width:0;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:5px;
+  white-space:nowrap;overflow:hidden;color:rgba(12,16,18,.84);
+  background-image:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,0) 62%);
+  animation:barWipe .95s var(--ease) both}
+.pseg.empty{background:var(--ov04);color:var(--text2);font-size:12px;font-weight:500;
+  border:.5px dashed var(--border2);background-image:none}
+.pseg .t{font-size:10px;font-weight:700;letter-spacing:-.01em}
+.pseg .p{font-family:var(--font-num);font-size:11px;font-weight:700;font-variant-numeric:tabular-nums}
 @keyframes barWipe{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
-.abar-row+.abar-row .abar{animation-delay:.15s}
-@media(prefers-reduced-motion:reduce){.abar{animation:none}}
-.abar>div{position:relative;display:flex;align-items:center;justify-content:center;color:rgba(12,16,18,.84);min-width:0;white-space:nowrap;
-  transition:width 1.1s var(--ease);
-  background-image:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.02) 62%,rgba(0,0,0,.04))}
-.abar>div+div{box-shadow:inset 1px 0 0 rgba(0,0,0,.22)}   /* 조각 경계를 광택이 아니라 얇은 선 하나로 */
-/* 넓고 부드러운 스페큘러 글라이드 (번개 대신 유리 위 빛의 이동) */
-/* 유리를 통과하는 프리즘 광선: 넓고 느린 본체 + 상·하 모서리 커스틱 + 옅은 색분산 */
-.abar::before{content:"";position:absolute;inset:0;z-index:4;pointer-events:none;border-radius:inherit;mix-blend-mode:screen;
-  background-repeat:no-repeat;
-  background-image:
-    linear-gradient(90deg,transparent 0%,rgba(255,255,255,.025) 12%,rgba(255,255,255,.09) 26%,rgba(255,255,255,.34) 40%,rgba(255,255,255,.78) 50%,rgba(255,255,255,.34) 60%,rgba(255,255,255,.09) 74%,rgba(255,255,255,.025) 88%,transparent 100%),
-    linear-gradient(90deg,transparent 0%,rgba(255,255,255,.012) 16%,rgba(255,255,255,.05) 30%,rgba(255,255,255,.13) 42%,rgba(255,255,255,.27) 50%,rgba(255,255,255,.13) 58%,rgba(255,255,255,.05) 70%,rgba(255,255,255,.012) 84%,transparent 100%),
-    linear-gradient(101deg,transparent 0%,rgba(100,210,255,.02) 10%,rgba(120,205,255,.05) 20%,rgba(255,255,255,.10) 30%,rgba(255,255,255,.12) 40%,rgba(255,255,255,.21) 48%,rgba(255,255,255,.25) 50%,rgba(255,255,255,.21) 52%,rgba(255,255,255,.12) 60%,rgba(255,255,255,.10) 70%,rgba(255,200,160,.05) 80%,rgba(255,186,140,.02) 90%,transparent 100%);
-  background-size:80% 1.5px,80% 1px,80% 100%;
-  background-position:-400% 0%,-400% 100%,-400% 0%;
-  -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.3) 4%,rgba(0,0,0,.8) 10%,#000 15%,#000 85%,rgba(0,0,0,.8) 90%,rgba(0,0,0,.3) 96%,transparent 100%);
-  mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.3) 4%,rgba(0,0,0,.8) 10%,#000 15%,#000 85%,rgba(0,0,0,.8) 90%,rgba(0,0,0,.3) 96%,transparent 100%);
-  will-change:background-position;
-  animation:barSweep 4.4s linear infinite}
-.abar::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:5;
-  background:linear-gradient(180deg,rgba(255,255,255,.05),transparent 38%)}
-/* 막대도 같은 원리: 요소는 고정, 빛(배경)만 흘려보내고 좌우는 mask 로 먹인다.
-   등속(linear)으로 막대 위 체류 약 2.6초, 이후 약 3초 휴지 */
-@keyframes barSweep{
-  0%,4%    {background-position:-400% 0%,-400% 100%,-400% 0%}
-  50%,100% {background-position:500% 0%,500% 100%,500% 0%}}
-.abar.faded::before{animation-delay:2.2s}
-/* 차트가 왼쪽에서 오른쪽으로 드러난다(v13.8.1). 캔버스를 건드리지 않고 컨테이너를 잘라내는
-   방식이라 Chart.js 설정과 무관하게 항상 동작하고, 오버레이가 아니므로 경계선이 생기지 않는다. */
-.chart-wipe{position:relative}
-.chart-wipe.wipe{animation:chartWipe 1.35s cubic-bezier(.22,.61,.36,1) both}
-@keyframes chartWipe{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
-/* 드러나는 경계에 광선을 함께 달려보낸다 — 그냥 잘라내기만 하면 눈이 알아채지 못한다 */
-.chart-wipe.wipe::after{content:"";position:absolute;top:0;bottom:0;width:15%;pointer-events:none;z-index:3;
-  mix-blend-mode:screen;border-radius:14px;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.18) 55%,rgba(255,255,255,.62));
-  animation:chartEdge 1.35s cubic-bezier(.22,.61,.36,1) both}
-@keyframes chartEdge{from{left:-15%;opacity:1}85%{opacity:.85}to{left:100%;opacity:0}}
-@media(prefers-reduced-motion:reduce){.chart-wipe.wipe,.chart-wipe.wipe::after{animation:none}}
-/* v13.8: '유리 반사'(.chart-glass)를 제거했다.
-   배경 레이어 하나가 background-size:64% 1px — 높이 1px짜리 띠였고, 그것이 컨테이너 상단을
-   가로지르며 '경계선'으로 읽혔다. 두께를 키우거나 지우는 대신, 차트에는 차트다운 연출을 쓴다:
-   ① 선이 왼쪽에서 오른쪽으로 그려지는 진입 애니메이션 ② 끝점 정적 발광(renderAssetChart).
-   둘 다 캔버스 안에서 일어나므로 컨테이너 모서리에 인공적인 선이 생기지 않는다. */
-@media(prefers-reduced-motion:reduce){.abar::before{animation:none;opacity:0}}
-.abar-seg-t{position:relative;z-index:6;font-size:10px;font-weight:700;letter-spacing:-.01em;line-height:1;color:rgba(12,16,18,.84);margin-right:5px}
-.abar-seg-p{position:relative;z-index:6;font-family:var(--font-num);font-size:11px;font-weight:700;line-height:1;color:rgba(12,16,18,.84);font-variant-numeric:tabular-nums}
+.arow-list{border-top:.5px solid var(--border);padding-top:12px}
+.arow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.arow:last-child{margin-bottom:0}
+.arow .k{flex:0 0 72px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:640;color:var(--text)}
+.arow .k i{width:9px;height:9px;border-radius:3px;display:inline-block;box-shadow:inset 0 .5px 0 rgba(255,255,255,.45)}
+.arow .rail{flex:1;min-width:0;position:relative;height:26px;border-radius:8px;background:var(--ov04);
+  border:.5px solid rgba(255,255,255,.06);display:flex;align-items:center}
+.arow .rail b{height:100%;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  white-space:nowrap;overflow:hidden;color:rgba(12,16,18,.84);
+  background-image:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,0) 62%);
+  transition:width .8s var(--ease)}
+.arow .rail b .p{font-family:var(--font-num);font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums}
+.arow .rail .out{font-family:var(--font-num);font-size:11px;font-weight:640;color:var(--text-2);
+  margin-left:8px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.arow .rail u{position:absolute;top:-3px;bottom:-3px;width:2px;background:#fff;border-radius:2px;z-index:2;
+  transform:translateX(-50%);box-shadow:0 0 8px rgba(255,255,255,.75)}
+.arow .act{flex:0 0 62px;text-align:right;font-family:var(--font-num);font-size:11.5px;font-weight:640;
+  font-variant-numeric:tabular-nums}
+.arow-cap{font-size:10.5px;color:var(--muted);margin-top:11px;line-height:1.45}
+@media(max-width:420px){.arow .k{flex:0 0 60px;font-size:11px}.arow .act{flex:0 0 54px;font-size:11px}
+  .arow .rail{height:23px}.pbar{height:23px}}
 /* ── 코스톨라니 달걀 (v13.1) ────────────────────────────────────────
    시장 순환 위치를 6국면(A1~B3) 달걀 둘레 위의 한 점으로 표시한다.
    표시 전용 지표다 — 래더의 매매 판단(computeSeries)에는 일절 관여하지 않는다. */
@@ -445,16 +418,6 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .range-pills button.on{color:var(--on-accent);background:var(--accent-fill);box-shadow:0 2px 6px -3px rgba(0,0,0,.5), var(--shadow-hi)}
 .nowrap-table td,.nowrap-table th{white-space:nowrap}
 .nowrap-table td{padding-right:18px}
-.abar-empty{display:flex;align-items:center;justify-content:center;width:100%;color:var(--text2);font-weight:500;font-size:12px}
-.abar-legend{margin-top:15px;display:flex;flex-direction:column;gap:9px;border-top:.5px solid var(--border);padding-top:13px}
-.alloc-grid{display:flex;gap:18px;align-items:center}
-.alloc-bars{flex:1;min-width:0}
-.alloc-grid .abar-legend{flex:0 0 auto;min-width:128px;margin-top:0;border-top:none;padding-top:0;border-right:.5px solid var(--border);padding-right:16px;align-self:stretch;justify-content:center;gap:12px}
-@media(max-width:760px){.alloc-grid{flex-direction:column;align-items:stretch;gap:0}.alloc-bars{order:1}.alloc-grid .abar-legend{order:2;border-right:none;padding-right:0;border-top:.5px solid var(--border);padding-top:13px;margin-top:14px}}
-.abar-leg{display:flex;justify-content:space-between;align-items:center;font-size:12px}
-.abar-leg-n{display:flex;align-items:center;font-weight:640;letter-spacing:-.01em}
-.abar-leg-v{display:flex;align-items:center;gap:12px;font-family:var(--font-num);font-variant-numeric:tabular-nums}
-.abar-act{min-width:92px;text-align:right;font-variant-numeric:tabular-nums}
 .dotc{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:9px;box-shadow:inset 0 .5px 0 rgba(255,255,255,.5);vertical-align:-1px}
 .appver{text-align:center;color:var(--muted);font-size:11px;letter-spacing:.04em;padding:28px 0 12px;font-family:var(--font-mono)}
 
@@ -645,7 +608,7 @@ details.sandbox .stage-edit{background:var(--ov01)}
     /* 트랙 안의 항목이라 테두리는 생략하고 배경 알파만 톤 컨테이너와 맞춘다 */
   .mobile-tabbar button.active{color:var(--accent);background:color-mix(in srgb, var(--accent) var(--tone-a), transparent);box-shadow:inset 0 .5px 0 rgba(255,255,255,.22)}
   .mobile-tabbar .ic{font-size:17px}
-  .big-num{font-size:15px}.state-name{font-size:22px}.reco-ticker{font-size:21px}
+  .big-num{font-size:15px}.state-name{font-size:19px}.reco-ticker{font-size:21px}
   /* 매매이력: 컴팩트 가로 스크롤 테이블 */
   #tradeTable{min-width:660px}
   #tradeTable td,#tradeTable th{padding:9px 8px;font-size:12px;white-space:nowrap}
@@ -675,8 +638,10 @@ details.sandbox .stage-edit{background:var(--ov01)}
   <section id="tab-dash">
     <div class="hero">
       <div class="card green card-hov state-box" id="stateCard">
-        <div class="state-name" id="stateName">—</div>
-        <div class="gauge-row" id="gaugeRow"></div>
+        <div class="state-head">
+          <div class="state-name" id="stateName">—</div>
+          <div class="gauge-row" id="gaugeRow"></div>
+        </div>
       </div>
       <div class="card card-hov" id="allocCard">
         <div id="allocBars"></div>
@@ -1704,7 +1669,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='14.3.0';
+const APP_VERSION='14.4.0';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -1853,13 +1818,10 @@ function renderIndicators(r){
   + indCard('목표 TQQQ 비중', Math.round(r.w*100)+'%', r.w>=1?'up':(r.w<=0?'down':'neutral'), (()=>{const s=defGoldFrac(P),d=1-r.w;return '방어 '+Math.round(d*100)+'% (GLD '+Math.round(d*s*100)+'·SGOV '+Math.round(d*(1-s)*100)+') · 매주 한 번만 조정';})())
   + indCard('현재 단계', (r.regime===1&&r.fast)?'복귀(추력발동)':REG_NAME[r.regime], REG_COLOR[r.regime]==='red'?'down':REG_COLOR[r.regime]==='gold'?'neutral':'up', '매수 1순위: '+REG_BUY_DISP[r.regime]);
 }
-function allocBar(title,pairs,emptyMsg,faded){
-  const total=pairs.reduce((s,p)=>s+(p[1]||0),0);
-  const inner = total<=0.0001
-    ? `<div class="abar-empty">${emptyMsg||'—'}</div>`
-    : pairs.filter(([,v])=>v>0.0001).map(([n,v])=>`<div title="${ALLOC_DISP[n]} ${Math.round(v*1000)/10}%" style="width:${v*100}%;background:${ALLOC_GRAD[n]}"><span class="abar-seg-t">${v>=0.16?ALLOC_DISP[n]:''}</span><span class="abar-seg-p">${v>=0.07?Math.round(v*100)+'%':''}</span></div>`).join('');
-  return `<div class="abar-row"><div class="abar-label">${title}</div><div class="abar${faded?' faded':''}">${inner}</div></div>`;
-}
+/* 비중 표시 (§77 재구성)
+   위 : 현재 비중 하나만 — 조각을 떼어 라운드 처리한 분절형 알약(옛 '목표/현재' 두 막대 중 하나를 없앴다)
+   아래: 종목별 굵은 행 — 채움=현재, 흰 눈금=목표, 오른쪽=실행할 매매 주수
+   목표를 별도 막대로 또 그리지 않는다. 아래 행의 눈금이 같은 정보를 더 정확히 준다. */
 function renderAllocBars(){
   const w=CUR.w, sF=defGoldFrac(STRAT&&STRAT.params), dF=1-w;
   const t={TQQQ:w, GLD:dF*sF, SGOV:dF*(1-sF)};       // 래더 + 방어 분할 (v13.0)
@@ -1867,40 +1829,45 @@ function renderAllocBars(){
   const stockTot = CUR_PORT?CUR_PORT.total:0;
   const hasCur = stockTot>0.0001;
   const TK=['TQQQ','GLD','SGOV'];
-  const curPairs = TK.map(k=>[k, hasCur?((stockVal&&stockVal[k]||0)/stockTot):0]);
-  const tgtPairs = TK.map(k=>[k,t[k]]);
+  const cur = TK.map(k=>[k, hasCur?((stockVal&&stockVal[k]||0)/stockTot):0]);
   const el=document.getElementById('allocBars');
-  const priceUSD=k=>pxAt(CUR,k);
   // 목표 달성에 필요한 매수/매도 주수 (현재 총액 기준 리밸런싱)
-  function sharesFor(i){
+  function sharesFor(k){
     if(!CUR_PORT||!CUR||CUR_PORT.total<=0) return null;
-    const k=TK[i];
-    const targetVal=t[k]*CUR_PORT.total;
-    const deltaVal=targetVal-((CUR_PORT.val&&CUR_PORT.val[k])||0);   // +면 매수 필요, -면 매도
-    const priceKRW=priceUSD(k)*FXNOW;
+    const deltaVal=t[k]*CUR_PORT.total-((CUR_PORT.val&&CUR_PORT.val[k])||0);   // +면 매수, −면 매도
+    const px=pxAt(CUR,k), priceKRW=(px!=null?px:0)*FXNOW;
     return priceKRW>0 ? deltaVal/priceKRW : null;
   }
   const reband=((STRAT&&STRAT.params&&+STRAT.params.rebBand)||0)/100;
-  const curWt=(CUR_PORT&&CUR_PORT.total>0)?(((CUR_PORT.val&&CUR_PORT.val.TQQQ)||0)/CUR_PORT.total):null;   // v12.0: val[0]→val.TQQQ 버그 수정
-  const banded = reband>0 && curWt!=null && Math.abs(curWt-w)<reband;   // 밴드 내면 매매 생략
-  el.innerHTML =
-    `<div class="alloc-grid"><div class="abar-legend">`
-  + TK.map((n,i)=>{
-      const sh=sharesFor(i);
-      let act;
-      const shN = sh===null?null:Math.floor(Math.abs(sh));
-      if(banded) act='<b class="muted">유지(밴드 내)</b>';
-      else if(sh===null) act='<b class="muted">—</b>';
-      else if(shN===0) act='<b class="muted">유지</b>';
-      else if(sh>0) act=`<b class="up">+${shN}주 매수</b>`;
-      else act=`<b class="down">${shN}주 매도</b>`;
-      return `<div class="abar-leg"><span class="abar-leg-n"><span class="dotc" style="background:${ALLOC_COLORS[n]}"></span>${n}</span>`
-        + `<span class="abar-act">${act}</span></div>`;
-    }).join('')
-  + `</div><div class="alloc-bars">`
-  + allocBar('목표 비중 · TQQQ '+Math.round(w*100)+'%', tgtPairs, null, false)        // 목표 먼저
-  + allocBar('현재 비중'+(hasCur?'':' (보유 없음)'), curPairs, '보유 종목이 없습니다', true)  // 현재 나중
-  + `</div></div>`;
+  const curWt=(CUR_PORT&&CUR_PORT.total>0)?(((CUR_PORT.val&&CUR_PORT.val.TQQQ)||0)/CUR_PORT.total):null;
+  const banded = reband>0 && curWt!=null && Math.abs(curWt-w)<reband;         // 밴드 내면 매매 생략
+  const shown = cur.filter(([,v])=>v>0.0001);
+  const pill = shown.length
+    ? shown.map(([n,v])=>`<div class="pseg" style="flex:${v};background:${ALLOC_GRAD[n]}" title="${ALLOC_DISP[n]} ${Math.round(v*1000)/10}%">`
+        +(v>=0.17?`<span class="t">${ALLOC_DISP[n]}</span>`:'')
+        +(v>=0.09?`<span class="p">${Math.round(v*100)}%</span>`:'')+`</div>`).join('')
+    : '<div class="pseg empty">보유 종목이 없습니다</div>';
+  const rows = TK.map(k=>{
+    const v=(cur.find(x=>x[0]===k)||[k,0])[1], tg=t[k], sh=sharesFor(k);
+    const shN = sh===null?null:Math.floor(Math.abs(sh));
+    let act;
+    if(banded) act='<b class="muted">유지(밴드 내)</b>';
+    else if(sh===null) act='<b class="muted">—</b>';
+    else if(shN===0) act='<b class="muted">유지</b>';
+    else if(sh>0) act=`<b class="up">+${shN}주</b>`;
+    else act=`<b class="down">−${shN}주</b>`;
+    const wide=v>=0.16;
+    return `<div class="arow"><span class="k"><i style="background:${ALLOC_COLORS[k]}"></i>${k}</span>`
+      + `<span class="rail"><b style="width:${Math.max(v*100,1.6).toFixed(1)}%;background:${ALLOC_GRAD[k]}">`
+      + (wide?`<span class="p">${Math.round(v*100)}%</span>`:'') + `</b>`
+      + `<u style="left:${(tg*100).toFixed(1)}%" title="목표 ${Math.round(tg*100)}%"></u>`
+      + (wide?'':`<span class="out">${Math.round(v*100)}%</span>`) + `</span>`
+      + `<span class="act">${act}</span></div>`;
+  }).join('');
+  el.innerHTML = `<div class="abar-label">현재 비중${hasCur?'':' (보유 없음)'}</div>`
+    + `<div class="pbar">${pill}</div>`
+    + `<div class="arow-list">${rows}</div>`
+    + `<div class="arow-cap">채움 = 현재 · 흰 눈금 = 목표(TQQQ ${Math.round(w*100)}%) · 오른쪽 = 맞추는 데 필요한 주수</div>`;
 }
 
 let CHART_RANGE=260;
@@ -2136,27 +2103,21 @@ function renderAssetChart(data){
     const CYC=5600, TRV=3200, ph=now%CYC;
     if(ph<TRV){
       const e=ph/TRV, x0=pts[0].x, x1=last.x;                // 등속 — 가감속을 주면 끊겨 보인다
-      const headX=x0+(x1-x0)*e, tail=Math.max(38,(x1-x0)*0.20);
+      const headX=x0+(x1-x0)*e;
       const yAt=x=>{                                         // 폴리라인 위 정확한 y (보간)
         if(x<=pts[0].x) return pts[0].y;
         for(let i=1;i<pts.length;i++){ if(x<=pts[i].x){
           const a=pts[i-1],b=pts[i],t=(b.x-a.x)?(x-a.x)/(b.x-a.x):0; return a.y+(b.y-a.y)*t; } }
         return last.y; };
-      const sx=Math.max(x0,headX-tail);
-      const build=()=>{ c.beginPath(); c.moveTo(sx,yAt(sx));
-        for(const q of pts){ if(q.x>sx && q.x<headX) c.lineTo(q.x,q.y); }
-        c.lineTo(headX,yAt(headX)); };
+      // §77: 꼬리(덧그린 밝은 선분)를 없애고 **머리 광점만** 흐르게 한다.
+      //      꼬리는 선을 두껍게 덧칠해 원래 선 위에 얼룩처럼 남아 보였다.
       c.save();
       c.beginPath(); c.rect(area.left,area.top,area.right-area.left,area.bottom-area.top); c.clip();
-      c.lineJoin='round'; c.lineCap='round';
-      for(const ps of [{blur:16,w:5,a:.28},{blur:0,w:2.2,a:.88}]){
-        build(); c.shadowColor='rgba('+GL+',.9)'; c.shadowBlur=ps.blur;
-        c.strokeStyle='rgba('+GL+','+ps.a+')'; c.lineWidth=ps.w; c.stroke(); }
-      c.shadowBlur=0;
       const hy=yAt(headX);
       const hg=c.createRadialGradient(headX,hy,0,headX,hy,9);
       hg.addColorStop(0,'rgba(198,222,242,.95)'); hg.addColorStop(.5,'rgba('+GL+',.45)'); hg.addColorStop(1,'rgba('+GL+',0)');
       c.fillStyle=hg; c.beginPath(); c.arc(headX,hy,9,0,Math.PI*2); c.fill();
+      c.fillStyle='rgba(228,240,252,.95)'; c.beginPath(); c.arc(headX,hy,2.4,0,Math.PI*2); c.fill();
       c.restore();
     }
     if(chart.$pending) return;                               // 통과 중엔 rAF(부드럽게), 휴지 중엔 다음 통과까지 잠금
