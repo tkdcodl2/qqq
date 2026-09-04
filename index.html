@@ -1252,10 +1252,10 @@ const REG_TEXT={2:'#d3d8db',1:'#8eb985',3:'#EBCB8B',4:'#EF9A9A',5:'#bd96b5',6:'#
 
    ※ 표시 전용. 매매(w)는 computeSeries가 단독 결정하며 달걀은 개입하지 않는다. */
 const KOSTO_PH=[
-  {k:'A1',ph:'상승 · 바닥 국면',act:'매수',c:'#b5c98e',
+  {k:'A1',ph:'상승 · 바닥 국면',act:'매수',c:'#6aa564',
    h:'아직 아무도 관심 없을 때 — 코스톨라니가 사라고 한 두 자리 중 하나',
    d:'바닥을 지나 추세가 돌아서는 구간. 거래량도 관심도 아직 낮고, 소신파가 조용히 사 모으는 때.'},
-  {k:'A2',ph:'상승 · 동행 국면',act:'보유',c:'#7cb075',
+  {k:'A2',ph:'상승 · 동행 국면',act:'보유',c:'#b5c98e',
    h:'추세를 타고 가는 구간 — 기계적으로 적립만 하면 된다',
    d:'가격과 거래량이 나란히 늘며 안정적으로 오르는 구간. 새로 담기보다 들고 가는 시기.'},
   {k:'A3',ph:'상승 · 과열 국면',act:'분할매도',c:'#c9604f',
@@ -1585,7 +1585,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='13.5.1';
+const APP_VERSION='13.5.2';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
