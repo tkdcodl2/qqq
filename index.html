@@ -919,7 +919,7 @@ details.sandbox .stage-edit{background:var(--ov01)}
     <p class="note" style="margin-bottom:16px"><b>철학: 평소엔 기계적으로 TQQQ 100% 적립.</b> 고점·저점은 못 맞추니 — <b>과열 신호가 켜진 주마다 30%p씩</b> 방어자산으로 미리 덜어내고, 추세가 확실히 깨졌을 때만 전량 피신, 회복이 확인되면 <b>매주 10%p씩(추력 복귀는 35%p) 분할 재진입</b>합니다. 여기에 <b>변동성 상한</b>을 덧씌워 시장이 출렁이면 TQQQ를 자동으로 줄입니다. 판단·동작은 일주일에 한 번뿐입니다.</p>
     <p class="note" style="margin-bottom:16px"><b>방어자산 = GLD(금) 70% + 현금(SGOV) 30%</b> (§48, v13.0). TQQQ에서 덜어낸 비중(1−w)을 이 비율로 나눠 담습니다. 방어레그가 크게 보유되는 건 과열·광기·급락·이탈 구간인데, SCHD는 그때 지수와 같이 빠지는 반면(08년 −33%) <b>금은 정확히 그 구간에 비상관~역상관</b>이면서 장기수익(연 ~10%)도 있어, 방어 자본이 보존되고 <b>재진입 실탄</b>이 커집니다. §48 검증: 1999~2026 일봉·세후 기준 <b>6개 창 전부</b> v12(SCHD40) 대비 우위 — 2011-15 금 약세장을 포함한 07-20 창에서도 +1.7%p. 금 비중 60~80%는 성과가 평탄한 <b>넓은 고원</b>이라 70은 튜닝값이 아닌 고원 중앙입니다(100%는 방어 전량 단일자산 집중이라 배제). 대가도 명시합니다: 창별 MDD가 +1.6~2.0%p 깊어집니다(방어자산 자체의 변동을 감수하는 트레이드). 별도 단계가 추가된 것이 아니라, 모든 단계에서 방어레그 구성만 GLD70/SGOV30으로 바뀐 것입니다. <b>연말 비과세 한도 수확</b>과 <b>적립 스티어링</b>(둘 다 신호·위험 불변)은 v12 그대로 유지됩니다.</p>
 
-    <div class="section-title" style="font-size:16px"><span class="dot"></span>5가지 상태</div>
+    <div class="section-title" style="font-size:16px"><span class="dot"></span>6가지 상태</div>
     <div id="modalRegimes"></div>
 
     <div class="section-title" style="font-size:16px;margin-top:18px"><span class="dot"></span>규칙 — 매주 마지막 거래일 종가로 딱 4가지만 봅니다</div>
@@ -1704,7 +1704,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='14.1.0';
+const APP_VERSION='14.2.0';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -2121,9 +2121,45 @@ function renderAssetChart(data){
     const meta=chart.getDatasetMeta(0); if(!meta||!meta.data||!meta.data.length) return;
     const pt=meta.data[meta.data.length-1], area=chart.chartArea, c=chart.ctx;
     if(!pt||!area||pt.x<area.left-1||pt.x>area.right+1) return;
-    const t=slowM?0:((Date.now()%2800)/2800);
+    const now=Date.now();
+    const t=slowM?0:((now%2800)/2800);
     const k=(1-Math.cos(t*2*Math.PI))/2;                      // 0 → 1 → 0
     c.save();
+    /* 차트 내부 효과 ① — 현재 평가금액 기준선(§75).
+       끝점 높이에서 왼쪽으로 점선을 그어 과거 각 달이 지금보다 위인지 아래인지 한눈에 보이게 한다.
+       장식이 아니라 읽을거리를 더하는 쪽을 택했다. */
+    c.setLineDash([3,5]); c.lineWidth=1;
+    c.strokeStyle='rgba(133,165,197,'+(0.16+0.16*k).toFixed(3)+')';
+    c.beginPath(); c.moveTo(area.left,pt.y); c.lineTo(pt.x,pt.y); c.stroke();
+    c.setLineDash([]);
+    /* 차트 내부 효과 ② — 평가금액 선을 따라 흐르는 광점.
+       5.2초마다 한 번, 2.6초에 걸쳐 왼쪽에서 끝점까지 훑고 지나간다. */
+    if(!slowM){
+      const CYC=5200, TRV=2600, ph=now%CYC;
+      if(ph<TRV){
+        const prog=ph/TRV, W=area.right-area.left;
+        const headX=area.left+W*prog, tail=W*0.17;
+        c.save();
+        c.beginPath(); c.rect(area.left,area.top,W,area.bottom-area.top); c.clip();
+        c.lineJoin='round'; c.lineCap='round';
+        for(const ps of [{blur:15,w:4.2,a:.42},{blur:0,w:1.8,a:.92}]){
+          c.beginPath(); let on=false;
+          for(const p of meta.data){ const d=headX-p.x;
+            if(d<0) break;
+            if(d<=tail){ if(!on){c.moveTo(p.x,p.y);on=true;} else c.lineTo(p.x,p.y); } }
+          c.shadowColor='#cfe3f5'; c.shadowBlur=ps.blur;
+          c.strokeStyle='rgba(207,227,245,'+ps.a+')'; c.lineWidth=ps.w; c.stroke();
+        }
+        c.shadowBlur=0;
+        let hy=null; for(const p of meta.data){ if(p.x<=headX) hy=p.y; else break; }
+        if(hy!=null){
+          const hg=c.createRadialGradient(headX,hy,0,headX,hy,11);
+          hg.addColorStop(0,'rgba(255,255,255,.92)'); hg.addColorStop(1,'rgba(133,165,197,0)');
+          c.fillStyle=hg; c.beginPath(); c.arc(headX,hy,11,0,Math.PI*2); c.fill();
+        }
+        c.restore();
+      }
+    }
     if(!slowM){                                               // 퍼지는 파문
       const rr=5+15*t;
       c.strokeStyle='rgba(133,165,197,'+(0.55*(1-t)).toFixed(3)+')'; c.lineWidth=1.6;
@@ -2140,7 +2176,9 @@ function renderAssetChart(data){
     if(slowM || chart.$beat) return;
     const tab=document.getElementById('tab-dash');
     if(tab && tab.classList.contains('hidden')) return;       // 다른 탭이면 루프 정지
-    chart.$beat=setTimeout(()=>{ chart.$beat=null; if(chart.ctx) chart.draw(); },50);
+    // 광점이 지나가는 동안만 촘촘히(≈30fps), 나머지는 느슨하게(≈16fps) 되그린다
+    const busy=(now%5200)<2600;
+    chart.$beat=setTimeout(()=>{ chart.$beat=null; if(chart.ctx) chart.draw(); }, busy?33:62);
   }};
   assetChart=new Chart(ctx,{type:'line',data:{labels,datasets:ds},plugins:[assetGlow],
     options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
@@ -3208,7 +3246,7 @@ function toggleLogScale(){ LOG_SCALE=!LOG_SCALE; const b=document.getElementById
 
 /* ===================== 전략 모달 ===================== */
 function renderModalRegimes(){
-  const order=[2,3,5,4,6,1];
+  const order=[2,1,3,4,5,6];   // 적립·복귀·과열·광기·급락·이탈 (§75 사용자 지정 순서)
   const ex=STRAT.ex||{};
   document.getElementById('modalRegimes').innerHTML=order.map(reg=>{
     const rc=REG_LINE[reg], off=!!ex[reg];
