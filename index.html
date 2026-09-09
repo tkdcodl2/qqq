@@ -197,6 +197,11 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
    ≤860px: 한 줄 가로 스크롤 → 모바일에서 6줄로 늘어나는 것을 막는다 */
 .mkt-strip{padding:8px 10px;border-radius:16px;display:flex;align-items:center;gap:10px;margin-bottom:16px}
 .mkt-rail{flex:1;min-width:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:4px 6px}
+/* 줄 나눔을 auto-fill 에 맡기면 **폭으로만** 갈린다 — 14개가 8+6 으로 쪼개져
+   "첫 줄 맨 오른쪽이 VIX" 같은 지시를 지킬 수 없다. 넓은 폭에서는 열 수를 **항목 수에서** 정한다
+   (renderMktStrip 이 --mc 를 계산해 넣는다 → 14개면 7열이라 정확히 7+7).
+   861~1080px 는 auto-fill 그대로 둔다: 그 폭에서 7열을 강제하면 타일이 94px 로 눌려 값이 잘린다. */
+@media(min-width:1081px){.mkt-rail{grid-template-columns:repeat(var(--mc,8),minmax(0,1fr))}}
 /* 타일에 **평상시 배경을 깔지 않는다.** --ov01(.07)을 깔면 합성면이 #33393e 가 되고
    그 위의 9.8px 하락 다홍(--down)이 4.17:1 로 소형 글자 기준(4.5)에 미달한다(카드면에서는 5.17:1).
    입체감은 배경색 대신 **위쪽 헤어라인**으로 낸다 — 글자가 앉는 면을 밝히지 않으므로 대비가 그대로다.
@@ -1840,7 +1845,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='14.9.0';
+const APP_VERSION='14.9.1';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -1950,7 +1955,7 @@ async function init(){
      금리·환율·VIX 상승은 초록으로 뜨지만 포트폴리오에는 대개 역풍이다. */
 const MKT_TTL   = 60*1000;        // 이보다 최근이면 재조회하지 않는다(자동 폴링 주기와 같다)
 const MKT_STALE = 12*60*1000;     // 이보다 오래되면 시각 옆에 '지연' 표기
-const MKT_KEY='adca_mkt_v1', MKT_SEL_KEY='adca_mkt_sel_v1';
+const MKT_KEY='adca_mkt_v1', MKT_SEL_KEY='adca_mkt_sel_v2';   // v2: §84 기본값 변경 → 옛 저장본을 버린다
 /* 그룹 → [표시명, 왼쪽 색바]. 색은 모두 팔레트 기존 값이다(새 색을 만들지 않는다). */
 const MKT_GRP={us:['미국 지수','var(--accent)'], kr:['아시아 지수','var(--violet)'],
   rate:['금리','var(--gold)'], com:['원자재','var(--orange)'],
@@ -1962,20 +1967,22 @@ const MKT_GRP={us:['미국 지수','var(--accent)'], kr:['아시아 지수','var
 const MKT_CAT=[
  ['spx',   '^GSPC',     'S&P 500',    'us',  'idx', 1, '미국 대형주 500. 시장 전체의 기준'],
  ['spxf',  'ES=F',      'S&P 선물',    'us',  'idx', 1, 'E-mini S&P500 연결선물. 미국 장 마감 후에도 움직인다'],
- ['ndq',   '^IXIC',     '나스닥',      'us',  'idx', 1, '나스닥 종합. 상장 전체(3천여 종목)'],
- ['ndxf',  'NQ=F',      '나스닥 선물',  'us',  'idx', 1, 'E-mini 나스닥100 연결선물. 한국 낮에 QQQ 방향을 미리 보는 창'],
  ['ndx',   '^NDX',      '나스닥100',   'us',  'idx', 1, 'QQQ·QLD·TQQQ가 그대로 추종하는 기초지수 — 이 앱에서 가장 직접적인 지표'],
+ ['ndxf',  'NQ=F',      '나스닥 선물',  'us',  'idx', 1, 'E-mini 나스닥100 연결선물. 한국 낮에 QQQ 방향을 미리 보는 창'],
+ ['ndq',   '^IXIC',     '나스닥',      'us',  'idx', 0, '나스닥 종합(3천여 종목). 나스닥100과 구성이 달라 따로 볼 때만 켠다'],
  ['dji',   '^DJI',      '다우',        'us',  'idx', 0, '다우 30. 가격가중이라 기술주 비중이 낮다'],
  ['sox',   'SOXX',      '반도체(SOXX)','us',  'usd', 0, '반도체 ETF. 나스닥100의 실질 엔진이라 선행 신호로 자주 쓰인다'],
- ['vix',   '^VIX',      'VIX',        'us',  'idx2',1, 'S&P500 옵션 내재변동성. 20 위는 불안, 30 위는 공황 구간'],
  ['kospi', '^KS11',     '코스피',      'kr',  'idx', 1, '한국 대표지수'],
  ['kosdaq','^KQ11',     '코스닥',      'kr',  'idx', 1, '한국 중소·성장주'],
+ // VIX 는 그룹이 '미국'이지만 **첫 줄 맨 오른쪽**에 둔다(사용자 지시 §84).
+ // 스트립은 카탈로그 순서대로 그리므로 위치를 여기서 정한다 — 색바는 그룹색(파랑)을 그대로 쓴다.
+ ['vix',   '^VIX',      'VIX',        'us',  'idx2',1, 'S&P500 옵션 내재변동성. 20 위는 불안, 30 위는 공황 구간'],
  ['nikkei','^N225',     '니케이225',   'kr',  'idx', 0, '일본 대표지수. 엔화와 반대로 움직이는 경향'],
  ['hsi',   '^HSI',      '항셍',        'kr',  'idx', 0, '홍콩. 중국 위험선호의 대리 지표'],
  ['ust10', '^TNX',      '미 10년',     'rate','yld', 1, '미 국채 10년물 금리. 성장주 밸류에이션의 할인율'],
  ['ust30', '^TYX',      '미 30년',     'rate','yld', 1, '미 국채 30년물 금리. 장기 인플레·재정 우려를 반영'],
  ['ust3m', '^IRX',      '미 3개월',    'rate','yld', 0, '13주 국채금리. 레버리지 ETF의 차입비용 ≈ 이 금리 + 스프레드'],
- ['curve', null,        '10년−3개월',  'rate','sprd',1, '장단기 금리차. 마이너스(역전)는 역사적으로 침체 선행 신호'],
+ ['curve', null,        '10년−3개월',  'rate','sprd',0, '장단기 금리차. 마이너스(역전)는 역사적으로 침체 선행 신호'],
  ['wti',   'CL=F',      'WTI 유가',    'com', 'usd', 1, '서부텍사스유 선물. 헤드라인 인플레의 주범'],
  ['brent', 'BZ=F',      '브렌트유',     'com', 'usd', 0, '북해산. 국제 기준유'],
  ['gold',  'GC=F',      '금',          'com', 'usd', 1, '금 선물. 이 앱 방어레그(GLD)의 기초자산'],
@@ -2080,6 +2087,9 @@ function renderMktStrip(){
   const rail=document.getElementById('mktRail'); if(!rail) return;
   const sel=mktSel(), on=MKT_CAT.filter(c=>sel[c[0]]);
   const Q=(MKT_DATA&&MKT_DATA.quotes)||{};
+  /* 열 수: 8개 이하면 한 줄, 그보다 많으면 두 줄로 균등 분할. 상한 8 —
+     1081px에서 9열이면 타일이 100px 로 내용 최소폭(≈106px) 아래로 눌린다. */
+  rail.style.setProperty('--mc', String(on.length<=8 ? Math.max(1,on.length) : Math.min(8, Math.ceil(on.length/2))));
   if(!on.length){
     rail.innerHTML='<div class="mkt-empty">표시할 항목이 없습니다 — 오른쪽 ⓘ 버튼에서 선택하세요.</div>';
   } else {
