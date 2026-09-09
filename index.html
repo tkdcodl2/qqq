@@ -173,11 +173,11 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .card-hov:hover{transform:translateY(-3px);border-color:var(--border2);background:var(--ov08);box-shadow:var(--shadow-hi), var(--shadow-24), 0 0 0 .5px rgba(255,255,255,.07)}
 /* entrance — 스프링 이징 */
 @keyframes riseIn{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}
-#tab-dash .hero-l>.card,#tab-dash .hero-r>.card,#tab-dash .summary-grid>.card,#tab-dash .ind-grid>.ind{animation:riseIn .7s var(--ease) both}
+#tab-dash>.mkt-strip,#tab-dash .hero-l>.card,#tab-dash .hero-r>.card,#tab-dash .summary-grid>.card,#tab-dash .ind-grid>.ind{animation:riseIn .7s var(--ease) both}
 #tab-dash .hero-l>.card:nth-child(2){animation-delay:.07s}
 #tab-dash .hero-r>.card:nth-child(2){animation-delay:.14s}
 #tab-dash .summary-grid>.card:nth-child(n){animation-delay:.05s}
-@media(prefers-reduced-motion:reduce){#tab-dash .hero-l>.card,#tab-dash .hero-r>.card,#tab-dash .summary-grid>.card,#tab-dash .ind-grid>.ind{animation:none}}
+@media(prefers-reduced-motion:reduce){#tab-dash>.mkt-strip,#tab-dash .hero-l>.card,#tab-dash .hero-r>.card,#tab-dash .summary-grid>.card,#tab-dash .ind-grid>.ind{animation:none}}
 .grid{display:grid;gap:16px}
 .section-title{font-family:var(--font-text);font-weight:640;letter-spacing:-.02em;font-size:17px;color:var(--text);margin:6px 0 13px;display:flex;align-items:center;gap:9px}
 .section-title .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--glow);position:relative}
@@ -187,6 +187,69 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .label{font-family:var(--font-text);font-size:10px;letter-spacing:.08em;color:var(--text2);text-transform:uppercase;margin-bottom:7px;font-weight:590}
 .big-num{font-family:var(--font-num);font-weight:640;font-size:17px;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .sub-usd{font-family:var(--font-num);font-size:10.5px;color:var(--text2);font-weight:400;margin-top:3px;letter-spacing:0;font-variant-numeric:tabular-nums}
+
+/* ── 시장 지표 스트립 (§83 v14.9) ─────────────────────────────────────
+   대시보드 최상단 한 줄. **세로를 최소로 유지하는 것이 이 요소의 제1 원칙**이다 —
+   여기서 높이를 먹으면 아래 히어로(적립·비중·공포탐욕·달걀)가 첫 화면에서 밀려난다.
+   그래서 ① 타일은 2줄(이름 / 값+등락)이고 ② 그룹 구분은 그룹 헤더·구분선이 아니라
+   왼쪽 2px 색바로만 한다(헤더를 넣으면 그것만으로 20px 이상 더 든다).
+   ≥861px: auto-fill 그리드로 줄바꿈 → 기본 16개가 2줄에 다 보인다('한눈에')
+   ≤860px: 한 줄 가로 스크롤 → 모바일에서 6줄로 늘어나는 것을 막는다 */
+.mkt-strip{padding:8px 10px;border-radius:16px;display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.mkt-rail{flex:1;min-width:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:4px 6px}
+/* 타일에 **평상시 배경을 깔지 않는다.** --ov01(.07)을 깔면 합성면이 #33393e 가 되고
+   그 위의 9.8px 하락 다홍(--down)이 4.17:1 로 소형 글자 기준(4.5)에 미달한다(카드면에서는 5.17:1).
+   입체감은 배경색 대신 **위쪽 헤어라인**으로 낸다 — 글자가 앉는 면을 밝히지 않으므로 대비가 그대로다.
+   (§82에서 광택이 색을 씻어낸 것과 같은 종류의 실수다: 면을 밝히면 그 위 글자가 값을 잃는다) */
+.mkt-t{position:relative;padding:2px 6px 2px 10px;border-radius:7px;min-width:0;
+  box-shadow:inset 0 .5px 0 rgba(255,255,255,.07);transition:.22s var(--ease)}
+.mkt-t::before{content:"";position:absolute;left:3px;top:4px;bottom:4px;width:2px;border-radius:2px;
+  background:var(--gc,var(--accent));opacity:.85}
+.mkt-t:hover{background:var(--st-hover)}
+.mkt-n{font-family:var(--font-text);font-size:9.5px;font-weight:590;letter-spacing:-.005em;color:var(--text2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4}
+.mkt-v{display:flex;align-items:baseline;gap:4px;white-space:nowrap;overflow:hidden}
+.mkt-v .p{font-family:var(--font-num);font-size:12.5px;font-weight:640;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;color:var(--text);line-height:1.25}
+.mkt-v .c{font-family:var(--font-num);font-size:9.8px;font-weight:600;letter-spacing:0;
+  font-variant-numeric:tabular-nums;line-height:1.25}
+/* 장중 표시 — 이 앱에서 '지금 값이 움직이는 항목'을 구분하는 유일한 단서다.
+   한국 낮에 S&P 현물은 전일 종가로 굳어 있고 선물만 살아 있다 — 그 차이를 점으로 알린다. */
+.mkt-live{display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--up);margin-left:4px;
+  vertical-align:1px;box-shadow:0 0 5px color-mix(in srgb, var(--up) 70%, transparent);
+  animation:mktPulse 2.4s ease-in-out infinite}
+@keyframes mktPulse{0%,100%{opacity:.34}50%{opacity:1}}
+.mkt-side{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding-left:9px;
+  border-left:.5px solid var(--border)}
+.mkt-ts{font-family:var(--font-num);font-size:9.5px;font-weight:500;letter-spacing:0;color:var(--text2);
+  text-align:right;line-height:1.3;white-space:nowrap}
+.mkt-btn{width:22px;height:22px;flex:0 0 auto;border-radius:50%;border:.5px solid var(--border);
+  background:var(--surface2);color:var(--text2);cursor:pointer;display:flex;align-items:center;
+  justify-content:center;padding:0;transition:.24s var(--ease)}
+.mkt-btn:hover{background:var(--st-hover);color:var(--text);border-color:var(--border2)}
+.mkt-btn:active{transform:scale(.94)}
+.mkt-btn svg{width:12px;height:12px}
+.mkt-btn.busy{opacity:.6;pointer-events:none}
+.mkt-btn.busy svg{animation:spin 1s linear infinite}
+.mkt-empty{font-size:11.5px;color:var(--text2);padding:6px 2px;line-height:1.5}
+/* 표시 항목 선택 (모달) */
+.mkt-pick{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px}
+.mkt-ph{font-family:var(--font-text);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  font-weight:590;margin-bottom:5px}
+.mkt-pi{display:grid;grid-template-columns:16px 1fr;gap:1px 8px;align-items:center;padding:5px 7px;
+  border-radius:9px;cursor:pointer;transition:.2s var(--ease)}
+.mkt-pi:hover{background:var(--st-hover)}
+.mkt-pi input{grid-row:span 2;width:15px;height:15px;accent-color:var(--accent);cursor:pointer}
+.mkt-pi .nm{font-size:12.5px;font-weight:590;color:var(--text)}
+.mkt-pi .sy{font-family:var(--font-mono);font-size:9.5px;color:var(--muted);margin-left:5px;font-weight:400}
+.mkt-pi .ds{font-size:11px;color:var(--text2);line-height:1.42}
+@media(max-width:860px){
+  .mkt-rail{display:flex;overflow-x:auto;gap:6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .mkt-rail::-webkit-scrollbar{display:none}
+  .mkt-t{flex:0 0 116px}
+  .mkt-strip{margin-bottom:12px}
+}
+@media(max-width:560px){.mkt-pick{grid-template-columns:1fr}}
 
 /* state hero — 시그니처: 단계 색으로 물드는 회전 림 라이트 */
 /* v13.2 히어로 — 2행 그리드. 세로로 긴 달걀은 오른쪽 열을 2행 통째로 쓰고,
@@ -706,6 +769,15 @@ details.sandbox .stage-edit{background:var(--ov01)}
 
   <!-- ===== DASHBOARD ===== -->
   <section id="tab-dash">
+    <!-- 시장 지표 스트립 (§83) — 표시 전용. 래더 지시에 관여하지 않는다. -->
+    <div class="card mkt-strip" id="mktCard">
+      <div class="mkt-rail" id="mktRail"></div>
+      <div class="mkt-side">
+        <div class="mkt-ts" id="mktTs">&mdash;</div>
+        <button class="mkt-btn" id="mktRefresh" onclick="fetchMkt(true)" title="시장 지표 새로고침" aria-label="시장 지표 새로고침"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg></button>
+        <button class="mkt-btn" onclick="openMkt()" title="지표 설명 · 표시 항목 선택" aria-label="지표 설명 및 표시 항목 선택"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16.5v-5.5"/><path d="M12 7.8h.01"/></svg></button>
+      </div>
+    </div>
     <div class="hero">
       <div class="hero-l">
         <div class="card green card-hov state-box" id="stateCard">
@@ -917,7 +989,7 @@ details.sandbox .stage-edit{background:var(--ov01)}
         예비 수단: ⓐ GitHub 앱 → Actions → backfill-market-data → Run workflow (사전에 저장소 Secrets에 SUPABASE_URL/SERVICE_KEY 등록) ⓑ 엣지 펑션 v4 배포 후 <span class="mono">…/fetch-market-data?range=max</span> 호출 ⓒ PC에서 node로 backfill-market-data.mjs 실행.<br><br>
         ② <b>전략 설정 동기화(기기 간 동기화 필수)</b>: Supabase SQL Editor에서 <span class="mono">alter table settings add column if not exists strategy jsonb;</span> 를 <b>한 번</b> 실행하세요. 이 컬럼이 있어야 비중·파라미터(변동성 상한 targetVol·측정일수 volDays 포함) 전체가 Supabase에 저장되어 <b>휴대폰·PC가 같은 값으로 동기화</b>됩니다. 실행 후 원하는 기기에서 설정을 한 번 저장하면 다른 기기에도 반영됩니다. 컬럼이 없으면 이 브라우저(localStorage)에만 저장되어 기기마다 값이 달라집니다(화면 하단에 경고 표시).<br><br>
         ③ <b>SGOV 매매 허용(v12.0, 1회)</b>: 방어자산에 현금(SGOV)이 추가되어 trades 테이블의 티커 체크 제약을 갱신해야 합니다. Supabase SQL Editor에서 실행: <span class="mono">alter table trades drop constraint if exists trades_ticker_check; alter table trades add constraint trades_ticker_check check (ticker in ('QQQ','QLD','TQQQ','SCHD','GLD','SGOV','CASH'));</span> — 실행 전까지 SGOV/GLD 매수/매도 저장이 "trades_ticker_check" 오류로 거부됩니다(기존 데이터는 영향 없음).<br><br>
-        ④ <b>데이터 한계</b>: QLD 2006-06 / TQQQ 2010-02 / SCHD 2011-10 상장 이전은 실데이터가 없어 <b>합성 근사</b>로 채웁니다(QQQ 일복리 레버리지·비용 모델 + SCHD 분기앵커 보간). GLD도 2004-11 상장 이전은 금 선물·월앵커 합성입니다(db/v13_migration.sql로 사전 적재). 1999~까지 백테스트하려면 backfill.sql(v2 — QQQ만 있는 날도 행 생성)을 다시 실행하세요. 합성 구간이 포함되면 결과에 경고가 표시됩니다. 앱은 market_data를 최신부터 최대 12,000행까지 로드합니다.<br><br>⑤ <b>GLD 방어자산(v13.0, 1회)</b>: 방어레그가 SCHD→GLD로 바뀌어 <span class="mono">db/v13_migration.sql</span>을 Supabase SQL Editor에서 1회 실행해야 합니다(market_data.gold 열 추가 + 1999~ 금 시세 적재 + trades 제약에 GLD). 이후 Edge Function fetch-market-data(v5)를 재배포하면 GLD 시세도 매일 갱신됩니다. 미적재 시 백테스트에 경고가 뜨고 GLD 평가가 고정가로 처리됩니다.
+        ④ <b>데이터 한계</b>: QLD 2006-06 / TQQQ 2010-02 / SCHD 2011-10 상장 이전은 실데이터가 없어 <b>합성 근사</b>로 채웁니다(QQQ 일복리 레버리지·비용 모델 + SCHD 분기앵커 보간). GLD도 2004-11 상장 이전은 금 선물·월앵커 합성입니다(db/v13_migration.sql로 사전 적재). 1999~까지 백테스트하려면 backfill.sql(v2 — QQQ만 있는 날도 행 생성)을 다시 실행하세요. 합성 구간이 포함되면 결과에 경고가 표시됩니다. 앱은 market_data를 최신부터 최대 12,000행까지 로드합니다.<br><br>⑤ <b>GLD 방어자산(v13.0, 1회)</b>: 방어레그가 SCHD→GLD로 바뀌어 <span class="mono">db/v13_migration.sql</span>을 Supabase SQL Editor에서 1회 실행해야 합니다(market_data.gold 열 추가 + 1999~ 금 시세 적재 + trades 제약에 GLD). 이후 Edge Function fetch-market-data(v5)를 재배포하면 GLD 시세도 매일 갱신됩니다. 미적재 시 백테스트에 경고가 뜨고 GLD 평가가 고정가로 처리됩니다.<br><br>⑥ <b>시장 지표 스트립(v14.9, 1회)</b>: 대시보드 최상단의 지수·금리·환율 줄은 Edge Function <span class="mono">market-quotes</span>(<span class="mono">db/market-quotes.ts</span>)가 야후 파이낸스를 대신 호출해 채웁니다 — 브라우저에서 야후를 직접 부르면 <b>CORS에 막히기</b> 때문입니다. <span class="mono">supabase functions deploy market-quotes</span> 한 번이면 되고 <b>DB 마이그레이션·환경변수·cron은 필요 없습니다</b>(이 함수는 DB에 아무것도 쓰지 않습니다). 미배포 시 그 줄만 <span class="mono">미연동</span>으로 뜨고 나머지 기능은 영향이 없습니다.<br><br>⑦ <b>기존 함수 CORS 수정(선택)</b>: <span class="mono">fetch-market-data</span>(v5.1)에 CORS 헤더를 추가했습니다. 이전 판은 preflight에 응답하지 않아 <b>상단 '시세' 버튼의 함수 호출이 브라우저에서 계속 막혀 왔습니다</b>(cron이 대신 갱신해 DB 재조회로 증상이 덮였습니다). 재배포하면 버튼이 즉시 갱신까지 수행합니다. 함수 로직은 그대로입니다.
       </div>
     </div>
   </section>
@@ -1040,6 +1112,28 @@ details.sandbox .stage-edit{background:var(--ov01)}
     <div class="section-title" style="font-size:16px;margin-top:22px"><span class="dot"></span>어떻게 쓰나</div>
     <p class="note">이 지수는 <b>표시 전용</b>이며 목표 TQQQ 비중에 전혀 관여하지 않습니다. 래더·달걀과 <b>보는 시간축이 다릅니다</b> — 래더는 주 단위 행동, 달걀은 몇 달~몇 년의 순환 위치, 이 지수는 <b>지금 이 순간의 시장 심리</b>입니다. 그래서 셋이 어긋나는 것은 정상입니다(예: 달걀은 A2 상승 국면인데 지수는 단기 급락으로 '공포'). 매매는 언제나 래더를 따르고, 이 지수는 <b>왜 지금 이런 신호가 나오는지</b>를 이해하는 보조 자료로 쓰십시오.</p>
     <div class="disclaim" style="margin-top:18px">⚠️ 심리 지표는 <b>극단에서만 의미가 있고</b> 중간값(40~60)에서는 사실상 아무 정보가 없습니다. 또 극도의 공포가 며칠 만에 끝날지 몇 달 갈지는 이 지수가 말해주지 않습니다 — 방향이 아니라 온도만 재는 도구입니다.</div>
+  </div>
+</div>
+
+<!-- ===== MARKET STRIP MODAL ===== -->
+<div class="modal-overlay" id="mktModal">
+  <div class="modal" style="max-width:760px">
+    <span class="close" onclick="closeModal('mktModal')">&times;</span>
+    <h2>시장 지표 &mdash; 무엇을, 어디서, 어떻게 읽나</h2>
+    <div class="disclaim" style="margin:0 0 16px"><b>표시 전용입니다.</b> 이 줄에 무엇이 뜨든 <b>목표 TQQQ 비중은 바뀌지 않습니다</b>. 래더는 QQQ 종가 &middot; 200일선 &middot; 주간 RSI만 보고 판정합니다(Pine 대조 검증된 계산). 지표는 <b>왜 지금 이런 신호가 나오는지</b>를 이해하는 배경 자료입니다.</div>
+    <div class="section-title" style="font-size:16px"><span class="dot"></span>표시 항목 선택
+      <button class="btn-strategy" style="margin-left:auto;padding:6px 12px;font-size:12px" onclick="mktResetSel()">기본값으로</button>
+    </div>
+    <p class="note" style="margin-bottom:4px">선택은 <b>이 브라우저에만</b> 저장됩니다(localStorage). 휴대폰과 PC의 선택은 서로 다를 수 있습니다.</p>
+    <div class="mkt-pick" id="mktPick"></div>
+    <div class="section-title" style="font-size:16px;margin-top:22px"><span class="dot"></span>색과 화살표가 뜻하는 것</div>
+    <p class="note"><b>색은 방향만 뜻합니다 &mdash; 좋음/나쁨이 아닙니다.</b> 전일 대비 상승은 초록(<span style="color:var(--up)">&#9650;</span>), 하락은 다홍(<span style="color:var(--down)">&#9660;</span>)입니다. 그래서 <b>금리 &middot; 달러지수 &middot; VIX &middot; 원/달러가 초록으로 떠도 이 포트폴리오에는 대개 역풍</b>입니다. 이 앱 다른 곳(손익 숫자)에서 초록이 '이득'을 뜻하는 것과 규칙이 다르므로, 지표 줄에서는 화살표를 방향 기호로만 읽으십시오.</p>
+    <p class="note" style="margin-top:10px">금리와 장단기 금리차는 %가 아니라 <b>bp</b>(1bp = 0.01%p)로 등락을 표시합니다. 4.15% &rarr; 4.18%를 "+0.72%"로 쓰면 3bp 움직임이 72bp처럼 읽히기 때문입니다.</p>
+    <p class="note" style="margin-top:10px">이름 뒤의 작은 초록 점(<span style="color:var(--up)">&bull;</span>)은 <b>그 시장이 지금 열려 있다</b>는 뜻입니다. 한국 낮에는 S&amp;P &middot; 나스닥 <b>현물이 전일 종가로 굳어 있고 선물만 살아 움직입니다</b> &mdash; 두 값이 크게 벌어져 보이는 것은 오류가 아니라 그 시차입니다.</p>
+    <div class="section-title" style="font-size:16px;margin-top:22px"><span class="dot"></span>데이터 출처와 지연</div>
+    <p class="note">야후 파이낸스(무료)를 Supabase Edge Function <span class="mono">market-quotes</span>가 대신 호출해 가져옵니다. 브라우저에서 야후를 직접 부르면 <b>CORS 정책에 막히기</b> 때문에 서버를 한 번 거칩니다. 한국 지수(코스피 &middot; 코스닥)는 야후가 실패하면 네이버 증권으로 폴백합니다.</p>
+    <p class="note" style="margin-top:10px">화면 오른쪽 시각은 <b>조회한 시각</b>이며 시세 자체의 시각이 아닙니다. 무료 소스라 지수 &middot; 선물에 <b>15~20분 지연</b>이 섞이고, 12분 넘게 갱신되지 않으면 '지연'으로 표시됩니다. 대시보드를 보고 있는 동안 1분마다 자동 갱신되며(다른 탭에 있으면 멈춤), 상단 <span class="mono">시세</span> 버튼이나 지표 줄의 새로고침 버튼으로 즉시 받을 수도 있습니다.</p>
+    <div class="disclaim" style="margin-top:18px">&#9888;&#65039; <b>체결 판단에 쓰지 마십시오.</b> 지연된 무료 시세이고, 선물의 '전일 대비'는 정산가 기준이라 현물과 기준시각이 달라 같은 사건에도 등락률이 다르게 보입니다. 실제 주문은 증권사 시세로 확인하십시오. <b>미연동</b>으로 표시되면 <span class="mono">market-quotes</span> 함수가 아직 배포되지 않은 상태입니다(<span class="mono">db/market-quotes.ts</span>를 Supabase에 배포하면 됩니다).</div>
   </div>
 </div>
 
@@ -1746,7 +1840,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='14.8.0';
+const APP_VERSION='14.9.0';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -1812,6 +1906,7 @@ const defGoldFrac=P=>{ const v=(P&&P.defGold!=null&&isFinite(+P.defGold))?+P.def
 /* ===================== 초기화 ===================== */
 async function init(){
   document.getElementById('appVer').textContent='v'+APP_VERSION;
+  mktLoadCache();                         // 캐시를 먼저 얹어 두면 renderDashboard가 빈 칸 대신 값을 그린다
   RAW_MD = attachCash(synthesizeMissing(await getMarketData()));
   SETTINGS = await getSettings();
   loadStrategy(SETTINGS);                 // 사용자 전략 설정(비중·파라미터) 적용 후 단계 계산
@@ -1833,6 +1928,250 @@ async function init(){
   await syncAutoMonthly();
   await renderMonthly();
   runCountUp();
+  initMkt();                              // 시장 지표는 마지막에 — 조회가 느려도 대시보드를 막지 않는다
+}
+
+/* ===================== 시장 지표 스트립 (§83 v14.9) =====================
+   대시보드 최상단에 '그날의 시장 온도'를 한 줄로 얹는다.
+   **표시 전용이다** — 여기 무엇이 뜨든 래더의 목표 TQQQ 비중은 조금도 바뀌지 않는다.
+   (래더는 QQQ 종가·200일선·RSI만 본다. §52에서 Pine과 대조 검증된 계산에 손대지 않는다.)
+
+   ── 데이터 경로 (읽는 순서) ────────────────────────────────────────
+     ① localStorage 캐시            → 즉시 그린다(빈 칸이 먼저 보이는 것을 막는다)
+     ② Edge Function 'market-quotes' → 야후(→ 한국 지수는 네이버 폴백) 조회
+   브라우저에서 야후·네이버를 **직접 부를 수 없다**(CORS 차단). 그래서 ②가 필수다.
+   함수가 배포돼 있지 않으면 캐시만 보여주고, 캐시도 없으면 '미연동'을 표시한다.
+
+   ── 한계 (반드시 알고 볼 것) ────────────────────────────────────────
+   · 무료 소스라 지수·선물은 **15~20분 지연**이 섞인다. 체결 판단에 쓰면 안 된다.
+   · '전일 대비'는 소스가 주는 전일 종가(chartPreviousClose) 기준이다. 선물은 정산가라
+     현물의 전일 종가와 기준시각이 달라 같은 사건에도 등락률이 다르게 보일 수 있다.
+   · 색은 **방향(전일 대비 상승/하락)만** 뜻한다. 좋음/나쁨이 아니다 —
+     금리·환율·VIX 상승은 초록으로 뜨지만 포트폴리오에는 대개 역풍이다. */
+const MKT_TTL   = 60*1000;        // 이보다 최근이면 재조회하지 않는다(자동 폴링 주기와 같다)
+const MKT_STALE = 12*60*1000;     // 이보다 오래되면 시각 옆에 '지연' 표기
+const MKT_KEY='adca_mkt_v1', MKT_SEL_KEY='adca_mkt_sel_v1';
+/* 그룹 → [표시명, 왼쪽 색바]. 색은 모두 팔레트 기존 값이다(새 색을 만들지 않는다). */
+const MKT_GRP={us:['미국 지수','var(--accent)'], kr:['아시아 지수','var(--violet)'],
+  rate:['금리','var(--gold)'], com:['원자재','var(--orange)'],
+  fx:['통화','var(--accent2)'], etc:['위험선호','var(--green)']};
+/* [키, 야후심볼, 표시명, 그룹, 포맷, 기본표시, 설명]
+   포맷 — idx 지수(천단위·2자리) · idx2 2자리 · yld 금리(%, 등락 bp) · sprd 스프레드(%p, 등락 bp)
+          usd $2자리 · usd0 $0자리 · usd3 $3자리 · fx2 2자리 · fx4 4자리
+   심볼이 null 인 항목은 다른 항목으로부터 **계산**한다(mktVal 참고). */
+const MKT_CAT=[
+ ['spx',   '^GSPC',     'S&P 500',    'us',  'idx', 1, '미국 대형주 500. 시장 전체의 기준'],
+ ['spxf',  'ES=F',      'S&P 선물',    'us',  'idx', 1, 'E-mini S&P500 연결선물. 미국 장 마감 후에도 움직인다'],
+ ['ndq',   '^IXIC',     '나스닥',      'us',  'idx', 1, '나스닥 종합. 상장 전체(3천여 종목)'],
+ ['ndxf',  'NQ=F',      '나스닥 선물',  'us',  'idx', 1, 'E-mini 나스닥100 연결선물. 한국 낮에 QQQ 방향을 미리 보는 창'],
+ ['ndx',   '^NDX',      '나스닥100',   'us',  'idx', 1, 'QQQ·QLD·TQQQ가 그대로 추종하는 기초지수 — 이 앱에서 가장 직접적인 지표'],
+ ['dji',   '^DJI',      '다우',        'us',  'idx', 0, '다우 30. 가격가중이라 기술주 비중이 낮다'],
+ ['sox',   'SOXX',      '반도체(SOXX)','us',  'usd', 0, '반도체 ETF. 나스닥100의 실질 엔진이라 선행 신호로 자주 쓰인다'],
+ ['vix',   '^VIX',      'VIX',        'us',  'idx2',1, 'S&P500 옵션 내재변동성. 20 위는 불안, 30 위는 공황 구간'],
+ ['kospi', '^KS11',     '코스피',      'kr',  'idx', 1, '한국 대표지수'],
+ ['kosdaq','^KQ11',     '코스닥',      'kr',  'idx', 1, '한국 중소·성장주'],
+ ['nikkei','^N225',     '니케이225',   'kr',  'idx', 0, '일본 대표지수. 엔화와 반대로 움직이는 경향'],
+ ['hsi',   '^HSI',      '항셍',        'kr',  'idx', 0, '홍콩. 중국 위험선호의 대리 지표'],
+ ['ust10', '^TNX',      '미 10년',     'rate','yld', 1, '미 국채 10년물 금리. 성장주 밸류에이션의 할인율'],
+ ['ust30', '^TYX',      '미 30년',     'rate','yld', 1, '미 국채 30년물 금리. 장기 인플레·재정 우려를 반영'],
+ ['ust3m', '^IRX',      '미 3개월',    'rate','yld', 0, '13주 국채금리. 레버리지 ETF의 차입비용 ≈ 이 금리 + 스프레드'],
+ ['curve', null,        '10년−3개월',  'rate','sprd',1, '장단기 금리차. 마이너스(역전)는 역사적으로 침체 선행 신호'],
+ ['wti',   'CL=F',      'WTI 유가',    'com', 'usd', 1, '서부텍사스유 선물. 헤드라인 인플레의 주범'],
+ ['brent', 'BZ=F',      '브렌트유',     'com', 'usd', 0, '북해산. 국제 기준유'],
+ ['gold',  'GC=F',      '금',          'com', 'usd', 1, '금 선물. 이 앱 방어레그(GLD)의 기초자산'],
+ ['silver','SI=F',      '은',          'com', 'usd', 0, '산업 수요가 섞여 금보다 변동이 크다'],
+ ['copper','HG=F',      '구리',        'com', 'usd3',0, '실물 경기의 체온계'],
+ ['dxy',   'DX-Y.NYB',  '달러지수',     'fx',  'idx2',1, '주요 6통화 대비 달러. 오르면 위험자산·금에 역풍'],
+ ['usdkrw','KRW=X',     '원/달러',     'fx',  'fx2', 1, '환율. 미국 주식 보유자의 원화 평가액을 좌우한다'],
+ ['usdjpy','JPY=X',     '엔/달러',     'fx',  'fx2', 1, '엔 약세(숫자 상승)는 캐리트레이드 확대 = 위험선호'],
+ ['jpykrw',null,        '원/100엔',    'fx',  'fx2', 0, '원/달러 ÷ 엔/달러 × 100 으로 계산'],
+ ['eurusd','EURUSD=X',  '유로/달러',    'fx',  'fx4', 0, '달러지수의 절반 이상을 차지하는 짝'],
+ ['btc',   'BTC-USD',   '비트코인',     'etc', 'usd0',0, '24시간 거래. 주말에도 열려 있어 위험선호의 야간 대리 지표'],
+ ['tlt',   'TLT',       '미 장기채(TLT)','etc','usd', 0, '20년+ 국채 ETF. 금리와 반대로 움직인다'],
+];
+/* 데모 모드(Supabase 미연결)에서도 배치·색·자릿수를 눈으로 확인할 수 있게 고정 값 한 벌.
+   [현재가, 전일종가, 장중여부] — 실제 시세가 아니다. */
+const MKT_DEMO_Q={
+ '^GSPC':[6472.35,6445.10,0], 'ES=F':[6488.25,6470.50,1], '^IXIC':[21840.62,21755.30,0],
+ 'NQ=F':[23960.75,23880.00,1], '^NDX':[23902.18,23815.40,0], '^DJI':[46120.44,46010.20,0],
+ 'SOXX':[312.55,308.90,0], '^VIX':[15.82,16.44,0], '^KS11':[3284.51,3260.88,1],
+ '^KQ11':[812.36,818.02,1], '^N225':[44210.30,44050.10,0], '^HSI':[26150.70,26310.40,0],
+ '^TNX':[4.183,4.151,0], '^TYX':[4.842,4.806,0], '^IRX':[3.905,3.912,0],
+ 'CL=F':[63.42,64.18,1], 'BZ=F':[67.10,67.85,1], 'GC=F':[3412.50,3388.20,1],
+ 'SI=F':[41.28,40.95,1], 'HG=F':[4.622,4.588,1], 'DX-Y.NYB':[97.85,98.12,1],
+ 'KRW=X':[1389.20,1384.50,1], 'JPY=X':[147.32,147.85,1], 'EURUSD=X':[1.0842,1.0819,1],
+ 'BTC-USD':[112450,110980,1], 'TLT':[88.14,88.62,0]};
+let MKT_DATA=null, MKT_SEL=null, MKT_ERR=null, MKT_BUSY=false, MKT_TIMER=null;
+
+function mktEsc(s){ return String(s==null?'':s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+/* 야후의 ^TNX·^TYX·^IRX 는 시기에 따라 '금리×10'(41.83)으로 오기도 한다.
+   현재가만 고치고 전일종가를 놔두면 등락이 통째로 엉키므로 **두 값에 같이** 적용한다. */
+function mktY(v){ return (v!=null && isFinite(v) && v>20) ? v/10 : v; }
+function mktFmt(f,v){
+  if(v==null||!isFinite(v)) return '—';
+  const L=(n,d)=>n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+  if(f==='idx')  return L(v,2);
+  if(f==='idx2') return v.toFixed(2);
+  if(f==='yld')  return v.toFixed(3)+'%';
+  if(f==='sprd') return (v>=0?'+':'−')+Math.abs(v).toFixed(2)+'%p';
+  if(f==='usd')  return '$'+L(v,2);
+  if(f==='usd0') return '$'+L(v,0);
+  if(f==='usd3') return '$'+v.toFixed(3);
+  if(f==='fx4')  return v.toFixed(4);
+  return L(v,2);                                     // fx2 기본
+}
+/* 등락 표기 — 금리·스프레드는 %가 아니라 **bp**로 낸다.
+   4.15% → 4.18% 를 "+0.72%"로 쓰면 '금리가 0.72% 올랐다'로 읽혀 3bp가 72bp처럼 보인다. */
+function mktChg(f,v,pv){
+  if(v==null||pv==null||!isFinite(v)||!isFinite(pv)) return null;
+  if(f==='yld'||f==='sprd'){ const d=v-pv; return {d:d, s:Math.abs(d*100).toFixed(1)+'bp'}; }
+  if(!pv) return null;
+  return {d:v-pv, s:Math.abs((v/pv-1)*100).toFixed(2)+'%'};
+}
+/* 항목 1개의 값 해석. 계산 항목(curve·jpykrw)은 원천 심볼에서 만든다. */
+function mktVal(c,Q){
+  const k=c[0], f=c[4];
+  if(k==='curve'){
+    const a=Q['^TNX'], b=Q['^IRX'];
+    if(!a||!b) return {};
+    const av=mktY(a.v), bv=mktY(b.v), ap=mktY(a.pv), bp=mktY(b.pv);
+    return {v:(av!=null&&bv!=null)?av-bv:null, pv:(ap!=null&&bp!=null)?ap-bp:null, open:!!(a.open||b.open)};
+  }
+  if(k==='jpykrw'){
+    const a=Q['KRW=X'], b=Q['JPY=X'];
+    if(!a||!b||!b.v) return {};
+    return {v:a.v/b.v*100, pv:(a.pv&&b.pv)?a.pv/b.pv*100:null, open:!!(a.open||b.open)};
+  }
+  const q=Q[c[1]]; if(!q) return {};
+  if(f==='yld') return {v:mktY(q.v), pv:mktY(q.pv), open:!!q.open};
+  return {v:q.v, pv:q.pv, open:!!q.open};
+}
+function mktSel(){
+  if(MKT_SEL) return MKT_SEL;
+  let s=null; try{ s=JSON.parse(localStorage.getItem(MKT_SEL_KEY)||'null'); }catch(e){}
+  MKT_SEL={}; MKT_CAT.forEach(c=>{ MKT_SEL[c[0]] = (s && (c[0] in s)) ? !!s[c[0]] : !!c[5]; });
+  return MKT_SEL;
+}
+/* 선택된 항목이 필요로 하는 **실제 심볼** 목록. 계산 항목은 원천 심볼로 풀어 넣는다. */
+function mktSymbols(){
+  const sel=mktSel(), s=[];
+  const add=x=>{ if(x && s.indexOf(x)<0) s.push(x); };
+  MKT_CAT.forEach(c=>{
+    if(!sel[c[0]]) return;
+    if(c[0]==='curve'){ add('^TNX'); add('^IRX'); }
+    else if(c[0]==='jpykrw'){ add('KRW=X'); add('JPY=X'); }
+    else add(c[1]);
+  });
+  return s;
+}
+function mktToggle(k,on){
+  const sel=mktSel(); sel[k]=!!on;
+  try{ localStorage.setItem(MKT_SEL_KEY, JSON.stringify(sel)); }catch(e){}
+  renderMktStrip();
+  // 새로 켠 항목의 심볼이 아직 없으면(=한 번도 받아본 적 없으면) 그때만 다시 받는다.
+  const Q=(MKT_DATA&&MKT_DATA.quotes)||{};
+  if(on && mktSymbols().some(s=>!Q[s])) fetchMkt(true);
+}
+function mktResetSel(){
+  MKT_SEL=null; try{ localStorage.removeItem(MKT_SEL_KEY); }catch(e){}
+  mktSel(); renderMktStrip(); openMkt(); fetchMkt(true);
+}
+function renderMktStrip(){
+  const rail=document.getElementById('mktRail'); if(!rail) return;
+  const sel=mktSel(), on=MKT_CAT.filter(c=>sel[c[0]]);
+  const Q=(MKT_DATA&&MKT_DATA.quotes)||{};
+  if(!on.length){
+    rail.innerHTML='<div class="mkt-empty">표시할 항목이 없습니다 — 오른쪽 ⓘ 버튼에서 선택하세요.</div>';
+  } else {
+    rail.innerHTML = on.map(c=>{
+      const f=c[4], q=mktVal(c,Q), ch=mktChg(f,q.v,q.pv);
+      const up = ch && ch.d>1e-9, dn = ch && ch.d<-1e-9;
+      const col = up?'var(--up)':dn?'var(--down)':'var(--text2)';
+      const ar  = up?'▲':dn?'▼':'·';
+      return '<div class="mkt-t" style="--gc:'+MKT_GRP[c[3]][1]+'" title="'+mktEsc(c[2]+(c[1]?' ('+c[1]+')':'')+' — '+c[6])+'">'
+        +'<div class="mkt-n">'+mktEsc(c[2])+(q.open?'<i class="mkt-live"></i>':'')+'</div>'
+        +'<div class="mkt-v"><span class="p">'+mktFmt(f,q.v)+'</span>'
+        +(ch?'<span class="c" style="color:'+col+'">'+ar+ch.s+'</span>':'')
+        +'</div></div>';
+    }).join('');
+  }
+  mktSide();
+}
+function mktSide(){
+  const ts=document.getElementById('mktTs'); if(!ts) return;
+  if(!MKT_DATA){
+    ts.innerHTML='<span class="muted">미연동</span>';
+    ts.title=MKT_ERR ? ('조회 실패: '+MKT_ERR) : "Edge Function 'market-quotes'가 아직 배포되지 않았습니다 (ⓘ 참고)";
+    return;
+  }
+  const d=new Date(MKT_DATA.ts), age=Date.now()-MKT_DATA.ts;
+  const hh=('0'+d.getHours()).slice(-2), mm=('0'+d.getMinutes()).slice(-2);
+  ts.textContent=hh+':'+mm+(age>MKT_STALE?' 지연':'');
+  ts.title=(MKT_DATA.src==='demo' ? '데모 값 (실제 시세 아님)' : '조회 시각 '+d.toLocaleString('ko-KR'))
+    +(MKT_ERR?(' · 최근 조회 실패: '+MKT_ERR):'');
+}
+function mktDemo(){
+  const q={}; Object.keys(MKT_DEMO_Q).forEach(s=>{ const a=MKT_DEMO_Q[s]; q[s]={v:a[0],pv:a[1],open:!!a[2]}; });
+  return {ts:Date.now(), quotes:q, src:'demo'};
+}
+function mktLoadCache(){
+  try{ const j=JSON.parse(localStorage.getItem(MKT_KEY)||'null');
+       if(j && j.ts && j.quotes) MKT_DATA=j; }catch(e){}
+}
+async function fetchMkt(force){
+  if(MKT_BUSY) return;
+  if(!force && MKT_DATA && (Date.now()-MKT_DATA.ts)<MKT_TTL) return;
+  const syms=mktSymbols(); if(!syms.length){ renderMktStrip(); return; }
+  if(DEMO || !sb){ MKT_DATA=mktDemo(); MKT_ERR=null; renderMktStrip(); return; }
+  MKT_BUSY=true;
+  const b=document.getElementById('mktRefresh'); if(b) b.classList.add('busy');
+  try{
+    const {data,error}=await sb.functions.invoke('market-quotes',{body:{symbols:syms}});
+    if(error) throw error;
+    if(!data||!data.quotes||!Object.keys(data.quotes).length) throw new Error('빈 응답');
+    // 부분 실패(일부 심볼만 옴)여도 받은 것은 살린다. 이전 값과 합쳐 빈 칸이 늘지 않게 한다.
+    const prev=(MKT_DATA&&MKT_DATA.quotes)||{};
+    MKT_DATA={ts:Date.now(), quotes:Object.assign({},prev,data.quotes), src:'edge'};
+    MKT_ERR=null;
+    try{ localStorage.setItem(MKT_KEY, JSON.stringify(MKT_DATA)); }catch(e){}
+  }catch(e){
+    MKT_ERR=(e&&e.message)||String(e);
+    console.warn('market-quotes 조회 실패', e);
+  }finally{
+    MKT_BUSY=false;
+    const b2=document.getElementById('mktRefresh'); if(b2) b2.classList.remove('busy');
+    renderMktStrip();
+  }
+}
+/* 자동 갱신 — 탭이 숨겨져 있거나 대시보드가 아니면 건너뛴다(§76 광점과 같은 규칙).
+   타이머는 항상 하나만 산다(중복 예약이 쌓이면 폴링이 배로 빨라진다). */
+function mktLoop(){
+  if(MKT_TIMER){ clearTimeout(MKT_TIMER); MKT_TIMER=null; }
+  const tick=()=>{
+    const tab=document.getElementById('tab-dash');
+    const vis = !document.hidden && tab && !tab.classList.contains('hidden');
+    if(vis) fetchMkt(false);
+    MKT_TIMER=setTimeout(tick, MKT_TTL);
+  };
+  MKT_TIMER=setTimeout(tick, MKT_TTL);
+}
+function initMkt(){ renderMktStrip(); fetchMkt(true); mktLoop(); }
+function openMkt(){
+  const b=document.getElementById('mktPick');
+  if(b){
+    const sel=mktSel();
+    b.innerHTML=Object.keys(MKT_GRP).map(g=>{
+      const rows=MKT_CAT.filter(c=>c[3]===g);
+      if(!rows.length) return '';
+      return '<div><div class="mkt-ph" style="color:'+MKT_GRP[g][1]+'">'+MKT_GRP[g][0]+'</div>'
+        + rows.map(c=>'<label class="mkt-pi"><input type="checkbox"'+(sel[c[0]]?' checked':'')
+            +' onchange="mktToggle(\''+c[0]+'\',this.checked)">'
+            +'<span class="nm">'+mktEsc(c[2])+(c[1]?'<span class="sy">'+mktEsc(c[1])+'</span>':'<span class="sy">계산</span>')+'</span>'
+            +'<span class="ds">'+mktEsc(c[6])+'</span></label>').join('')
+        + '</div>';
+    }).join('');
+  }
+  document.getElementById('mktModal').classList.add('open');
 }
 
 /* ===================== 대시보드 렌더 ===================== */
@@ -1868,6 +2207,7 @@ function renderDashboard(){
   // 카드 제목을 없앴으므로(§64) 시세 기준일을 동작 문구 끝에 붙인다 — 줄 수는 그대로다.
   ae.innerHTML=act.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))
     +' <span class="muted" style="font-family:var(--font-num);font-size:11px;letter-spacing:0">· '+r.date+'</span>';
+  renderMktStrip();
   renderIndicators(r);
   renderAllocBars();
   renderEgg();
@@ -3331,6 +3671,7 @@ async function updatePrices(btn){
   if(!b||b.classList.contains('busy')) return;
   if(DEMO){ flash('데모 모드입니다 — Supabase 연결 후 사용하세요'); return; }
   b.classList.add('busy');
+  fetchMkt(true);                         // 시세 버튼은 시장 지표도 같이 새로 받는다(await 하지 않는다)
   const before = CUR ? CUR.date : '';
   let fnErr=null;
   try{
