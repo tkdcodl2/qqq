@@ -248,11 +248,25 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .mkt-pi .nm{font-size:12.5px;font-weight:590;color:var(--text)}
 .mkt-pi .sy{font-family:var(--font-mono);font-size:9.5px;color:var(--muted);margin-left:5px;font-weight:400}
 .mkt-pi .ds{font-size:11px;color:var(--text2);line-height:1.42}
+.mkt-exp{display:none}                 /* 펼치기 버튼은 가로 스크롤이 걸리는 폭에서만 쓴다 */
+.mkt-exp svg{transition:transform .26s var(--ease)}
+.mkt-strip.exp .mkt-exp svg{transform:rotate(180deg)}
 @media(max-width:860px){
   .mkt-rail{display:flex;overflow-x:auto;gap:6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .mkt-rail::-webkit-scrollbar{display:none}
   .mkt-t{flex:0 0 116px}
   .mkt-strip{margin-bottom:12px}
+  .mkt-exp{display:flex}
+  /* ── 펼친 상태 (§86) ─────────────────────────────────────────
+     좁은 폭에서 한 줄 가로 스크롤은 390px 기준 2개밖에 안 보인다 — 14개를 보려면 계속 밀어야 한다.
+     펼치면 **아래로 격자**로 떨어뜨린다.
+     이때 우측 버튼줄을 위로 올려(order:-1 + margin-left:auto) rail 이 **전체 폭**을 쓰게 한다.
+     버튼을 오른쪽 열에 그대로 두면 rail 이 87px 를 빼앗겨 390px 에서 3열이 아니라 2열이 된다. */
+  .mkt-strip.exp{flex-wrap:wrap;row-gap:6px;align-items:flex-start}
+  .mkt-strip.exp .mkt-side{order:-1;margin-left:auto;border-left:none;padding-left:0}
+  .mkt-strip.exp .mkt-rail{flex:1 0 100%;display:grid;overflow:visible;
+    grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:4px 6px}
+  .mkt-strip.exp .mkt-t{flex:none}
 }
 @media(max-width:560px){.mkt-pick{grid-template-columns:1fr}}
 
@@ -781,6 +795,7 @@ details.sandbox .stage-edit{background:var(--ov01)}
         <div class="mkt-ts" id="mktTs">&mdash;</div>
         <button class="mkt-btn" id="mktRefresh" onclick="fetchMkt(true)" title="시장 지표 새로고침" aria-label="시장 지표 새로고침"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg></button>
         <button class="mkt-btn" onclick="openMkt()" title="지표 설명 · 표시 항목 선택" aria-label="지표 설명 및 표시 항목 선택"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16.5v-5.5"/><path d="M12 7.8h.01"/></svg></button>
+        <button class="mkt-btn mkt-exp" id="mktExpBtn" onclick="mktToggleExp()" aria-expanded="false" title="모두 펼치기" aria-label="지표 모두 펼치기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9.5 12 15.5 18 9.5"/></svg></button>
       </div>
     </div>
     <div class="hero">
@@ -1138,6 +1153,7 @@ details.sandbox .stage-edit{background:var(--ov01)}
     <div class="section-title" style="font-size:16px;margin-top:22px"><span class="dot"></span>데이터 출처와 지연</div>
     <p class="note">야후 파이낸스(무료)를 Supabase Edge Function <span class="mono">market-quotes</span>가 대신 호출해 가져옵니다. 브라우저에서 야후를 직접 부르면 <b>CORS 정책에 막히기</b> 때문에 서버를 한 번 거칩니다. 한국 지수(코스피 &middot; 코스닥)는 야후가 실패하면 네이버 증권으로 폴백합니다.</p>
     <p class="note" style="margin-top:10px">전일 대비는 <b>일봉 배열의 직전 거래일 종가</b>를 기준으로 계산합니다(각 타일에 마우스를 올리면 전일 종가가 표시됩니다). 화면 오른쪽 시각은 <b>조회한 시각</b>이며 시세 자체의 시각이 아닙니다. 무료 소스라 지수 &middot; 선물에 <b>15~20분 지연</b>이 섞이고, 12분 넘게 갱신되지 않으면 '지연'으로 표시됩니다. 대시보드를 보고 있는 동안 1분마다 자동 갱신되며(다른 탭에 있으면 멈춤), 상단 <span class="mono">시세</span> 버튼이나 지표 줄의 새로고침 버튼으로 즉시 받을 수도 있습니다.</p>
+    <p class="note" style="margin-top:10px">휴대폰처럼 화면이 좁으면 지표 줄이 <b>한 줄 가로 스크롤</b>로 바뀌어 두어 개만 보입니다. 오른쪽 <b>∨ 버튼</b>을 누르면 전체가 <b>아래로 격자로 펼쳐집니다</b>(다시 누르면 접힘). 펼침 여부는 이 브라우저에 기억됩니다.</p>
     <div class="disclaim" style="margin-top:18px">&#9888;&#65039; <b>체결 판단에 쓰지 마십시오.</b> 지연된 무료 시세이고, 선물의 '전일 대비'는 정산가 기준이라 현물과 기준시각이 달라 같은 사건에도 등락률이 다르게 보입니다. 실제 주문은 증권사 시세로 확인하십시오. <b>미연동</b>으로 표시되면 <span class="mono">market-quotes</span> 함수가 아직 배포되지 않은 상태입니다(<span class="mono">db/market-quotes.ts</span>를 Supabase에 배포하면 됩니다).</div>
   </div>
 </div>
@@ -1845,7 +1861,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='14.9.2';
+const APP_VERSION='14.9.3';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -1956,6 +1972,7 @@ async function init(){
 const MKT_TTL   = 60*1000;        // 이보다 최근이면 재조회하지 않는다(자동 폴링 주기와 같다)
 const MKT_STALE = 12*60*1000;     // 이보다 오래되면 시각 옆에 '지연' 표기
 const MKT_KEY='adca_mkt_v1', MKT_SEL_KEY='adca_mkt_sel_v2';   // v2: §84 기본값 변경 → 옛 저장본을 버린다
+const MKT_EXP_KEY='adca_mkt_exp_v1';   // 좁은 폭에서 '모두 펼치기' 상태 (§86)
 /* 그룹 → [표시명, 왼쪽 색바]. 색은 모두 팔레트 기존 값이다(새 색을 만들지 않는다). */
 const MKT_GRP={us:['미국 지수','var(--accent)'], kr:['아시아 지수','var(--violet)'],
   rate:['금리','var(--gold)'], com:['원자재','var(--orange)'],
@@ -2009,6 +2026,10 @@ const MKT_DEMO_Q={
  'KRW=X':[1389.20,1384.50,1], 'JPY=X':[147.32,147.85,1], 'EURUSD=X':[1.0842,1.0819,1],
  'BTC-USD':[112450,110980,1], 'TLT':[88.14,88.62,0]};
 let MKT_DATA=null, MKT_SEL=null, MKT_ERR=null, MKT_BUSY=false, MKT_TIMER=null;
+/* 펼침 상태는 렌더할 때마다 카드 클래스에 다시 반영해야 한다 —
+   renderMktStrip 이 rail 을 innerHTML 로 갈아끼우므로, 상태를 JS 쪽에 들고 있지 않으면
+   시세 갱신(60초)마다 펼침이 접힌다. */
+let MKT_EXP=null;
 
 function mktEsc(s){ return String(s==null?'':s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
 /* 야후의 ^TNX·^TYX·^IRX 는 시기에 따라 '금리×10'(41.83)으로 오기도 한다.
@@ -2083,8 +2104,31 @@ function mktResetSel(){
   MKT_SEL=null; try{ localStorage.removeItem(MKT_SEL_KEY); }catch(e){}
   mktSel(); renderMktStrip(); openMkt(); fetchMkt(true);
 }
+function mktExp(){
+  if(MKT_EXP===null){
+    let v=null; try{ v=localStorage.getItem(MKT_EXP_KEY); }catch(e){}
+    MKT_EXP = v==='1';
+  }
+  return MKT_EXP;
+}
+function mktToggleExp(){
+  MKT_EXP = !mktExp();
+  try{ localStorage.setItem(MKT_EXP_KEY, MKT_EXP?'1':'0'); }catch(e){}
+  mktSyncExp();
+}
+function mktSyncExp(){
+  const card=document.getElementById('mktCard'), btn=document.getElementById('mktExpBtn');
+  const on=mktExp();
+  if(card){ if(on) card.classList.add('exp'); else card.classList.remove('exp'); }
+  if(btn){
+    btn.setAttribute('aria-expanded', on?'true':'false');
+    btn.title = on ? '접기' : '모두 펼치기';
+    btn.setAttribute('aria-label', on ? '지표 접기' : '지표 모두 펼치기');
+  }
+}
 function renderMktStrip(){
   const rail=document.getElementById('mktRail'); if(!rail) return;
+  mktSyncExp();
   const sel=mktSel(), on=MKT_CAT.filter(c=>sel[c[0]]);
   const Q=(MKT_DATA&&MKT_DATA.quotes)||{};
   /* 열 수: 8개 이하면 한 줄, 그보다 많으면 두 줄로 균등 분할. 상한 8 —
