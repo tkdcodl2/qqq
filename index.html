@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Adaptive DCA</title>
-<meta name="theme-color" content="#11181d">
+<meta name="theme-color" content="#171B20">
 <meta name="color-scheme" content="dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -32,12 +32,15 @@
        탭바 #2e3438 · 모달·툴팁 #32383d (사다리 상한 — 이보다 밝은 면은 만들지 않는다)
      이 여섯 값은 모두 배경 #11181d 위 '흰색 오버레이 7/8/11/12/14%'와 정확히 일치한다.
      그래서 반투명(유리) 표현을 유지하면서도 합성 결과가 지정 색과 같아진다. */
-  --base:#11181d; --bg:#11181d; --bg2:#11181d;
-  --ov01:rgba(255,255,255,.07); --ov02:rgba(255,255,255,.07); --ov03:rgba(255,255,255,.08);
-  --ov04:rgba(255,255,255,.11); --ov06:rgba(255,255,255,.11); --ov08:rgba(255,255,255,.12);
-  --ov12:rgba(255,255,255,.14); --ov16:rgba(255,255,255,.14); --ov24:rgba(255,255,255,.14);
-  --e01:#22282d; --e02:#22282d; --e03:#242a2f; --e04:#2b3136;
-  --e06:#2b3136; --e08:#2e3438; --e12:#32383d; --e16:#32383d; --e24:#32383d;
+  --base:#0F1318; --bg:#0F1318; --bg2:#0F1318;
+  /* ★ Quiet Glass — 순백 알파 → **푸른 알파**(185,210,250). 흰색을 얹으면 청회 바탕 위에서도
+       합성값이 무채색 쪽으로 끌려 표·카드가 회색으로 보인다. 푸른색은 흰색보다 어두워 알파를 ×1.27.
+       합성(바탕 #0F1318 위): 표행 #1E242C · 카드 #20262F · 표헤더 #272E38 · 탭바 #29303A · 모달 #2D3540 */
+  --ov01:rgba(185,210,250,.089); --ov02:rgba(185,210,250,.089); --ov03:rgba(185,210,250,.102);
+  --ov04:rgba(185,210,250,.14);  --ov06:rgba(185,210,250,.14);  --ov08:rgba(185,210,250,.152);
+  --ov12:rgba(185,210,250,.178); --ov16:rgba(185,210,250,.178); --ov24:rgba(185,210,250,.178);
+  --e01:#1E242C; --e02:#1E242C; --e03:#20262F; --e04:#272E38;
+  --e06:#272E38; --e08:#29303A; --e12:#2D3540; --e16:#2D3540; --e24:#2D3540;
   --row:var(--ov02);                          /* 표 행 7% = #22282d */
   --surface:var(--ov03);                      /* 카드  8% = #242a2f */
   --surface-solid:var(--e03); --surface2:var(--ov06); --surface3:var(--ov08);
@@ -57,29 +60,29 @@
   /* ── 의미색 (지정 사양) ────────────────────────────────────────────
      낮은 채도의 뮤트 팔레트. 앞선 버전(밝은 파스텔 톤)보다 채도를 더 낮추고
      명도를 중간대로 모아 어두운 면 위에서 색이 튀지 않게 한다. */
-  --accent:#85a5c5;  --accent-d:#6f92b5;  --accent2:#35869d;
-  --green:#8eb985;   --gold:#EBCB8B;      --violet:#bd96b5;   --orange:#e5a182;
+  --accent:#A9BCCF;  --accent-d:#8399AE;  --accent2:#8BA0B4;
+  --green:#86C49B;   --gold:#E5CC9C;      --violet:#B699B0;   --orange:#DAA58E;
   /* 하락은 두 값으로 나눠 쓴다:
        --red   #c9604f  넓은 조각·막대·채운 면 (§82: 달걀 과열 국면과 동일한 다홍)
        --red-t #E57D6C  숫자·글자          (같은 색조를 밝게 — 카드면 대비 5.17:1)
    ※ 다홍(#c9604f)은 카드면 위 대비가 3.64:1로 소형 글자 기준(4.5)에 못 미친다.
      그래서 면과 글자를 두 톤으로 나눈다. 색조(H 8.4°)는 같으므로 같은 색으로 읽힌다. */
-  --red:#c9604f;     --red-t:#E57D6C;     --pink:#E57D6C;
+  --red:#B96A5B;     --red-t:#E0897C;     --pink:#E0897C;
   /* 상승/하락 숫자 — 지정값. 자산색(--green #8eb985)과는 별개의 역할이므로 별칭이 아니라 명시값으로 둔다.
      카드면 대비 상승 7.22:1 · 하락 6.75:1 */
-  --up:#81C784;      --down:#E57D6C;
-  --logo-end:#67915f;
+  --up:#86C49B;      --down:#E0897C;
+  --logo-end:#5E9077;
   /* 차트 10슬롯 (지정 사양) */
-  --slot1:#8eb985; --slot2:#85a5c5; --slot3:#EBCB8B; --slot4:#bd96b5; --slot5:#c9604f;
-  --slot6:#35869d; --slot7:#a56f60; --slot8:#428968; --slot9:#7f76a2; --slot10:#71834a;
+  --slot1:#86C49B; --slot2:#A9BCCF; --slot3:#E5CC9C; --slot4:#B699B0; --slot5:#B96A5B;
+  --slot6:#8BA0B4; --slot7:#9C7367; --slot8:#54866D; --slot9:#7F7798; --slot10:#758157;
   /* 순위 램프 (지정 사양) — 순위 표시 UI가 생기면 이 네 값을 보간해 쓴다 */
-  --rank-1:#8eb985; --rank-hi:#9ab594; --rank-lo:#d19194; --rank-last:#e8858d;
+  --rank-1:#86C49B; --rank-hi:#9FB39A; --rank-lo:#C69697; --rank-last:#D88D92;
   --accent-t:var(--accent); --violet-t:var(--violet);
   --green-t:var(--green);   --gold-t:var(--gold); --orange-t:var(--orange);
   /* 채운 강조면 위 글자 = 지정 사양의 --on-primary */
-  --on-accent:#0d0d0d;
-  --accent-fill:linear-gradient(180deg,#8fadcb,#7b9bbd);
-  --red-fill:linear-gradient(180deg,#c76b74,#b2585f);
+  --on-accent:#0F1318;
+  --accent-fill:linear-gradient(180deg,#9DB0C3,#8399AE);
+  --red-fill:linear-gradient(180deg,#C77F74,#B26A61);
   /* ── 텍스트 4단 (지정 사양: 87 / 72 / 60 / 38%) ─────────────────────
      .72는 '읽는 문장'용 단계다. 설명 문단·보조 수치가 여기 들어간다.
      .60은 라벨·표 머리글, .38은 비활성(placeholder·disabled)에만 쓴다. */
@@ -87,13 +90,13 @@
   --text2:rgba(255,255,255,.60); --muted:rgba(255,255,255,.38);
   /* --muted(38%)는 M2에서 "비활성" 단계다. 읽혀야 하는 라벨·표 머리글·빈 상태 문구에는
      쓰지 않고 --text2(60%)를 쓴다 — 10px 대문자 라벨을 38%로 두면 3.0:1까지 떨어진다. */
-  --glow:rgba(133,165,197,.32);
+  --glow:rgba(169,188,207,.32);
   /* M2: 고도는 어두운 그림자로 표현한다. 컬러 글로우를 그림자 대신 쓰면 고도가 아니라
      발광으로 읽히므로, 아래 그림자는 전부 검정 계열로 유지한다. */
   --shadow-card:0 2px 4px -1px rgba(0,0,0,.42), 0 12px 28px -14px rgba(0,0,0,.55), 0 34px 68px -38px rgba(0,0,0,.6);
   --shadow-8:0 6px 14px -4px rgba(0,0,0,.5), 0 18px 40px -18px rgba(0,0,0,.58);
   --shadow-24:0 24px 56px -18px rgba(0,0,0,.68), 0 8px 20px -10px rgba(0,0,0,.48);
-  --shadow-hi:inset 0 .5px 0 rgba(255,255,255,.14);
+  --shadow-hi:inset 0 0 0 rgba(255,255,255,0);   /* ★ Quiet Glass — 이름은 shadow 지만 상자 맨 위에 흰 선을 그렸다 → 투명 */
   /* M2: 표면은 사다리 값(거의 무채색 그레이)이어야 한다. saturate 180%는 기준면의
      브랜드 틴트를 1.8배로 증폭해 모든 유리면에 의도치 않은 청색 캐스트를 만들었다 → 120%로 낮춤 */
   --blur:saturate(120%) blur(30px);
@@ -107,10 +110,10 @@ body{min-height:100vh;position:relative;overflow-x:hidden;letter-spacing:-.01em}
 /* 화면 상단에서 번지는 시스템 컬러 광원 — 애플 제품 페이지의 넓고 낮은 글로우 */
 body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
   background:
-    radial-gradient(1200px 640px at 50% -12%, rgba(176,186,204,.022), transparent 62%),
-    radial-gradient(940px 520px at 94% 6%, rgba(186,174,200,.016), transparent 60%),
-    radial-gradient(980px 540px at 4% 30%, rgba(168,186,198,.014), transparent 60%),
-    radial-gradient(1200px 700px at 50% 112%, rgba(168,182,176,.014), transparent 62%);
+    /* ★ Quiet Glass — 청회 한 색조의 오브 + 하락색을 아주 옅게 한 겹 */
+    radial-gradient(1200px 760px at 16% -8%, rgba(111,138,168,.07), transparent 64%),
+    radial-gradient(1100px 720px at 92% 108%, rgba(63,84,104,.08), transparent 64%),
+    radial-gradient(900px 600px at 86% 12%, rgba(224,137,124,.025), transparent 62%);
   animation:auroraDrift 30s ease-in-out infinite alternate}
 /* 가장자리를 눌러 카드가 떠 보이게 하는 비네팅 (그리드 오버레이 제거) */
 body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
@@ -123,15 +126,15 @@ a{color:inherit;text-decoration:none}
 #priceChart,#btPriceChart{touch-action:none}
 
 /* header — 반투명 내비게이션 바 */
-header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);background:rgba(26,27,31,.72);border-bottom:.5px solid var(--border)}
+header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);background:rgba(21,27,34,.78);border-bottom:.5px solid var(--border)}
 .hbar{max-width:1240px;margin:0 auto;padding:13px 20px;display:flex;align-items:center;gap:16px}
 .logo{font-family:var(--font-text);font-weight:700;font-size:21px;letter-spacing:-.035em;color:var(--text);display:flex;align-items:center;gap:10px}
 /* 로고 마크: 애플 인텔리전스 계열 그라디언트 스퀘어클 */
 .logo::before{content:"";width:13px;height:13px;border-radius:4.5px;
-  background:conic-gradient(from 210deg,#85a5c5,#35869d,#67915f,#bd96b5,#85a5c5);
-  box-shadow:0 0 14px rgba(133,165,197,.42), inset 0 .5px 0 rgba(255,255,255,.5);animation:pulseDot 4s ease-in-out infinite}
+  background:conic-gradient(from 210deg,#AEBBCA,#667584,#698E7B,#8898A8,#AEBBCA);
+  box-shadow:0 0 14px rgba(169,188,207,.42), inset 0 .5px 0 rgba(255,255,255,.5);animation:pulseDot 4s ease-in-out infinite}
 @keyframes pulseDot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.86);opacity:.78}}
-.logo span{background:linear-gradient(100deg,#35869d,#85a5c5 42%,var(--logo-end));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:var(--accent)}
+.logo span{background:linear-gradient(100deg,#8BA0B4,#A9BCCF 42%,var(--logo-end));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:var(--accent)}
 .logo small{display:none}
 .hspace{flex:1}
 .mode-pill{font-size:11px;font-weight:590;padding:5px 11px;border-radius:var(--r-pill);border:.5px solid var(--border);color:var(--text2);background:var(--surface2)}
@@ -298,7 +301,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
   background:conic-gradient(from 0deg,
     transparent 0 54%,
     color-mix(in srgb, var(--rc,var(--accent)) 92%, #fff) 68%,
-    #35869d 76%, #bd96b5 82%, #c9604f 86%, transparent 92%);
+    #8BA0B4 76%, #B699B0 82%, #B96A5B 86%, transparent 92%);
   -webkit-mask-image:radial-gradient(closest-side, transparent 56%, #000 80%);
   mask-image:radial-gradient(closest-side, transparent 56%, #000 80%);
   filter:blur(13px);opacity:.64;animation:heroPulse 12s linear infinite}
@@ -355,7 +358,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .reco-weights .dotc{width:11px;height:11px;border-radius:50%}
 .reco-ticker{font-family:var(--font-text);font-weight:700;font-size:21px;letter-spacing:-.03em;line-height:1}
 .pill{display:inline-block;font-size:11.5px;font-weight:640;padding:5px 13px;border-radius:var(--r-pill);border:.5px solid var(--border);font-family:var(--font-text);letter-spacing:-.01em}
-.pill.buy{color:var(--accent);border-color:rgba(133,165,197,.4);background:rgba(133,165,197,.16)}
+.pill.buy{color:var(--accent);border-color:rgba(169,188,207,.4);background:rgba(169,188,207,.16)}
 
 /* indicator grid */
 .ind-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
@@ -484,7 +487,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .fg-num{font-family:var(--font-num);font-weight:700;font-size:30px;line-height:1;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
 .fg-lab{font-family:var(--font-text);font-size:12.5px;font-weight:640;letter-spacing:-.02em;margin-top:5px}
 .fg-bar{position:relative;height:9px;border-radius:var(--r-pill);margin-top:12px;
-  background:linear-gradient(90deg,#3F8C6B,#86B98C 26%,#7FA6C9 50%,#E3B15F 74%,#c9604f);
+  background:linear-gradient(90deg,#538970,#91B694 26%,#89A5BF 50%,#DBB377 74%,#B96A5B);
   box-shadow:inset 0 1px 3px rgba(0,0,0,.34), inset 0 -.5px 0 rgba(255,255,255,.12)}
 .fg-tick{position:absolute;top:-4.5px;width:3px;height:18px;border-radius:2px;background:#fff;
   box-shadow:0 0 9px rgba(255,255,255,.65);transform:translateX(-50%);transition:left 1.1s var(--ease)}
@@ -602,10 +605,10 @@ tbody tr:hover{background:rgba(255,255,255,.045)}
 .qt-btns{display:flex;gap:6px;justify-content:flex-end}
 .mini-trade{font-family:var(--font-text);font-weight:640;font-size:11px;padding:5.5px 13px;border-radius:var(--r-pill);border:.5px solid var(--border);cursor:pointer;transition:.24s var(--ease);white-space:nowrap;letter-spacing:-.01em}
 .mini-trade:active{transform:scale(.96)}
-.mini-trade.buy{color:var(--accent);background:rgba(133,165,197,.16);border-color:rgba(133,165,197,.36)}
-.mini-trade.buy:hover{background:rgba(133,165,197,.28)}
-.mini-trade.sell{color:var(--red-t);background:rgba(201,96,79,.15);border-color:rgba(201,96,79,.36)}
-.mini-trade.sell:hover{background:rgba(201,96,79,.28)}
+.mini-trade.buy{color:var(--accent);background:rgba(169,188,207,.16);border-color:rgba(169,188,207,.36)}
+.mini-trade.buy:hover{background:rgba(169,188,207,.28)}
+.mini-trade.sell{color:var(--red-t);background:rgba(185,106,91,.15);border-color:rgba(185,106,91,.36)}
+.mini-trade.sell:hover{background:rgba(185,106,91,.28)}
 .qt-info{background:var(--surface2);border:.5px solid var(--border);border-radius:var(--r-s);padding:14px 16px;margin:16px 0 4px;font-size:13px}
 .qt-info .r{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0}
 .qt-info .r+.r{border-top:.5px solid var(--border)}
@@ -643,7 +646,7 @@ input:focus,select:focus{outline:none;background:var(--st-hover);border-color:va
 input:focus-visible,select:focus-visible{outline:none}
 select{color-scheme:dark;background-image:linear-gradient(45deg,transparent 50%,var(--text2) 50%),linear-gradient(135deg,var(--text2) 50%,transparent 50%);background-position:calc(100% - 17px) center,calc(100% - 12px) center;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:34px}
 select option{background-color:var(--e03);color:var(--text);font-family:var(--font-text);font-size:14px}
-select option:checked{background:#85a5c5;color:#0d0d0d;font-weight:640}
+select option:checked{background:#A9BCCF;color:#0F1318;font-weight:640}
 select option:disabled{color:var(--muted)}
 input[type="checkbox"],input[type="radio"]{width:17px;height:17px;flex:0 0 auto;accent-color:var(--accent);cursor:pointer;vertical-align:-2px}
 input[type="date"]{-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;overflow:hidden;text-align:center}
@@ -765,6 +768,18 @@ details.sandbox .stage-edit{background:var(--ov01)}
   #tradeTable{min-width:660px}
   #tradeTable td,#tradeTable th{padding:9px 8px;font-size:12px;white-space:nowrap}
 }
+/* ════════════════════════════════════════════════════════════════
+   ★ Quiet Glass 이식 — 면(카드·패널·모달)의 테두리를 **상자째** 없앤다.
+   ⚠️ 투명 테두리로 남기면 배경이 그 아래까지 칠해져(background-clip 기본값) 1px 밝은 링이 남는다
+     (포트폴리오 대시보드에서 여섯 번 만에 찾은 원인). 링을 고치지 말고 링을 없앤다.
+   ⚠️ 입력창·버튼·칩의 테두리는 남긴다 — 누를 수 있다는 단서다.
+   ════════════════════════════════════════════════════════════════ */
+.card,.ind,.qt-info,.regime-card,.stage-edit,details.sandbox,.modal{border:0!important}
+.card::before{display:none}                       /* 상단 헤어라인 — 같은 자리를 그리는 세 번째 방법 */
+/* 표 — 행 구분선을 한 단 옅게(헤어라인 한 값) */
+:root{--row-line:rgba(255,255,255,.07)}
+tbody td{border-bottom-color:var(--row-line)}
+.kg-tbl th,.kg-tbl td{border-bottom-color:var(--row-line)}
 </style>
 </head>
 <body>
@@ -947,10 +962,10 @@ details.sandbox .stage-edit{background:var(--ov01)}
       </div>
       <div class="field" style="margin-bottom:12px"><label>비교 지수 (동일 적립 — 중복 선택 가능)</label>
         <div style="display:flex;gap:14px;flex-wrap:wrap;padding:4px 0">
-          <label class="wcell"><input type="checkbox" id="bt_bm_QQQ" checked style="width:16px;height:16px"><span style="color:#A98BC7">QQQ</span></label>
-          <label class="wcell"><input type="checkbox" id="bt_bm_QLD" checked style="width:16px;height:16px"><span style="color:#D08A62">QLD</span></label>
-          <label class="wcell"><input type="checkbox" id="bt_bm_TQQQ" checked style="width:16px;height:16px"><span style="color:#E57D6C">TQQQ</span></label>
-          <label class="wcell"><input type="checkbox" id="bt_bm_GLD" style="width:16px;height:16px"><span style="color:#E3B15F">GLD</span></label>
+          <label class="wcell"><input type="checkbox" id="bt_bm_QQQ" checked style="width:16px;height:16px"><span style="color:#AA93C1">QQQ</span></label>
+          <label class="wcell"><input type="checkbox" id="bt_bm_QLD" checked style="width:16px;height:16px"><span style="color:#C89173">QLD</span></label>
+          <label class="wcell"><input type="checkbox" id="bt_bm_TQQQ" checked style="width:16px;height:16px"><span style="color:#E0897C">TQQQ</span></label>
+          <label class="wcell"><input type="checkbox" id="bt_bm_GLD" style="width:16px;height:16px"><span style="color:#DBB377">GLD</span></label>
         </div>
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -1057,17 +1072,17 @@ details.sandbox .stage-edit{background:var(--ov01)}
     <div class="tbl-scroll"><table style="font-size:12.5px;min-width:520px">
       <thead><tr><th>신호</th><th>조건 (QQQ 기준)</th><th>동작</th></tr></thead>
       <tbody>
-        <tr><td class="tkr" style="color:#E09B52">과열</td><td>주간 RSI(14) ≥ <b>70</b> <b>또는</b> 성숙 천장(200일선 위 <b>360거래일(≈1.4년)</b> & 전고점 <b>98%</b> 이내)</td><td class="mono">매주 TQQQ <b>−30%p</b> → 방어자산(GLD·SGOV)</td></tr>
-        <tr><td class="tkr" style="color:#E57D6C">광기</td><td>200일선 이격 <b>+28%</b> & 고점권(−3% 이내) <span class="muted">(RSI 동반조건 없음 — 이격 단독)</span></td><td class="mono">즉시 전량 방어자산. 해제: 고점 −3% 회복 / 추세 회복(200일선 +1% & 50일선 동반) → 매주 +10%p 점진 복귀</td></tr>
-        <tr><td class="tkr" style="color:#B592C4">급락</td><td>50일 고점 대비 <b>−16% ~ −30%</b> (코로나·관세형 급락)</td><td class="mono">낙폭에 비례해 TQQQ 상한을 매주 하향 (−30%에서 0%)</td></tr>
-        <tr><td class="tkr" style="color:#85a5c5">이탈</td><td>200일선 아래 <b>16거래일(≈3주) 연속</b></td><td class="mono">전량 방어자산(GLD·SGOV)</td></tr>
-        <tr><td class="tkr" style="color:#85a5c5">복귀</td><td>위 신호가 모두 꺼짐. 이탈 후엔 ①200일선 <b>+1%</b> 재돌파(50일선 동반) <b>또는</b> ②저점 <b>+22%</b> 추력 & 50일선 위 (V반등 캡처, 차트 ▲ 표시)</td><td class="mono">추력 복귀는 매주 <b>+35%p</b> 가속, 그 외 매주 +10%p (100%까지)</td></tr>
-        <tr><td class="tkr" style="color:#bd96b5">변동성 상한</td><td>최근 <b>10거래일</b> 실현변동성 기준 (하이브리드 오버레이)</td><td class="mono">TQQQ 상한 = min(목표 <b>70%</b> ÷ (3×최근변동성), 100%)를 래더 위에 덧씌움 — 출렁이면 자동 축소→방어자산</td></tr>
+        <tr><td class="tkr" style="color:#D59F69">과열</td><td>주간 RSI(14) ≥ <b>70</b> <b>또는</b> 성숙 천장(200일선 위 <b>360거래일(≈1.4년)</b> & 전고점 <b>98%</b> 이내)</td><td class="mono">매주 TQQQ <b>−30%p</b> → 방어자산(GLD·SGOV)</td></tr>
+        <tr><td class="tkr" style="color:#E0897C">광기</td><td>200일선 이격 <b>+28%</b> & 고점권(−3% 이내) <span class="muted">(RSI 동반조건 없음 — 이격 단독)</span></td><td class="mono">즉시 전량 방어자산. 해제: 고점 −3% 회복 / 추세 회복(200일선 +1% & 50일선 동반) → 매주 +10%p 점진 복귀</td></tr>
+        <tr><td class="tkr" style="color:#B095BB">급락</td><td>50일 고점 대비 <b>−16% ~ −30%</b> (코로나·관세형 급락)</td><td class="mono">낙폭에 비례해 TQQQ 상한을 매주 하향 (−30%에서 0%)</td></tr>
+        <tr><td class="tkr" style="color:#A9BCCF">이탈</td><td>200일선 아래 <b>16거래일(≈3주) 연속</b></td><td class="mono">전량 방어자산(GLD·SGOV)</td></tr>
+        <tr><td class="tkr" style="color:#A9BCCF">복귀</td><td>위 신호가 모두 꺼짐. 이탈 후엔 ①200일선 <b>+1%</b> 재돌파(50일선 동반) <b>또는</b> ②저점 <b>+22%</b> 추력 & 50일선 위 (V반등 캡처, 차트 ▲ 표시)</td><td class="mono">추력 복귀는 매주 <b>+35%p</b> 가속, 그 외 매주 +10%p (100%까지)</td></tr>
+        <tr><td class="tkr" style="color:#B699B0">변동성 상한</td><td>최근 <b>10거래일</b> 실현변동성 기준 (하이브리드 오버레이)</td><td class="mono">TQQQ 상한 = min(목표 <b>70%</b> ÷ (3×최근변동성), 100%)를 래더 위에 덧씌움 — 출렁이면 자동 축소→방어자산</td></tr>
       </tbody>
     </table></div>
     <p class="note" style="margin:8px 0 0"><b>실행.</b> 매주 적립일에 대시보드의 목표 TQQQ 비중을 확인하고, 신규 적립금은 목표 비중대로 매수합니다. 목표가 지난주와 달라졌으면 보유분도 한 번 맞춥니다(방어자산은 GLD·SGOV 7:3으로). 대시보드의 "+N주 매수/매도"가 그 차이를 주수로 환산한 값입니다. 매매는 많아야 주 1회, 대부분 전체 자산의 10%만 움직입니다.</p>
 
-    <div class="section-title" style="font-size:16px;margin-top:18px"><span class="dot"></span>시뮬레이션 결과 — v13.0 균형형 (실데이터+합성 일봉, $100,000 + 매월 $1,000, 수수료 0.1%, <b style="color:#85a5c5">세금 반영=세후</b> · 연 250만 비과세 + 22%)</div>
+    <div class="section-title" style="font-size:16px;margin-top:18px"><span class="dot"></span>시뮬레이션 결과 — v13.0 균형형 (실데이터+합성 일봉, $100,000 + 매월 $1,000, 수수료 0.1%, <b style="color:#A9BCCF">세금 반영=세후</b> · 연 250만 비과세 + 22%)</div>
     <div class="tbl-scroll"><table style="min-width:560px">
       <thead><tr><th>구간</th><th>균형형 v13.0 (세후 IRR/MDD)</th><th>세후 최종</th><th>구 균형형 v12 (세후)</th><th>TQQQ 단독적립 (세후)</th></tr></thead>
       <tbody>
@@ -1217,7 +1232,7 @@ details.sandbox .stage-edit{background:var(--ov01)}
     <span class="close" onclick="closeChart()">&times;</span>
     <h2 id="chartTitle">차트</h2>
     <div class="chart-actions" id="chartActions"></div>
-    <div id="tvChartWrap" style="height:70vh;min-height:420px;margin-top:14px;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:rgba(30,32,36,1)"></div>
+    <div id="tvChartWrap" style="height:70vh;min-height:420px;margin-top:14px;border-radius:14px;overflow:hidden;border:0;background:rgba(30,36,44,1)"></div>
     <p class="note" style="margin-top:10px">실시간 시세·차트는 TradingView 제공. 차트 상단 검색창에서 다른 종목으로 바꿀 수 있습니다.</p>
   </div>
 </div>
@@ -1470,10 +1485,10 @@ const REG_SUB={
   6:'200일선 아래 16거래일 연속 = 추세 붕괴 확정. 전량 방어자산(GLD·SGOV)으로 통과합니다. 복귀는 ①200일선 +1% 재돌파(50일선 동반) 또는 ②이탈 후 저점 추력(얕은급락 +15%·일반 +22%) & 50일선 위(V반등 캡처 — 이후 매주 35%p 가속 복귀, 재이탈 판정은 16거래일 새로 카운트, 차트에 ▲ 표시) — 둘 중 빠른 쪽.'
 };
 const REG_COLOR={2:'green',1:'green',3:'gold',4:'red',5:'red',6:'blue'};
-const REG_LINE={2:'#B4CE90',1:'#63A45F',3:'#E09B52',4:'#c9604f',5:'#B592C4',6:'#7FA6C9'};   // 선·면(비텍스트) — §71 시안A: 적립=연두·복귀=녹색·과열=주황
+const REG_LINE={2:'#B9CC9D',1:'#78A873',3:'#D59F69',4:'#B96A5B',5:'#B095BB',6:'#89A5BF'};   // 선·면(비텍스트) — §71 시안A: 적립=연두·복귀=녹색·과열=주황
 // 광기(#c9604f)는 넓은 조각용 톤이라 글자로 쓰면 카드면에서 3.6:1까지 떨어진다.
 // 지정 사양의 '하락(숫자)' 톤으로 갈아끼운 맵을 따로 둔다.
-const REG_TEXT={2:'#B4CE90',1:'#63A45F',3:'#E09B52',4:'#E57D6C',5:'#B592C4',6:'#7FA6C9'};   // 4=광기: 조각용 #c9604f는 글자로 쓰면 3.6:1 → '밝은 다홍 글자' 역할은 --red-t #E57D6C 하나로 통일
+const REG_TEXT={2:'#B9CC9D',1:'#78A873',3:'#D59F69',4:'#E0897C',5:'#B095BB',6:'#89A5BF'};   // 4=광기: 조각용 #c9604f는 글자로 쓰면 3.6:1 → '밝은 다홍 글자' 역할은 --red-t #E57D6C 하나로 통일
 
 /* ===================== 코스톨라니 달걀 (v13.1) =====================
    원전(André Kostolany)의 달걀 모형은 시장을 상승 3국면(A1 조정·A2 동행·A3 과장)
@@ -1502,22 +1517,22 @@ const REG_TEXT={2:'#B4CE90',1:'#63A45F',3:'#E09B52',4:'#E57D6C',5:'#B592C4',6:'#
 
    ※ 표시 전용. 매매(w)는 computeSeries가 단독 결정하며 달걀은 개입하지 않는다. */
 const KOSTO_PH=[
-  {k:'A1',ph:'상승 · 바닥 국면',act:'매수',c:'#6aa564',
+  {k:'A1',ph:'상승 · 바닥 국면',act:'매수',c:'#77A271',
    h:'아직 아무도 관심 없을 때 — 코스톨라니가 사라고 한 두 자리 중 하나',
    d:'바닥을 지나 추세가 돌아서는 구간. 거래량도 관심도 아직 낮고, 소신파가 조용히 사 모으는 때.'},
-  {k:'A2',ph:'상승 · 동행 국면',act:'보유',c:'#b5c98e',
+  {k:'A2',ph:'상승 · 동행 국면',act:'보유',c:'#B9C79B',
    h:'추세를 타고 가는 구간 — 기계적으로 적립만 하면 된다',
    d:'가격과 거래량이 나란히 늘며 안정적으로 오르는 구간. 새로 담기보다 들고 가는 시기.'},
-  {k:'A3',ph:'상승 · 과열 국면',act:'분할매도',c:'#c9604f',
+  {k:'A3',ph:'상승 · 과열 국면',act:'분할매도',c:'#B96A5B',
    h:'고점은 못 맞춘다 — 매주 나눠서 덜어내는 구간',
    d:'거래량과 참여자가 폭증하며 가격이 실체보다 앞서 나가는 구간. 부화뇌동파가 몰려들 때 소신파는 판다.'},
-  {k:'B1',ph:'하락 · 전환 국면',act:'적극매도',c:'#e08553',
+  {k:'B1',ph:'하락 · 전환 국면',act:'적극매도',c:'#D28B66',
    h:'천장이 확인된 자리 — 남은 물량을 정리한다',
    d:'천장을 지나 추세가 실제로 꺾인 구간. 아직 "일시 조정"이라는 말이 돌지만, 되돌림에 기대지 않고 정리할 자리.'},
-  {k:'B2',ph:'하락 · 동행 국면',act:'현금유지',c:'#89b8d6',
+  {k:'B2',ph:'하락 · 동행 국면',act:'현금유지',c:'#95B6CD',
    h:'방어자산으로 기다린다 — 바닥 잡으려 들지 않는다',
    d:'낙폭이 본격적으로 커지는 구간. 현금·방어자산을 들고 기다린다.'},
-  {k:'B3',ph:'하락 · 과장 국면',act:'분할매수',c:'#5f8fc4',
+  {k:'B3',ph:'하락 · 과장 국면',act:'분할매수',c:'#6E8EB6',
    h:'가장 견디기 어려운 자리 — 나눠서 사 모으는 구간',
    d:'투매가 나오며 거래량이 다시 폭증하는 구간. 가장 견디기 어렵지만 코스톨라니가 다시 사라고 한 자리.'}
 ];
@@ -1614,10 +1629,10 @@ const FG_AX=[
   ['추세 강도','50일선이 200일선보다 얼마나 위에 있는가']
 ];
 const fgLab=v=>v<25?'극도의 공포':v<45?'공포':v<=55?'중립':v<=75?'탐욕':'극도의 탐욕';
-const fgCol =v=>v<25?'#3F8C6B':v<45?'#86B98C':v<=55?'#7FA6C9':v<=75?'#E3B15F':'#c9604f';   // 면·막대용
+const fgCol =v=>v<25?'#538970':v<45?'#91B694':v<=55?'#89A5BF':v<=75?'#DBB377':'#B96A5B';   // 면·막대용
 /* 글자용은 따로 둔다(§82). 양 극단(극공포 #3F8C6B 3.58:1 · 극탐욕 #c9604f 3.64:1)은
    11px 축 숫자로 쓰면 소형 텍스트 기준 4.5:1에 못 미친다. 같은 색조를 밝게 올린 톤을 쓴다. */
-const fgColT=v=>v<25?'#5FB894':v<45?'#86B98C':v<=55?'#7FA6C9':v<=75?'#E3B15F':'#E57D6C';   // 글자용
+const fgColT=v=>v<25?'#75B499':v<45?'#91B694':v<=55?'#89A5BF':v<=75?'#DBB377':'#E0897C';   // 글자용
 function computeFG(out){
   const n=out.length, q=out.map(r=>+r.qqq), W=252;
   const g=out.map(r=>{const v=(r&&r.gold!=null)?+r.gold:NaN; return isNaN(v)?NaN:v;});
@@ -1732,7 +1747,7 @@ function renderEgg(){
   +  '<circle cx="'+m[0].toFixed(2)+'" cy="'+m[1].toFixed(2)+'" r="6" fill="none" stroke="'+P.c+'" stroke-width="1.6" opacity=".75">'
   +    '<animate attributeName="r" values="6;12;6" dur="2.6s" repeatCount="indefinite"/>'
   +    '<animate attributeName="opacity" values=".75;0;.75" dur="2.6s" repeatCount="indefinite"/></circle>'
-  +  '<circle cx="'+m[0].toFixed(2)+'" cy="'+m[1].toFixed(2)+'" r="4.8" fill="'+P.c+'" stroke="#11181d" stroke-width="1.6"/>'
+  +  '<circle cx="'+m[0].toFixed(2)+'" cy="'+m[1].toFixed(2)+'" r="4.8" fill="'+P.c+'" stroke="#0F1318" stroke-width="1.6"/>'
   +'</svg>'
   // 캡션은 한 줄뿐이고 글자색은 현재 국면 색과 맞춘다(§65).
   // 래더와 어긋나는 경우는 마우스오버 툴팁으로만 알리고, 자세한 설명은 모달이 맡는다.
@@ -1846,13 +1861,13 @@ if(window.Chart && IS_MOBILE()){ Chart.defaults.animation=false; }   // 모바�
    - 격자: 기존 3~4% 흰색은 사실상 보이지 않아 차트가 빈 판처럼 읽혔다 → 7%/10%.
      M2의 divider 기준(12%)보다는 낮게 둬서 데이터가 계속 주역이도록 한다.
    - 툴팁: 24dp 표면 + 87%/60% 글자. */
-const CH={tick:'rgba(255,255,255,.60)', tickDiv:'#EBCB8B',
+const CH={tick:'rgba(255,255,255,.60)', tickDiv:'#E5CC9C',
           grid:'rgba(255,255,255,.06)', gridFaint:'rgba(255,255,255,.04)'};   // 격자 = 지정 사양
 if(window.Chart){
   Chart.defaults.color=CH.tick;
   Chart.defaults.borderColor=CH.grid;
   const T=Chart.defaults.plugins.tooltip;
-  T.backgroundColor='rgba(50,56,61,.96)';      /* 24dp */
+  T.backgroundColor='rgba(45,53,64,.96)';   /* Quiet Glass — 모달 등가 #2D3540 */      /* 24dp */
   T.titleColor='rgba(255,255,255,.87)';
   T.bodyColor='rgba(255,255,255,.87)';
   T.footerColor='rgba(255,255,255,.60)';
@@ -1885,8 +1900,8 @@ function runCountUp(){
 }
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
 const pct = n => (n>=0?'+':'')+ (n*100).toFixed(1)+'%';
-const ALLOC_COLORS={TQQQ:'#c9604f',QLD:'#D08A62',QQQ:'#A98BC7',SCHD:'#7FA6C9',GLD:'#E3B15F',SGOV:'#86B98C',CASH:'#8A9199'};   // 차트 10슬롯 + 중립 슬레이트. GLD=금 톤(#EBCB8B, §41 gold — 레짐3 선색과 공유하나 차트 종류가 달라 충돌 없음)
-const ALLOC_GRAD={TQQQ:'#c9604f',QLD:'#D08A62',QQQ:'#A98BC7',SCHD:'#7FA6C9',GLD:'#E3B15F',SGOV:'#86B98C',CASH:'#8A9199'};
+const ALLOC_COLORS={TQQQ:'#B96A5B',QLD:'#C89173',QQQ:'#AA93C1',SCHD:'#89A5BF',GLD:'#DBB377',SGOV:'#91B694',CASH:'#94A5B6'};   // 차트 10슬롯 + 중립 슬레이트. GLD=금 톤(#EBCB8B, §41 gold — 레짐3 선색과 공유하나 차트 종류가 달라 충돌 없음)
+const ALLOC_GRAD={TQQQ:'#B96A5B',QLD:'#C89173',QQQ:'#AA93C1',SCHD:'#89A5BF',GLD:'#DBB377',SGOV:'#91B694',CASH:'#94A5B6'};
 const ALLOC_DISP={TQQQ:'TQQQ',QLD:'QLD',QQQ:'QQQ',SCHD:'SCHD',GLD:'GLD',SGOV:'SGOV',CASH:'현금'};
 const SCHD_FALLBACK=32.3;                                  // 시세 미수집 시 임시 단가($)
 const schdPx=row=>(row&&row.schd!=null&&!isNaN(+row.schd))?+row.schd:SCHD_FALLBACK;
@@ -2423,12 +2438,13 @@ function buildRegimeChart(ctx,s,lite){
       return it?{x:it.element.x,y:it.element.y}:evtPos;
     };
   }
-  const lastCol = REG_LINE[(s[n-1]||{}).regime] || '#85a5c5';
+  const lastCol = REG_LINE[(s[n-1]||{}).regime] || '#A9BCCF';
   const hexRgba=(hex,a)=>{const m=hex.replace('#','');const r=parseInt(m.slice(0,2),16),g=parseInt(m.slice(2,4),16),b=parseInt(m.slice(4,6),16);return `rgba(${r},${g},${b},${a})`;};
   const REDUCE = lite || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);   // lite: 펄스 루프 없음
   const PULSE_LIGHT = mob;     // 모바일: 펄스는 보이되 글로우 패스를 1회로 줄여 부담 완화
-  const PULSE_PERIOD = 2400;   // 전체 주기(ms) — 짧을수록 자주 지나감
-  const PULSE_TRAVEL = 1500;   // 펄스가 라인을 가로지르는 시간(ms)
+  /* ★ Quiet Glass — 전기 펄스(2.4s 마다 1.5s · 흰 심지) → **숨결 글로우**(8s 마다 4.2s · 경계 없음) */
+  const PULSE_PERIOD = 8000;   // 전체 주기(ms)
+  const PULSE_TRAVEL = 4200;   // 빛이 라인을 가로지르는 시간(ms)
   // 끝점 발광 마커(정적) + 라인을 따라 몇 초마다 쭉 지나가는 전기 펄스
   const glowPlugin = {
     id:'priceGlow',
@@ -2445,39 +2461,33 @@ function buildRegimeChart(ctx,s,lite){
         if(!hidden){
           const phase=(Date.now()%PULSE_PERIOD);
           if(phase<PULSE_TRAVEL){
-            const prog=phase/PULSE_TRAVEL;                 // 0→1 진행
-            const headX=area.left+(area.right-area.left)*prog;
-            const tailLen=(area.right-area.left)*0.16;     // 꼬리 길이
-            c.save();
-            c.beginPath(); c.rect(area.left,area.top,area.right-area.left,area.bottom-area.top); c.clip();
-            // 펄스 구간 점들만 밝게 덧그림
-            c.lineJoin='round'; c.lineCap='round';
-            const passes = PULSE_LIGHT
-              ? [{blur:8, w:2.4, a:.95}]                          // 모바일: 1패스(그림자 블러 축소)
-              : [{blur:16, w:4, a:.9},{blur:0, w:1.6, a:1}];      // 데스크톱: 글로우 + 선명한 심선
-            for(const ps of passes){
-              c.beginPath();
-              let started=false;
-              for(let i=0;i<pts.length;i++){
-                const x=pts[i].x;
-                const d=headX-x;                            // 머리보다 왼쪽이면 +
-                if(d<0) break;                              // x 정렬이므로 머리 오른쪽은 볼 필요 없음
-                if(d<=tailLen){
-                  if(!started){c.moveTo(x,pts[i].y);started=true;} else c.lineTo(x,pts[i].y);
-                }
+            /* 숨결 글로우 — 같은 중심의 x 창 N 겹을 짧은 것부터 긴 것까지 'lighter' 로 겹친다.
+               한 겹 = 최대 ÷ N 이라 가운데가 가장 밝고 가장자리로 갈수록 한 겹씩 빠져 서서히 0 이 된다.
+               ⚠️ 일봉은 점이 수천 개다 → 가장 넓은 창의 점만 한 번 골라 두고, 좁은 창은 그 안에서 자른다. */
+            const prog=phase/PULSE_TRAVEL, env=Math.pow(Math.sin(Math.PI*prog),1.4);
+            if(env>0.01){
+              const W=area.right-area.left, Lmax=W*0.30;
+              const cx=area.left-Lmax/2+prog*(W+Lmax);                    // 왼쪽 밖에서 들어와 오른쪽 밖으로 나간다
+              let i0=0; while(i0<pts.length && pts[i0].x<cx-Lmax/2) i0++;
+              let i1=i0; while(i1<pts.length && pts[i1].x<=cx+Lmax/2) i1++;
+              const N = PULSE_LIGHT ? 6 : 12, PEAK = 0.62, GLOW='205,218,232', CORE='232,240,248';
+              c.save();
+              c.beginPath(); c.rect(area.left,area.top,area.right-area.left,area.bottom-area.top); c.clip();
+              c.globalCompositeOperation='lighter'; c.lineJoin='round'; c.lineCap='round';
+              for(let k=1;k<=N;k++){
+                const f=k/N, half=Lmax*f/2;
+                c.beginPath(); let started=false;
+                for(let i=i0;i<i1;i++){ const p=pts[i]; if(Math.abs(p.x-cx)>half) continue;
+                  if(!started){ c.moveTo(p.x,p.y); started=true; } else c.lineTo(p.x,p.y); }
+                if(!started) continue;
+                c.strokeStyle='rgba('+(k<=3?CORE:GLOW)+','+((PEAK/N)*env).toFixed(4)+')';
+                c.lineWidth=1.6+(2+14*(1-f))*(0.55+0.45*env);
+                if(k<=3 && !PULSE_LIGHT){ c.shadowColor='rgba('+CORE+','+(0.55*env).toFixed(3)+')'; c.shadowBlur=10+16*env; }
+                else { c.shadowColor='transparent'; c.shadowBlur=0; }
+                c.stroke();
               }
-              c.shadowColor='#ffffff'; c.shadowBlur=ps.blur; c.strokeStyle=hexRgba('#ffffff',ps.a); c.lineWidth=ps.w;
-              c.stroke();
+              c.restore();
             }
-            c.shadowBlur=0;
-            // 머리 글로우 점
-            let hy=null; for(let i=0;i<pts.length;i++){ if(pts[i].x<=headX) hy=pts[i].y; else break; }
-            if(hy!=null){
-              const g=c.createRadialGradient(headX,hy,0,headX,hy,10);
-              g.addColorStop(0,hexRgba('#ffffff',.95)); g.addColorStop(1,hexRgba(lastCol,0));
-              c.shadowBlur=0; c.fillStyle=g; c.beginPath(); c.arc(headX,hy,10,0,Math.PI*2); c.fill();
-            }
-            c.restore();
           }
           // 다음 깨어날 시점 예약: 펄스 통과 중에는 매 프레임, 휴지 중에는 다음 펄스 시작까지 잠금
           if(!chart.$pulseReq){
@@ -2498,7 +2508,7 @@ function buildRegimeChart(ctx,s,lite){
       const grad=c.createRadialGradient(pt.x,pt.y,1,pt.x,pt.y,13);
       grad.addColorStop(0, hexRgba(lastCol,.8)); grad.addColorStop(.45, hexRgba(lastCol,.32)); grad.addColorStop(1, hexRgba(lastCol,0));
       c.fillStyle=grad; c.beginPath(); c.arc(pt.x,pt.y,13,0,Math.PI*2); c.fill();
-      c.fillStyle='#d3d8db'; c.beginPath(); c.arc(pt.x,pt.y,3,0,Math.PI*2); c.fill();
+      c.fillStyle='#C3CFDC'; c.beginPath(); c.arc(pt.x,pt.y,3,0,Math.PI*2); c.fill();
       c.lineWidth=2; c.strokeStyle=lastCol; c.beginPath(); c.arc(pt.x,pt.y,3,0,Math.PI*2); c.stroke();
       c.restore();
     }
@@ -2513,8 +2523,8 @@ function buildRegimeChart(ctx,s,lite){
   // lite: 점별 콜백을 배열로 미리 계산(드로우마다 함수 호출 제거)
   const ptR = lite ? s.map(o=>o.thrust?4:(o.regime===4?2.5:0)) : (c=>{const o=s[c.dataIndex]||{};return o.thrust?5:(o.regime===4?3:0);});
   const ptStyle = lite ? s.map(o=>o.thrust?'triangle':'circle') : (c=>{const o=s[c.dataIndex]||{};return o.thrust?'triangle':'circle';});
-  const ptBg = lite ? s.map(o=>o.thrust?'#8eb985':'rgba(0,0,0,0)') : (c=>{const o=s[c.dataIndex]||{};return o.thrust?'#8eb985':'rgba(0,0,0,0)';});
-  const ptBd = lite ? s.map(o=>o.thrust?'#8eb985':(o.regime===4?'#c9604f':'rgba(0,0,0,0)')) : (c=>{const o=s[c.dataIndex]||{};return o.thrust?'#8eb985':(o.regime===4?'#c9604f':'rgba(0,0,0,0)');});
+  const ptBg = lite ? s.map(o=>o.thrust?'#86C49B':'rgba(0,0,0,0)') : (c=>{const o=s[c.dataIndex]||{};return o.thrust?'#86C49B':'rgba(0,0,0,0)';});
+  const ptBd = lite ? s.map(o=>o.thrust?'#86C49B':(o.regime===4?'#B96A5B':'rgba(0,0,0,0)')) : (c=>{const o=s[c.dataIndex]||{};return o.thrust?'#86C49B':(o.regime===4?'#B96A5B':'rgba(0,0,0,0)');});
   return new Chart(ctx,{type:'line',data:{labels:s.map(o=>o.date),datasets:[
     {label:'QQQ',data:s.map(o=>o.qqq),borderColor:regimeGradient,borderWidth:lite?2:2.6,tension:lite?0:.15,
      fill:true,backgroundColor:lite?hexRgba(lastCol,.08):areaFill,
@@ -2523,15 +2533,15 @@ function buildRegimeChart(ctx,s,lite){
      pointHoverRadius:lite?3:(c=>{const o=s[c.dataIndex]||{};return (o.thrust||o.regime===4)?6:3;}),
      pointStyle:ptStyle,
      pointBackgroundColor:ptBg,
-     pointHoverBackgroundColor:'#d3d8db',pointHoverBorderColor:'#d3d8db',pointHoverBorderWidth:2,
+     pointHoverBackgroundColor:'#C3CFDC',pointHoverBorderColor:'#C3CFDC',pointHoverBorderWidth:2,
      pointBorderColor:ptBd,
      pointBorderWidth:2},
-    {label:'200일선',data:s.map(o=>o.sma200),borderColor:'#EBCB8B',borderWidth:1.4,tension:0,pointRadius:0,pointHoverRadius:0,pointHitRadius:0,borderDash:[5,4]},
-    {label:'50일선',data:s.map(o=>o.sma50),borderColor:'#828b91',borderWidth:1,tension:0,pointRadius:0,pointHoverRadius:0,pointHitRadius:0}
+    {label:'200일선',data:s.map(o=>o.sma200),borderColor:'#E5CC9C',borderWidth:1.4,tension:0,pointRadius:0,pointHoverRadius:0,pointHitRadius:0,borderDash:[5,4]},
+    {label:'50일선',data:s.map(o=>o.sma50),borderColor:'#8BA0B4',borderWidth:1,tension:0,pointRadius:0,pointHoverRadius:0,pointHitRadius:0}
   ]},plugins:[glowPlugin],options:{responsive:true,maintainAspectRatio:false,normalized:true,animation:lite?false:undefined,interaction:{intersect:false,mode:'index'},
     plugins:{legend:{labels:{color:CH.tick,boxWidth:12,font:{size:11}}},
       zoom:{
-        zoom:{drag:{enabled:true,backgroundColor:'rgba(133,165,197,.18)',borderColor:'rgba(133,165,197,.65)',borderWidth:1,threshold:8},pinch:{enabled:true},wheel:{enabled:true,speed:.08},mode:'x'},
+        zoom:{drag:{enabled:true,backgroundColor:'rgba(169,188,207,.18)',borderColor:'rgba(169,188,207,.65)',borderWidth:1,threshold:8},pinch:{enabled:true},wheel:{enabled:true,speed:.08},mode:'x'},
         pan:{enabled:false},
         limits:{x:{minRange:10}}
       },
@@ -2546,7 +2556,7 @@ function renderAssetChart(data){
   const ctx=document.getElementById('assetChart'); if(!ctx) return;
   if(assetChart)assetChart.destroy();
   if(!data.length){ const c=ctx.getContext('2d'); c.clearRect(0,0,ctx.width,ctx.height);
-    c.fillStyle='#828b91'; c.font="13px -apple-system, 'SF Pro Text', Pretendard, sans-serif"; c.textAlign='center';
+    c.fillStyle='#8BA0B4'; c.font="13px -apple-system, 'SF Pro Text', Pretendard, sans-serif"; c.textAlign='center';
     c.fillText('월별 데이터를 추가하면 추이가 표시됩니다.', ctx.width/2, ctx.height/2); return; }
   const labels=data.map(d=>monthLabel(d.ym));
   const principal=data.map(d=>+d.principal);
@@ -2556,16 +2566,17 @@ function renderAssetChart(data){
   const maxDiv=Math.max(...divs,0);
   const g=ctx.getContext('2d');
   const grad=g.createLinearGradient(0,0,0,300);
-  grad.addColorStop(0,'rgba(133,165,197,.26)'); grad.addColorStop(1,'rgba(133,165,197,0)');
+  /* ★ Quiet Glass — 평가금액은 손익 초록(그래프의 유일한 유채색) · 원금은 램프 · 배당은 한 색 페이드 */
+  grad.addColorStop(0,'rgba(134,196,155,.26)'); grad.addColorStop(1,'rgba(134,196,155,0)');
   const gradP=g.createLinearGradient(0,0,0,300);            // 원금도 색을 넣어 눈에 띄게 (점선 → 실선+옅은 채움)
-  gradP.addColorStop(0,'rgba(255,179,64,.14)'); gradP.addColorStop(1,'rgba(255,179,64,0)');
-  const gradD=g.createLinearGradient(0,0,0,300);            // 배당 막대
-  gradD.addColorStop(0,'rgba(142,185,133,.85)'); gradD.addColorStop(1,'rgba(142,185,133,.30)');
+  gradP.addColorStop(0,'rgba(131,153,174,.12)'); gradP.addColorStop(1,'rgba(131,153,174,0)');
+  const gradD=g.createLinearGradient(0,0,0,300);            // 배당 막대 — 아래로 사라진다
+  gradD.addColorStop(0,'rgba(169,188,207,.45)'); gradD.addColorStop(1,'rgba(169,188,207,.03)');
   const ds=[
-    {label:'평가금액',data:evalAmt,borderColor:'#85a5c5',backgroundColor:grad,borderWidth:2.2,pointRadius:0,tension:.35,fill:true,order:1,yAxisID:'y'},
-    {label:'원금',data:principal,borderColor:'#e5a182',backgroundColor:gradP,borderWidth:2.2,pointRadius:0,tension:.35,fill:true,order:2,yAxisID:'y'}
+    {label:'평가금액',data:evalAmt,borderColor:'#93C1A2',backgroundColor:grad,borderWidth:2.2,pointRadius:0,tension:.35,fill:true,order:1,yAxisID:'y'},
+    {label:'원금',data:principal,borderColor:'#8898A8',backgroundColor:gradP,borderWidth:2.2,pointRadius:0,tension:.35,fill:true,order:2,yAxisID:'y'}
   ];
-  if(hasDiv) ds.push({type:'bar',label:'배당',data:divs,backgroundColor:gradD,borderColor:'#EBCB8B',borderWidth:1,
+  if(hasDiv) ds.push({type:'bar',label:'배당',data:divs,backgroundColor:gradD,borderColor:'transparent',borderWidth:0,
     borderRadius:5,borderSkipped:false,maxBarThickness:26,order:3,yAxisID:'yDiv'});
   const yDiv = hasDiv ? {position:'right',min:0,beginAtZero:true,
       // 배당 축은 최대값의 약 3배로 잡아 막대가 아래쪽에만 머물게 (선 그래프를 가리지 않도록)
@@ -2588,7 +2599,7 @@ function renderAssetChart(data){
      · 색은 흰색이 아니라 평가금액 선 색(#85a5c5)이다. 초반에 원금을 따라가는 것처럼 보였던 것은
        두 선이 실제로 겹쳐 있기 때문인데, 선 색을 맞추면 어느 쪽인지 바로 읽힌다.
      · 끝점 고정 광점은 제거했다. 남긴 것은 현재 평가금액 **기준선**(점선)뿐이다. */
-  const GL='133,165,197';                                   // 평가금액 선 #85a5c5
+  const GL='134,196,155';                                   // 평가금액 선 #86C49B (Quiet Glass)
   const slowM2=(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const assetGlow={id:'assetGlow',afterDatasetsDraw(chart){
     const meta=chart.getDatasetMeta(0); if(!meta||!meta.data||meta.data.length<2) return;
@@ -2601,38 +2612,51 @@ function renderAssetChart(data){
       c.beginPath(); c.moveTo(area.left,last.y); c.lineTo(last.x,last.y); c.stroke(); c.restore();
     }
     if(slowM2) return;
-    const CYC=5600, TRV=3200, ph=now%CYC;
-    if(ph<TRV+900){
-      /* §79: 평가금액 광점 뒤를 원금 광점이 따라간다. 색은 각 선 색을 그대로 쓴다
-         (평가금액 #85a5c5 / 원금 #e5a182). lag만큼 늦게 출발해 앞뒤 간격이 생긴다. */
-      const HEADS=[{di:0,rgb:GL,      core:'228,240,252',lag:0},
-                   {di:1,rgb:'229,161,130',core:'252,232,220',lag:0.17}];
-      c.save();
-      c.beginPath(); c.rect(area.left,area.top,area.right-area.left,area.bottom-area.top); c.clip();
-      for(const H of HEADS){
-        const m2=chart.getDatasetMeta(H.di);
-        if(!m2||!m2.data||m2.data.length<2||m2.hidden) continue;
-        const P2=m2.data, e=(ph/TRV)-H.lag;
-        if(e<0||e>1) continue;
-        const a0=P2[0], a1=P2[P2.length-1];
-        const hx=a0.x+(a1.x-a0.x)*e;
-        let hy=a1.y;                                         // 폴리라인 위 정확한 y (꼭짓점 스냅 금지)
-        if(hx<=a0.x) hy=a0.y;
-        else for(let i=1;i<P2.length;i++){ if(hx<=P2[i].x){
-          const p=P2[i-1],q=P2[i],t=(q.x-p.x)?(hx-p.x)/(q.x-p.x):0; hy=p.y+(q.y-p.y)*t; break; } }
-        const hg=c.createRadialGradient(hx,hy,0,hx,hy,9);
-        hg.addColorStop(0,'rgba('+H.core+',.95)'); hg.addColorStop(.5,'rgba('+H.rgb+',.45)'); hg.addColorStop(1,'rgba('+H.rgb+',0)');
-        c.fillStyle=hg; c.beginPath(); c.arc(hx,hy,9,0,Math.PI*2); c.fill();
-        c.fillStyle='rgba('+H.core+',.95)'; c.beginPath(); c.arc(hx,hy,2.4,0,Math.PI*2); c.fill();
+    /* ★ Quiet Glass — 지나가는 빛을 **숨결 글로우**로(포트폴리오 대시보드 v29.2~v29.4 와 같은 언어).
+       · 박자: 8초마다 4.2초 동안. 봉투 sin(π·t)^1.4 — 0 에서 차오르고 가운데서 가장 부풀고 0 으로 사라진다
+       · 경계 없음: 같은 중심의 대시 12겹(한 겹 = 최대 ÷ 12)을 'lighter' 로 겹쳐, 가운데 .70 → 끝 0 으로 서서히.
+         대시 하나는 끝에서 알파가 뚝 끊겨 빛의 앞뒤가 선으로 보인다 — 캔버스 선은 길이 방향 알파를 못 바꾼다.
+       · 짧은 겹일수록 두껍게 → 방추형(길이·폭 두 방향 모두 흐리다). 번짐은 가운데 세 겹에만(모바일 부담).
+       · 선의 베지어(tension .35)를 그대로 따라간다 — 점 사이를 직선으로 잇지 않는다. */
+    const CYC=8000, TRV=4200, ph=now%CYC;
+    if(ph<TRV){
+      const m2=chart.getDatasetMeta(0);
+      const prog=ph/TRV, env=Math.pow(Math.sin(Math.PI*prog),1.4);
+      if(env>0.01 && m2 && m2.data && m2.data.length>1 && !m2.hidden){
+        const P2=m2.data;
+        const path=()=>{ let prev=null, len=0; c.beginPath();
+          for(const p of P2){ if(!p||p.skip||!isFinite(p.x)||!isFinite(p.y)){prev=null;continue;}
+            if(!prev){ c.moveTo(p.x,p.y); prev=p; continue; }
+            if(isFinite(prev.cp2x)&&isFinite(p.cp1x)) c.bezierCurveTo(prev.cp2x,prev.cp2y,p.cp1x,p.cp1y,p.x,p.y); else c.lineTo(p.x,p.y);
+            len+=Math.hypot(p.x-prev.x,p.y-prev.y); prev=p; }
+          return len*1.03; };
+        const len=path();
+        if(len>1){
+          const HEAD='188,222,200', N=12, PEAK=0.70, bw=2.2;
+          const Lmax=Math.max(90,len*0.34), period=len+Lmax*3, cc=-Lmax/2+prog*(len+Lmax);
+          c.save();
+          c.beginPath(); c.rect(area.left,area.top,area.right-area.left,area.bottom-area.top); c.clip();
+          c.globalCompositeOperation='lighter'; c.lineCap='round'; c.lineJoin='round';
+          for(let k=1;k<=N;k++){
+            const f=k/N, L=Lmax*f;
+            c.setLineDash([L, period-L]); c.lineDashOffset=-(cc-L/2);      // 모든 겹이 같은 중심
+            path();
+            c.strokeStyle='rgba('+(k<=3?HEAD:GL)+','+((PEAK/N)*env).toFixed(4)+')';
+            c.lineWidth=bw+(3+20*(1-f))*(0.55+0.45*env);                    // 짧을수록 두껍다
+            if(k<=3){ c.shadowColor='rgba('+HEAD+','+(0.65*env).toFixed(3)+')'; c.shadowBlur=14+22*env; }
+            else    { c.shadowColor='transparent'; c.shadowBlur=0; }
+            c.stroke();
+          }
+          c.restore();
+        }
       }
-      c.restore();
     }
     if(chart.$pending) return;                               // 통과 중엔 rAF(부드럽게), 휴지 중엔 다음 통과까지 잠금
     const tab=document.getElementById('tab-dash');
     if(tab && tab.classList.contains('hidden')) return;
     chart.$pending=true;
     const again=()=>{ chart.$pending=false; if(chart.ctx) chart.draw(); };
-    if(ph<TRV+900) requestAnimationFrame(again); else setTimeout(again, Math.max(60, CYC-ph));
+    if(ph<TRV) requestAnimationFrame(again); else setTimeout(again, Math.max(60, CYC-ph));
   }};
   assetChart=new Chart(ctx,{type:'line',data:{labels,datasets:ds},plugins:[assetGlow],
     options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
@@ -2996,7 +3020,7 @@ function openChart(ticker){
   const wrap=document.getElementById('tvChartWrap');
   wrap.innerHTML='<div class="tradingview-widget-container" style="height:100%;width:100%"><div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div></div>';
   const cfg={autosize:true, symbol:sym, interval:'D', timezone:'Asia/Seoul', theme:'dark', style:'1', locale:'kr',
-    backgroundColor:'rgba(30,32,36,1)', gridColor:'rgba(255,255,255,0.06)',
+    backgroundColor:'rgba(30,36,44,1)', gridColor:'rgba(255,255,255,0.06)',
     hide_side_toolbar:false, allow_symbol_change:true, withdateranges:true, calendar:false,
     support_host:'https://www.tradingview.com'};
   const s=document.createElement('script');
@@ -3391,7 +3415,7 @@ function resetStrategyUI(){
 function showSyncWarn(html){
   let b=document.getElementById('syncWarn');
   if(!b){ b=document.createElement('div'); b.id='syncWarn';
-    b.style.cssText='position:fixed;left:10px;right:10px;bottom:10px;z-index:99999;background:rgba(74,36,38,.88);-webkit-backdrop-filter:blur(24px) saturate(120%);backdrop-filter:blur(24px) saturate(120%);color:#fff;padding:12px 15px;border-radius:18px;font:600 12.5px/1.5 -apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"Apple SD Gothic Neo\",Pretendard,system-ui,sans-serif;letter-spacing:-.01em;box-shadow:0 18px 40px -16px rgba(0,0,0,.6),inset 0 .5px 0 rgba(255,255,255,.18);border:.5px solid rgba(201,96,79,.5)';
+    b.style.cssText='position:fixed;left:10px;right:10px;bottom:10px;z-index:99999;background:rgba(74,36,38,.88);-webkit-backdrop-filter:blur(24px) saturate(120%);backdrop-filter:blur(24px) saturate(120%);color:#fff;padding:12px 15px;border-radius:18px;font:600 12.5px/1.5 -apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"Apple SD Gothic Neo\",Pretendard,system-ui,sans-serif;letter-spacing:-.01em;box-shadow:0 18px 40px -16px rgba(0,0,0,.6),inset 0 .5px 0 rgba(255,255,255,.18);border:.5px solid rgba(185,106,91,.5)';
     document.body.appendChild(b); }
   b.innerHTML=html+' <span onclick="this.parentNode.remove()" style="float:right;cursor:pointer;opacity:.8;padding-left:10px">✕</span>';
 }
@@ -3681,17 +3705,17 @@ function drawBtAsset(){
   if(btAssetC)btAssetC.destroy();
   const days = decimate(R.days, IS_MOBILE()?400:900);   // 장기 일봉을 그대로 그리면 느려짐 — 끝점 보존하며 점 수 제한
   const g=ac.getContext('2d'); const grad=g.createLinearGradient(0,0,0,300);
-  grad.addColorStop(0,'rgba(45,212,191,.28)'); grad.addColorStop(1,'rgba(45,212,191,0)');
-  const bmDs=R.bms.map(nm=>({label:nm+' 동일적립',data:days.map(x=>x.bm[nm]),borderColor:(ALLOC_COLORS[nm]||'#828b91')+'cc',borderWidth:1.4,pointRadius:0,pointHoverRadius:0,pointHitRadius:0,tension:0,fill:false}));
+  grad.addColorStop(0,'rgba(134,196,155,.26)'); grad.addColorStop(1,'rgba(134,196,155,0)');   /* Quiet Glass */
+  const bmDs=R.bms.map(nm=>({label:nm+' 동일적립',data:days.map(x=>x.bm[nm]),borderColor:(ALLOC_COLORS[nm]||'#8BA0B4')+'cc',borderWidth:1.4,pointRadius:0,pointHoverRadius:0,pointHitRadius:0,tension:0,fill:false}));
   const usdTick=v=>v>=1e9?'$'+(v/1e9).toFixed(v/1e9>=10?0:1)+'B':v>=1e6?'$'+(v/1e6).toFixed(v/1e6>=10?0:1)+'M':v>=1e3?'$'+Math.round(v/1e3)+'K':'$'+Math.round(v);
   const logCb=v=>{ if(v<=0)return ''; const f=Math.pow(10,Math.floor(Math.log10(v)+1e-9)); const m=Math.round(v/f); return (m===1||m===2||m===5)?usdTick(v):''; };
   const yAxis = LOG_SCALE
     ? {type:'logarithmic',ticks:{color:CH.tick,font:{size:10},callback:logCb},grid:{color:CH.grid}}
     : {ticks:{color:CH.tick,font:{size:10},callback:usdTick},grid:{color:CH.grid}};
   btAssetC=new Chart(ac,{type:'line',data:{labels:days.map(x=>x.date),datasets:[
-    {label:'평가금액',data:days.map(x=>x.val),borderColor:'#85a5c5',backgroundColor:grad,borderWidth:2,pointRadius:0,pointHoverRadius:3,pointHitRadius:0,tension:0,fill:!LOG_SCALE},
+    {label:'평가금액',data:days.map(x=>x.val),borderColor:'#93C1A2',backgroundColor:grad,borderWidth:2,pointRadius:0,pointHoverRadius:3,pointHitRadius:0,tension:0,fill:!LOG_SCALE},
     ...bmDs,
-    {label:'투자원금',data:days.map(x=>x.invested),borderColor:'#828b91',borderWidth:1.6,pointRadius:0,pointHoverRadius:0,pointHitRadius:0,tension:0,fill:false,borderDash:[5,4]}
+    {label:'투자원금',data:days.map(x=>x.invested),borderColor:'#8898A8',borderWidth:1.6,pointRadius:0,pointHoverRadius:0,pointHitRadius:0,tension:0,fill:false,borderDash:[5,4]}
   ]},options:{responsive:true,maintainAspectRatio:false,normalized:true,animation:false,interaction:{intersect:false,mode:'index'},
     plugins:{legend:{labels:{color:CH.tick,boxWidth:12,font:{size:11}}},
       tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmtUSD(c.parsed.y)}}},
