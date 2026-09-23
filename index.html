@@ -832,9 +832,9 @@ tbody td{border-bottom-color:var(--row-line)}
    ⚠️ 번진 빛이 SVG 가장자리에서 잘리지 않게 overflow 를 연다(카드가 최종으로 자른다). */
 .egg-svg{overflow:visible}
 .egg-box::before{
-  background:radial-gradient(58% 52% at 50% 46%, color-mix(in srgb, var(--pc,var(--accent)) 34%, transparent), transparent 72%)!important;
+  background:radial-gradient(58% 52% at 50% 46%, color-mix(in srgb, var(--pc,var(--accent)) 50%, transparent), transparent 76%)!important;   /* v14.9.7 — 34 → 50% */
   animation:eggAura 4.2s ease-in-out infinite}
-@keyframes eggAura{0%,15%,85%,100%{opacity:.18;transform:scale(1)}50%{opacity:.70;transform:scale(1.06)}}
+@keyframes eggAura{0%,15%,85%,100%{opacity:.20;transform:scale(1)}50%{opacity:.95;transform:scale(1.12)}}   /* v14.9.7 */
 @media(prefers-reduced-motion:reduce){
   .pseg:not(.empty)::before,.arow .rail b::before{animation:none;right:0}}
 </style>
@@ -1797,17 +1797,17 @@ function renderEgg(){
   //  ★ 숨결 — 러너는 선명한 흰 막대가 아니라 흐린 빛이다(가장자리가 서지 않게)
   +    '<filter id="eggSoft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="1.8"/></filter>'
   //  ★ v14.9.6 — 숨결용 흐림(넓게). 영역을 넉넉히 잡아 번짐이 사각형으로 잘리지 않게 한다.
-  +    '<filter id="eggBr" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="5.5"/></filter></defs>'
+  +    '<filter id="eggBr" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="8"/></filter></defs>'   /* v14.9.7 — 5.5 → 8 */
   +  '<path d="'+eggArc(0,1)+' Z" fill="rgba(255,255,255,.022)" stroke="rgba(255,255,255,.07)" stroke-width="1"/>'
   //  ★ v14.9.6 — 숨결: 단계 색 **그대로**, 4.2s 에 한 번 차오르고 꺼진 채 머문다(0~15% · 85~100%)
   //    ① 달걀 윤곽 전체 — 아주 옅게(최대 .16)
-  +  '<path d="'+eggArc(0,1)+' Z" fill="none" stroke="'+P.c+'" stroke-width="7" opacity="0" filter="url(#eggBr)">'
-  +    '<animate attributeName="opacity" values="0;0;.16;0;0" keyTimes="0;.15;.5;.85;1" dur="4.2s" repeatCount="indefinite"/></path>'
+  +  '<path d="'+eggArc(0,1)+' Z" fill="none" stroke="'+P.c+'" stroke-width="12" opacity="0" filter="url(#eggBr)">'
+  +    '<animate attributeName="opacity" values="0;0;.38;0;0" keyTimes="0;.15;.5;.85;1" dur="4.2s" repeatCount="indefinite"/></path>'
   //    ② 현재 국면 호 — 넓게 번지며 부풀었다 줄어든다(최대 .62 · 굵기 10 → 20)
   +  '<path d="'+eggArc(r.kPh/6+0.005,(r.kPh+1)/6-0.005)+'" fill="none" stroke="'+P.c+'" stroke-linecap="round"'
-  +    ' stroke-width="10" opacity="0" filter="url(#eggBr)">'
-  +    '<animate attributeName="opacity" values="0;0;.62;0;0" keyTimes="0;.15;.5;.85;1" dur="4.2s" repeatCount="indefinite"/>'
-  +    '<animate attributeName="stroke-width" values="10;10;20;10;10" keyTimes="0;.15;.5;.85;1" dur="4.2s" repeatCount="indefinite"/></path>'
+  +    ' stroke-width="14" opacity="0" filter="url(#eggBr)">'
+  +    '<animate attributeName="opacity" values="0;0;.95;0;0" keyTimes="0;.15;.5;.85;1" dur="4.2s" repeatCount="indefinite"/>'
+  +    '<animate attributeName="stroke-width" values="14;14;34;14;14" keyTimes="0;.15;.5;.85;1" dur="4.2s" repeatCount="indefinite"/></path>'
   +  segs
   //  현재 국면 호 위를 한 점의 빛이 지난다. pathLength=100으로 정규화해
   //  구간 길이를 몰라도 대시 패턴을 비율로 지정할 수 있다.
