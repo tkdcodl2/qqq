@@ -791,29 +791,36 @@ tbody td{border-bottom-color:var(--row-line)}
    · ⚠️ 글자(퍼센트)는 물 위에 올린다(z 1).
    ════════════════════════════════════════════════════════════════ */
 .pbar::after,.arow .rail::after{display:none}
-.pseg,.arow .rail b{position:relative;
-  background-image:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.01) 48%,rgba(0,0,0,.03));
-  background-size:100% 100%;background-position:0 0}
-.pseg{animation:barWipe .95s var(--ease) both}
-.arow .rail b{animation:barWipe .9s var(--ease) var(--d3,0s) both}
+/* ★ v14.9.6 — **색 자체가 물결처럼 차오른다**(사용자: 색 위에 물결을 입히지 말고).
+   · 막대(b · .pseg)는 이제 **빈 그릇**이다 — 크기(=비중)만 갖고 색은 칠하지 않는다.
+   · 색은 ::before 가 칠한다. 그 오른쪽 끝이 **세로로 출렁이는 물결선**(사인 타일 마스크)이라
+     색면 자체가 물처럼 보인다. 물결선은 위로 천천히 흐른다(2.4s · 타일 한 칸 = 이음새 없음).
+   · 등장: 색이 왼쪽에서 비중 끝까지 **물결선을 앞세워 차오른다**(1.3s · 행마다 --d3 늦게).
+     예전의 곧은 와이프(clip-path)는 앞머리가 직선이었다.
+   · 그 뒤로는 4.2초 박자로 **살짝 밀려왔다 물러난다**(앞머리가 4px 안에서 출렁 — 값이 달라져 보이지 않는 폭).
+   · ⚠️ 두 애니메이션이 모두 `right` 를 움직인다 — 목록 **뒤쪽이 이긴다.** 출렁임은 등장이 끝난 뒤에
+     시작하므로(지연 + 채우기 없음) 등장 중에는 등장만, 그 뒤에는 출렁임만 적용된다.
+   · 색 물든 그림자는 그릇(b)에 drop-shadow 로 — 알파(물결 모양)를 그대로 따라간다.
+     box-shadow 였다면 물결 뒤에 네모난 그림자가 남는다.
+   · 목표 눈금(u)·퍼센트 글자는 색 위(z 1). 빈 알약(.pseg.empty)은 예전 그대로. */
+.pseg:not(.empty),.arow .rail b{position:relative;background:transparent!important;box-shadow:none!important;
+  animation:none!important;
+  filter:drop-shadow(0 4px 7px color-mix(in srgb, var(--c,var(--accent)) 42%, transparent))}
 .pseg>span,.arow .rail b>span{position:relative;z-index:1}
-.pseg::before,.arow .rail b::before{content:"";position:absolute;top:0;bottom:0;left:0;right:100%;
-  pointer-events:none;z-index:0;border-radius:inherit;
-  background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.07) 55%,rgba(255,255,255,.24) 100%);
+.pseg:not(.empty)::before,.arow .rail b::before{content:"";position:absolute;top:0;bottom:0;left:0;right:4px;
+  pointer-events:none;z-index:0;border-radius:8px 0 0 8px;
+  background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.01) 48%,rgba(0,0,0,.04)),var(--c,var(--accent));
   -webkit-mask:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 26' preserveAspectRatio='none'%3E%3Cpath d='M0 0 L9 0 L9.96 1 L10.86 2 L11.65 3 L12.29 4 L12.74 5 L12.97 6 L12.97 7 L12.74 8 L12.29 9 L11.65 10 L10.86 11 L9.96 12 L9 13 L8.04 14 L7.14 15 L6.35 16 L5.71 17 L5.26 18 L5.03 19 L5.03 20 L5.26 21 L5.71 22 L6.35 23 L7.14 24 L8.04 25 L9 26 L0 26Z' fill='black'/%3E%3C/svg%3E") right 0 / 14px 26px repeat-y, linear-gradient(#000,#000) left top / calc(100% - 13px) 100% no-repeat;
           mask:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 26' preserveAspectRatio='none'%3E%3Cpath d='M0 0 L9 0 L9.96 1 L10.86 2 L11.65 3 L12.29 4 L12.74 5 L12.97 6 L12.97 7 L12.74 8 L12.29 9 L11.65 10 L10.86 11 L9.96 12 L9 13 L8.04 14 L7.14 15 L6.35 16 L5.71 17 L5.26 18 L5.03 19 L5.03 20 L5.26 21 L5.71 22 L6.35 23 L7.14 24 L8.04 25 L9 26 L0 26Z' fill='black'/%3E%3C/svg%3E") right 0 / 14px 26px repeat-y, linear-gradient(#000,#000) left top / calc(100% - 13px) 100% no-repeat;
-  animation:allocFill 4.2s cubic-bezier(.45,.05,.35,1) infinite, allocSurf 1.6s linear infinite;
-  animation-delay:calc(var(--d3,0s) + 1s),0s}
-.pseg.empty::before{display:none}
-@keyframes allocFill{
-  0%  {right:100%;opacity:0}
-  8%  {opacity:1}
-  80% {right:0;opacity:1}
-  100%{right:0;opacity:0}}
-/* 물결선이 위로 흐른다 — 타일 높이(26px)만큼 옮기면 제자리로 돌아와 이음새가 없다 */
+  animation:allocRise 1.3s cubic-bezier(.22,.9,.3,1) var(--d3,0s) both,
+            allocSlosh 4.2s ease-in-out calc(var(--d3,0s) + 1.3s) infinite,
+            allocSurf 2.4s linear infinite}
+@keyframes allocRise {from{right:100%}to{right:4px}}
+@keyframes allocSlosh{0%,100%{right:4px}50%{right:0}}
 @keyframes allocSurf{
   from{-webkit-mask-position:right 0,left top;mask-position:right 0,left top}
   to  {-webkit-mask-position:right -26px,left top;mask-position:right -26px,left top}}
+
 
 /* ════════════════════════════════════════════════════════════════
    ★ 달걀 — 숨결(연하게). 국면 색 후광이 4.2s 에 한 번 차올랐다 **꺼진다**(꺼진 채 잠깐 머문다 → 대비).
@@ -821,16 +828,15 @@ tbody td{border-bottom-color:var(--row-line)}
    · 뒤의 오로라도 같은 박자로(7.5s → 4.2s), 세기는 연하게
    · ⚠️ 필터 목록은 0% 와 50% 의 **함수 개수가 같아야** 부드럽게 보간된다(다르면 뚝 끊긴다)
    ════════════════════════════════════════════════════════════════ */
-.egg-svg{animation:eggBreath 4.2s ease-in-out infinite}
-@keyframes eggBreath{
-  0%,15%,85%,100%{filter:drop-shadow(0 0 0 transparent) drop-shadow(0 0 0 transparent)}
-  50%{filter:drop-shadow(0 0 6px color-mix(in srgb, var(--pc,var(--accent)) 30%, transparent))
-             drop-shadow(0 0 16px color-mix(in srgb, var(--pc,var(--accent)) 16%, transparent))}}
-.egg-box::before{animation:eggAura 4.2s ease-in-out infinite}
-@keyframes eggAura{0%,15%,85%,100%{opacity:.20;transform:scale(1)}50%{opacity:.55;transform:scale(1.05)}}
+/* ★ v14.9.6 — 숨은 SVG 안(현재 국면 호)에서 쉰다. 여기는 뒤쪽 오로라만 같은 박자로.
+   ⚠️ 번진 빛이 SVG 가장자리에서 잘리지 않게 overflow 를 연다(카드가 최종으로 자른다). */
+.egg-svg{overflow:visible}
+.egg-box::before{
+  background:radial-gradient(58% 52% at 50% 46%, color-mix(in srgb, var(--pc,var(--accent)) 34%, transparent), transparent 72%)!important;
+  animation:eggAura 4.2s ease-in-out infinite}
+@keyframes eggAura{0%,15%,85%,100%{opacity:.18;transform:scale(1)}50%{opacity:.70;transform:scale(1.06)}}
 @media(prefers-reduced-motion:reduce){
-  .pseg::before,.arow .rail b::before{display:none}
-  .egg-svg{animation:none}}
+  .pseg:not(.empty)::before,.arow .rail b::before{animation:none;right:0}}
 </style>
 </head>
 <body>
@@ -1789,8 +1795,19 @@ function renderEgg(){
   +  '<defs><filter id="eggGl" x="-55%" y="-55%" width="210%" height="210%">'
   +    '<feGaussianBlur stdDeviation="3.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
   //  ★ 숨결 — 러너는 선명한 흰 막대가 아니라 흐린 빛이다(가장자리가 서지 않게)
-  +    '<filter id="eggSoft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="1.8"/></filter></defs>'
+  +    '<filter id="eggSoft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="1.8"/></filter>'
+  //  ★ v14.9.6 — 숨결용 흐림(넓게). 영역을 넉넉히 잡아 번짐이 사각형으로 잘리지 않게 한다.
+  +    '<filter id="eggBr" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="5.5"/></filter></defs>'
   +  '<path d="'+eggArc(0,1)+' Z" fill="rgba(255,255,255,.022)" stroke="rgba(255,255,255,.07)" stroke-width="1"/>'
+  //  ★ v14.9.6 — 숨결: 단계 색 **그대로**, 4.2s 에 한 번 차오르고 꺼진 채 머문다(0~15% · 85~100%)
+  //    ① 달걀 윤곽 전체 — 아주 옅게(최대 .16)
+  +  '<path d="'+eggArc(0,1)+' Z" fill="none" stroke="'+P.c+'" stroke-width="7" opacity="0" filter="url(#eggBr)">'
+  +    '<animate attributeName="opacity" values="0;0;.16;0;0" keyTimes="0;.15;.5;.85;1" dur="4.2s" repeatCount="indefinite"/></path>'
+  //    ② 현재 국면 호 — 넓게 번지며 부풀었다 줄어든다(최대 .62 · 굵기 10 → 20)
+  +  '<path d="'+eggArc(r.kPh/6+0.005,(r.kPh+1)/6-0.005)+'" fill="none" stroke="'+P.c+'" stroke-linecap="round"'
+  +    ' stroke-width="10" opacity="0" filter="url(#eggBr)">'
+  +    '<animate attributeName="opacity" values="0;0;.62;0;0" keyTimes="0;.15;.5;.85;1" dur="4.2s" repeatCount="indefinite"/>'
+  +    '<animate attributeName="stroke-width" values="10;10;20;10;10" keyTimes="0;.15;.5;.85;1" dur="4.2s" repeatCount="indefinite"/></path>'
   +  segs
   //  현재 국면 호 위를 한 점의 빛이 지난다. pathLength=100으로 정규화해
   //  구간 길이를 몰라도 대시 패턴을 비율로 지정할 수 있다.
