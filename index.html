@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Adaptive DCA</title>
-<meta name="theme-color" content="#171B20">
+<meta name="theme-color" content="#181B1F">
 <meta name="color-scheme" content="dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -61,22 +61,22 @@
      낮은 채도의 뮤트 팔레트. 앞선 버전(밝은 파스텔 톤)보다 채도를 더 낮추고
      명도를 중간대로 모아 어두운 면 위에서 색이 튀지 않게 한다. */
   --accent:#A9BCCF;  --accent-d:#8399AE;  --accent2:#8BA0B4;
-  --green:#86C49B;   --gold:#E5CC9C;      --violet:#B699B0;   --orange:#DAA58E;
+  --green:#86C49B;   --gold:#E0CDAA;      --violet:#B19CAC;   --orange:#CFA997;
   /* 하락은 두 값으로 나눠 쓴다:
        --red   #c9604f  넓은 조각·막대·채운 면 (§82: 달걀 과열 국면과 동일한 다홍)
        --red-t #E57D6C  숫자·글자          (같은 색조를 밝게 — 카드면 대비 5.17:1)
    ※ 다홍(#c9604f)은 카드면 위 대비가 3.64:1로 소형 글자 기준(4.5)에 못 미친다.
      그래서 면과 글자를 두 톤으로 나눈다. 색조(H 8.4°)는 같으므로 같은 색으로 읽힌다. */
-  --red:#B96A5B;     --red-t:#E0897C;     --pink:#E0897C;
+  --red:#AB7165;     --red-t:#E0897C;     --pink:#E0897C;
   /* 상승/하락 숫자 — 지정값. 자산색(--green #8eb985)과는 별개의 역할이므로 별칭이 아니라 명시값으로 둔다.
      카드면 대비 상승 7.22:1 · 하락 6.75:1 */
   --up:#86C49B;      --down:#E0897C;
   --logo-end:#5E9077;
   /* 차트 10슬롯 (지정 사양) */
-  --slot1:#86C49B; --slot2:#A9BCCF; --slot3:#E5CC9C; --slot4:#B699B0; --slot5:#B96A5B;
-  --slot6:#8BA0B4; --slot7:#9C7367; --slot8:#54866D; --slot9:#7F7798; --slot10:#758157;
+  --slot1:#86C49B; --slot2:#A9BCCF; --slot3:#E0CDAA; --slot4:#B19CAC; --slot5:#AB7165;
+  --slot6:#8BA0B4; --slot7:#94756D; --slot8:#608371; --slot9:#7E7990; --slot10:#778062;
   /* 순위 램프 (지정 사양) — 순위 표시 UI가 생기면 이 네 값을 보간해 쓴다 */
-  --rank-1:#86C49B; --rank-hi:#9FB39A; --rank-lo:#C69697; --rank-last:#D88D92;
+  --rank-1:#86C49B; --rank-hi:#A3B2A0; --rank-lo:#BD999A; --rank-last:#CA9496;
   --accent-t:var(--accent); --violet-t:var(--violet);
   --green-t:var(--green);   --gold-t:var(--gold); --orange-t:var(--orange);
   /* 채운 강조면 위 글자 = 지정 사양의 --on-primary */
@@ -131,7 +131,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .logo{font-family:var(--font-text);font-weight:700;font-size:21px;letter-spacing:-.035em;color:var(--text);display:flex;align-items:center;gap:10px}
 /* 로고 마크: 애플 인텔리전스 계열 그라디언트 스퀘어클 */
 .logo::before{content:"";width:13px;height:13px;border-radius:4.5px;
-  background:conic-gradient(from 210deg,#AEBBCA,#667584,#698E7B,#8898A8,#AEBBCA);
+  background:conic-gradient(from 210deg,#B1BBC5,#6A757F,#728C7E,#8D98A3,#B1BBC5);
   box-shadow:0 0 14px rgba(169,188,207,.42), inset 0 .5px 0 rgba(255,255,255,.5);animation:pulseDot 4s ease-in-out infinite}
 @keyframes pulseDot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.86);opacity:.78}}
 .logo span{background:linear-gradient(100deg,#8BA0B4,#A9BCCF 42%,var(--logo-end));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:var(--accent)}
@@ -301,7 +301,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
   background:conic-gradient(from 0deg,
     transparent 0 54%,
     color-mix(in srgb, var(--rc,var(--accent)) 92%, #fff) 68%,
-    #8BA0B4 76%, #B699B0 82%, #B96A5B 86%, transparent 92%);
+    #8BA0B4 76%, #B19CAC 82%, #AB7165 86%, transparent 92%);
   -webkit-mask-image:radial-gradient(closest-side, transparent 56%, #000 80%);
   mask-image:radial-gradient(closest-side, transparent 56%, #000 80%);
   filter:blur(13px);opacity:.64;animation:heroPulse 12s linear infinite}
@@ -487,7 +487,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .fg-num{font-family:var(--font-num);font-weight:700;font-size:30px;line-height:1;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
 .fg-lab{font-family:var(--font-text);font-size:12.5px;font-weight:640;letter-spacing:-.02em;margin-top:5px}
 .fg-bar{position:relative;height:9px;border-radius:var(--r-pill);margin-top:12px;
-  background:linear-gradient(90deg,#538970,#91B694 26%,#89A5BF 50%,#DBB377 74%,#B96A5B);
+  background:linear-gradient(90deg,#608674,#99B49B 26%,#91A4B7 50%,#D3B58A 74%,#AB7165);
   box-shadow:inset 0 1px 3px rgba(0,0,0,.34), inset 0 -.5px 0 rgba(255,255,255,.12)}
 .fg-tick{position:absolute;top:-4.5px;width:3px;height:18px;border-radius:2px;background:#fff;
   box-shadow:0 0 9px rgba(255,255,255,.65);transform:translateX(-50%);transition:left 1.1s var(--ease)}
@@ -607,8 +607,8 @@ tbody tr:hover{background:rgba(255,255,255,.045)}
 .mini-trade:active{transform:scale(.96)}
 .mini-trade.buy{color:var(--accent);background:rgba(169,188,207,.16);border-color:rgba(169,188,207,.36)}
 .mini-trade.buy:hover{background:rgba(169,188,207,.28)}
-.mini-trade.sell{color:var(--red-t);background:rgba(185,106,91,.15);border-color:rgba(185,106,91,.36)}
-.mini-trade.sell:hover{background:rgba(185,106,91,.28)}
+.mini-trade.sell{color:var(--red-t);background:rgba(171,113,101,.15);border-color:rgba(171,113,101,.36)}
+.mini-trade.sell:hover{background:rgba(171,113,101,.28)}
 .qt-info{background:var(--surface2);border:.5px solid var(--border);border-radius:var(--r-s);padding:14px 16px;margin:16px 0 4px;font-size:13px}
 .qt-info .r{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0}
 .qt-info .r+.r{border-top:.5px solid var(--border)}
@@ -780,6 +780,57 @@ details.sandbox .stage-edit{background:var(--ov01)}
 :root{--row-line:rgba(255,255,255,.07)}
 tbody td{border-bottom-color:var(--row-line)}
 .kg-tbl th,.kg-tbl td{border-bottom-color:var(--row-line)}
+/* ════════════════════════════════════════════════════════════════
+   ★ 비중 막대 — 유리 반사 → **물결 채움** (사용자: 계좌카드 물결처럼 오른쪽으로 점점 차오르게)
+   · 스캔(::after 흰 타원)과 광선(fillEdge 흰 띠)을 끈다 — 유리 반사는 "빛이 스친다"고 말하고,
+     물결은 "차오른다"고 말한다. 둘이 같이 있으면 서로 다른 이야기를 한다.
+   · 막대 안에 옅은 흰 물이 왼쪽에서 오른쪽으로 **차오른다**(4.2s — 테마의 숨 한 번). 물의 앞머리는
+     세로로 **출렁이는 물결선**이고(마스크 타일이 위로 흐른다), 앞머리가 가장 밝다.
+     끝까지 차면 사라지고 다시 차오른다. 행마다 --d3 만큼 늦게 출발해 위에서 아래로 번진다.
+   · ⚠️ 마스크 두 겹(물결 타일 + 몸통)은 기본 합성(합집합)이라 mask-composite 에 기대지 않는다.
+   · ⚠️ 글자(퍼센트)는 물 위에 올린다(z 1).
+   ════════════════════════════════════════════════════════════════ */
+.pbar::after,.arow .rail::after{display:none}
+.pseg,.arow .rail b{position:relative;
+  background-image:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.01) 48%,rgba(0,0,0,.03));
+  background-size:100% 100%;background-position:0 0}
+.pseg{animation:barWipe .95s var(--ease) both}
+.arow .rail b{animation:barWipe .9s var(--ease) var(--d3,0s) both}
+.pseg>span,.arow .rail b>span{position:relative;z-index:1}
+.pseg::before,.arow .rail b::before{content:"";position:absolute;top:0;bottom:0;left:0;right:100%;
+  pointer-events:none;z-index:0;border-radius:inherit;
+  background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.07) 55%,rgba(255,255,255,.24) 100%);
+  -webkit-mask:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 26' preserveAspectRatio='none'%3E%3Cpath d='M0 0 L9 0 L9.96 1 L10.86 2 L11.65 3 L12.29 4 L12.74 5 L12.97 6 L12.97 7 L12.74 8 L12.29 9 L11.65 10 L10.86 11 L9.96 12 L9 13 L8.04 14 L7.14 15 L6.35 16 L5.71 17 L5.26 18 L5.03 19 L5.03 20 L5.26 21 L5.71 22 L6.35 23 L7.14 24 L8.04 25 L9 26 L0 26Z' fill='black'/%3E%3C/svg%3E") right 0 / 14px 26px repeat-y, linear-gradient(#000,#000) left top / calc(100% - 13px) 100% no-repeat;
+          mask:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 26' preserveAspectRatio='none'%3E%3Cpath d='M0 0 L9 0 L9.96 1 L10.86 2 L11.65 3 L12.29 4 L12.74 5 L12.97 6 L12.97 7 L12.74 8 L12.29 9 L11.65 10 L10.86 11 L9.96 12 L9 13 L8.04 14 L7.14 15 L6.35 16 L5.71 17 L5.26 18 L5.03 19 L5.03 20 L5.26 21 L5.71 22 L6.35 23 L7.14 24 L8.04 25 L9 26 L0 26Z' fill='black'/%3E%3C/svg%3E") right 0 / 14px 26px repeat-y, linear-gradient(#000,#000) left top / calc(100% - 13px) 100% no-repeat;
+  animation:allocFill 4.2s cubic-bezier(.45,.05,.35,1) infinite, allocSurf 1.6s linear infinite;
+  animation-delay:calc(var(--d3,0s) + 1s),0s}
+.pseg.empty::before{display:none}
+@keyframes allocFill{
+  0%  {right:100%;opacity:0}
+  8%  {opacity:1}
+  80% {right:0;opacity:1}
+  100%{right:0;opacity:0}}
+/* 물결선이 위로 흐른다 — 타일 높이(26px)만큼 옮기면 제자리로 돌아와 이음새가 없다 */
+@keyframes allocSurf{
+  from{-webkit-mask-position:right 0,left top;mask-position:right 0,left top}
+  to  {-webkit-mask-position:right -26px,left top;mask-position:right -26px,left top}}
+
+/* ════════════════════════════════════════════════════════════════
+   ★ 달걀 — 숨결(연하게). 국면 색 후광이 4.2s 에 한 번 차올랐다 **꺼진다**(꺼진 채 잠깐 머문다 → 대비).
+   · drop-shadow 는 달걀 선의 알파를 그대로 따라간다 — 자르는 마스크가 없어 경계가 생기지 않는다
+   · 뒤의 오로라도 같은 박자로(7.5s → 4.2s), 세기는 연하게
+   · ⚠️ 필터 목록은 0% 와 50% 의 **함수 개수가 같아야** 부드럽게 보간된다(다르면 뚝 끊긴다)
+   ════════════════════════════════════════════════════════════════ */
+.egg-svg{animation:eggBreath 4.2s ease-in-out infinite}
+@keyframes eggBreath{
+  0%,15%,85%,100%{filter:drop-shadow(0 0 0 transparent) drop-shadow(0 0 0 transparent)}
+  50%{filter:drop-shadow(0 0 6px color-mix(in srgb, var(--pc,var(--accent)) 30%, transparent))
+             drop-shadow(0 0 16px color-mix(in srgb, var(--pc,var(--accent)) 16%, transparent))}}
+.egg-box::before{animation:eggAura 4.2s ease-in-out infinite}
+@keyframes eggAura{0%,15%,85%,100%{opacity:.20;transform:scale(1)}50%{opacity:.55;transform:scale(1.05)}}
+@media(prefers-reduced-motion:reduce){
+  .pseg::before,.arow .rail b::before{display:none}
+  .egg-svg{animation:none}}
 </style>
 </head>
 <body>
@@ -962,10 +1013,10 @@ tbody td{border-bottom-color:var(--row-line)}
       </div>
       <div class="field" style="margin-bottom:12px"><label>비교 지수 (동일 적립 — 중복 선택 가능)</label>
         <div style="display:flex;gap:14px;flex-wrap:wrap;padding:4px 0">
-          <label class="wcell"><input type="checkbox" id="bt_bm_QQQ" checked style="width:16px;height:16px"><span style="color:#AA93C1">QQQ</span></label>
-          <label class="wcell"><input type="checkbox" id="bt_bm_QLD" checked style="width:16px;height:16px"><span style="color:#C89173">QLD</span></label>
+          <label class="wcell"><input type="checkbox" id="bt_bm_QQQ" checked style="width:16px;height:16px"><span style="color:#A796B6">QQQ</span></label>
+          <label class="wcell"><input type="checkbox" id="bt_bm_QLD" checked style="width:16px;height:16px"><span style="color:#BD957F">QLD</span></label>
           <label class="wcell"><input type="checkbox" id="bt_bm_TQQQ" checked style="width:16px;height:16px"><span style="color:#E0897C">TQQQ</span></label>
-          <label class="wcell"><input type="checkbox" id="bt_bm_GLD" style="width:16px;height:16px"><span style="color:#DBB377">GLD</span></label>
+          <label class="wcell"><input type="checkbox" id="bt_bm_GLD" style="width:16px;height:16px"><span style="color:#D3B58A">GLD</span></label>
         </div>
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -1072,12 +1123,12 @@ tbody td{border-bottom-color:var(--row-line)}
     <div class="tbl-scroll"><table style="font-size:12.5px;min-width:520px">
       <thead><tr><th>신호</th><th>조건 (QQQ 기준)</th><th>동작</th></tr></thead>
       <tbody>
-        <tr><td class="tkr" style="color:#D59F69">과열</td><td>주간 RSI(14) ≥ <b>70</b> <b>또는</b> 성숙 천장(200일선 위 <b>360거래일(≈1.4년)</b> & 전고점 <b>98%</b> 이내)</td><td class="mono">매주 TQQQ <b>−30%p</b> → 방어자산(GLD·SGOV)</td></tr>
+        <tr><td class="tkr" style="color:#CBA27B">과열</td><td>주간 RSI(14) ≥ <b>70</b> <b>또는</b> 성숙 천장(200일선 위 <b>360거래일(≈1.4년)</b> & 전고점 <b>98%</b> 이내)</td><td class="mono">매주 TQQQ <b>−30%p</b> → 방어자산(GLD·SGOV)</td></tr>
         <tr><td class="tkr" style="color:#E0897C">광기</td><td>200일선 이격 <b>+28%</b> & 고점권(−3% 이내) <span class="muted">(RSI 동반조건 없음 — 이격 단독)</span></td><td class="mono">즉시 전량 방어자산. 해제: 고점 −3% 회복 / 추세 회복(200일선 +1% & 50일선 동반) → 매주 +10%p 점진 복귀</td></tr>
-        <tr><td class="tkr" style="color:#B095BB">급락</td><td>50일 고점 대비 <b>−16% ~ −30%</b> (코로나·관세형 급락)</td><td class="mono">낙폭에 비례해 TQQQ 상한을 매주 하향 (−30%에서 0%)</td></tr>
+        <tr><td class="tkr" style="color:#AB98B3">급락</td><td>50일 고점 대비 <b>−16% ~ −30%</b> (코로나·관세형 급락)</td><td class="mono">낙폭에 비례해 TQQQ 상한을 매주 하향 (−30%에서 0%)</td></tr>
         <tr><td class="tkr" style="color:#A9BCCF">이탈</td><td>200일선 아래 <b>16거래일(≈3주) 연속</b></td><td class="mono">전량 방어자산(GLD·SGOV)</td></tr>
         <tr><td class="tkr" style="color:#A9BCCF">복귀</td><td>위 신호가 모두 꺼짐. 이탈 후엔 ①200일선 <b>+1%</b> 재돌파(50일선 동반) <b>또는</b> ②저점 <b>+22%</b> 추력 & 50일선 위 (V반등 캡처, 차트 ▲ 표시)</td><td class="mono">추력 복귀는 매주 <b>+35%p</b> 가속, 그 외 매주 +10%p (100%까지)</td></tr>
-        <tr><td class="tkr" style="color:#B699B0">변동성 상한</td><td>최근 <b>10거래일</b> 실현변동성 기준 (하이브리드 오버레이)</td><td class="mono">TQQQ 상한 = min(목표 <b>70%</b> ÷ (3×최근변동성), 100%)를 래더 위에 덧씌움 — 출렁이면 자동 축소→방어자산</td></tr>
+        <tr><td class="tkr" style="color:#B19CAC">변동성 상한</td><td>최근 <b>10거래일</b> 실현변동성 기준 (하이브리드 오버레이)</td><td class="mono">TQQQ 상한 = min(목표 <b>70%</b> ÷ (3×최근변동성), 100%)를 래더 위에 덧씌움 — 출렁이면 자동 축소→방어자산</td></tr>
       </tbody>
     </table></div>
     <p class="note" style="margin:8px 0 0"><b>실행.</b> 매주 적립일에 대시보드의 목표 TQQQ 비중을 확인하고, 신규 적립금은 목표 비중대로 매수합니다. 목표가 지난주와 달라졌으면 보유분도 한 번 맞춥니다(방어자산은 GLD·SGOV 7:3으로). 대시보드의 "+N주 매수/매도"가 그 차이를 주수로 환산한 값입니다. 매매는 많아야 주 1회, 대부분 전체 자산의 10%만 움직입니다.</p>
@@ -1485,10 +1536,10 @@ const REG_SUB={
   6:'200일선 아래 16거래일 연속 = 추세 붕괴 확정. 전량 방어자산(GLD·SGOV)으로 통과합니다. 복귀는 ①200일선 +1% 재돌파(50일선 동반) 또는 ②이탈 후 저점 추력(얕은급락 +15%·일반 +22%) & 50일선 위(V반등 캡처 — 이후 매주 35%p 가속 복귀, 재이탈 판정은 16거래일 새로 카운트, 차트에 ▲ 표시) — 둘 중 빠른 쪽.'
 };
 const REG_COLOR={2:'green',1:'green',3:'gold',4:'red',5:'red',6:'blue'};
-const REG_LINE={2:'#B9CC9D',1:'#78A873',3:'#D59F69',4:'#B96A5B',5:'#B095BB',6:'#89A5BF'};   // 선·면(비텍스트) — §71 시안A: 적립=연두·복귀=녹색·과열=주황
+const REG_LINE={2:'#BDCAA9',1:'#83A57E',3:'#CBA27B',4:'#AB7165',5:'#AB98B3',6:'#91A4B7'};   // 선·면(비텍스트) — §71 시안A: 적립=연두·복귀=녹색·과열=주황
 // 광기(#c9604f)는 넓은 조각용 톤이라 글자로 쓰면 카드면에서 3.6:1까지 떨어진다.
 // 지정 사양의 '하락(숫자)' 톤으로 갈아끼운 맵을 따로 둔다.
-const REG_TEXT={2:'#B9CC9D',1:'#78A873',3:'#D59F69',4:'#E0897C',5:'#B095BB',6:'#89A5BF'};   // 4=광기: 조각용 #c9604f는 글자로 쓰면 3.6:1 → '밝은 다홍 글자' 역할은 --red-t #E57D6C 하나로 통일
+const REG_TEXT={2:'#BDCAA9',1:'#83A57E',3:'#CBA27B',4:'#E0897C',5:'#AB98B3',6:'#91A4B7'};   // 4=광기: 조각용 #c9604f는 글자로 쓰면 3.6:1 → '밝은 다홍 글자' 역할은 --red-t #E57D6C 하나로 통일
 
 /* ===================== 코스톨라니 달걀 (v13.1) =====================
    원전(André Kostolany)의 달걀 모형은 시장을 상승 3국면(A1 조정·A2 동행·A3 과장)
@@ -1517,22 +1568,22 @@ const REG_TEXT={2:'#B9CC9D',1:'#78A873',3:'#D59F69',4:'#E0897C',5:'#B095BB',6:'#
 
    ※ 표시 전용. 매매(w)는 computeSeries가 단독 결정하며 달걀은 개입하지 않는다. */
 const KOSTO_PH=[
-  {k:'A1',ph:'상승 · 바닥 국면',act:'매수',c:'#77A271',
+  {k:'A1',ph:'상승 · 바닥 국면',act:'매수',c:'#819F7C',
    h:'아직 아무도 관심 없을 때 — 코스톨라니가 사라고 한 두 자리 중 하나',
    d:'바닥을 지나 추세가 돌아서는 구간. 거래량도 관심도 아직 낮고, 소신파가 조용히 사 모으는 때.'},
-  {k:'A2',ph:'상승 · 동행 국면',act:'보유',c:'#B9C79B',
+  {k:'A2',ph:'상승 · 동행 국면',act:'보유',c:'#BBC6A6',
    h:'추세를 타고 가는 구간 — 기계적으로 적립만 하면 된다',
    d:'가격과 거래량이 나란히 늘며 안정적으로 오르는 구간. 새로 담기보다 들고 가는 시기.'},
-  {k:'A3',ph:'상승 · 과열 국면',act:'분할매도',c:'#B96A5B',
+  {k:'A3',ph:'상승 · 과열 국면',act:'분할매도',c:'#AB7165',
    h:'고점은 못 맞춘다 — 매주 나눠서 덜어내는 구간',
    d:'거래량과 참여자가 폭증하며 가격이 실체보다 앞서 나가는 구간. 부화뇌동파가 몰려들 때 소신파는 판다.'},
-  {k:'B1',ph:'하락 · 전환 국면',act:'적극매도',c:'#D28B66',
+  {k:'B1',ph:'하락 · 전환 국면',act:'적극매도',c:'#C59075',
    h:'천장이 확인된 자리 — 남은 물량을 정리한다',
    d:'천장을 지나 추세가 실제로 꺾인 구간. 아직 "일시 조정"이라는 말이 돌지만, 되돌림에 기대지 않고 정리할 자리.'},
-  {k:'B2',ph:'하락 · 동행 국면',act:'현금유지',c:'#95B6CD',
+  {k:'B2',ph:'하락 · 동행 국면',act:'현금유지',c:'#9EB5C5',
    h:'방어자산으로 기다린다 — 바닥 잡으려 들지 않는다',
    d:'낙폭이 본격적으로 커지는 구간. 현금·방어자산을 들고 기다린다.'},
-  {k:'B3',ph:'하락 · 과장 국면',act:'분할매수',c:'#6E8EB6',
+  {k:'B3',ph:'하락 · 과장 국면',act:'분할매수',c:'#788DAA',
    h:'가장 견디기 어려운 자리 — 나눠서 사 모으는 구간',
    d:'투매가 나오며 거래량이 다시 폭증하는 구간. 가장 견디기 어렵지만 코스톨라니가 다시 사라고 한 자리.'}
 ];
@@ -1629,10 +1680,10 @@ const FG_AX=[
   ['추세 강도','50일선이 200일선보다 얼마나 위에 있는가']
 ];
 const fgLab=v=>v<25?'극도의 공포':v<45?'공포':v<=55?'중립':v<=75?'탐욕':'극도의 탐욕';
-const fgCol =v=>v<25?'#538970':v<45?'#91B694':v<=55?'#89A5BF':v<=75?'#DBB377':'#B96A5B';   // 면·막대용
+const fgCol =v=>v<25?'#608674':v<45?'#99B49B':v<=55?'#91A4B7':v<=75?'#D3B58A':'#AB7165';   // 면·막대용
 /* 글자용은 따로 둔다(§82). 양 극단(극공포 #3F8C6B 3.58:1 · 극탐욕 #c9604f 3.64:1)은
    11px 축 숫자로 쓰면 소형 텍스트 기준 4.5:1에 못 미친다. 같은 색조를 밝게 올린 톤을 쓴다. */
-const fgColT=v=>v<25?'#75B499':v<45?'#91B694':v<=55?'#89A5BF':v<=75?'#DBB377':'#E0897C';   // 글자용
+const fgColT=v=>v<25?'#85B19D':v<45?'#99B49B':v<=55?'#91A4B7':v<=75?'#D3B58A':'#E0897C';   // 글자용
 function computeFG(out){
   const n=out.length, q=out.map(r=>+r.qqq), W=252;
   const g=out.map(r=>{const v=(r&&r.gold!=null)?+r.gold:NaN; return isNaN(v)?NaN:v;});
@@ -1705,6 +1756,10 @@ function openFG(){
   document.getElementById('fgModal').classList.add('open');
 }
 
+// ★ 달걀 글자색 — 국면 색(면·선용)을 글자로도 쓰는데, 어두운 국면(A3·B3)은 카드 위 4.5:1 미달이었다.
+//   명도만 올린 글자용 값을 따로 둔다(색상각·채도는 그대로 — 같은 색으로 읽힌다). 선·면은 원래 값.
+const EGG_TEXT={'#819F7C':'#819F7C','#BBC6A6':'#BBC6A6','#AB7165':'#B97E71','#C59075':'#C59075','#9EB5C5':'#9EB5C5','#788DAA':'#798EAB'};
+const eggT=c=>EGG_TEXT[c]||c;
 function renderEgg(){
   const el=document.getElementById('eggBody'); if(!el) return;
   const card=document.getElementById('eggCard');
@@ -1719,7 +1774,7 @@ function renderEgg(){
   }).join('');
   const labs=KOSTO_PH.map((p,i)=>{
     const q=eggOut((i+0.5)/6,15);
-    return '<text x="'+q[0].toFixed(1)+'" y="'+(q[1]+3.6).toFixed(1)+'" text-anchor="middle" font-size="10.5" font-weight="700" fill="'+p.c
+    return '<text x="'+q[0].toFixed(1)+'" y="'+(q[1]+3.6).toFixed(1)+'" text-anchor="middle" font-size="10.5" font-weight="700" fill="'+eggT(p.c)
       +'" opacity="'+(i===r.kPh?1:0.46)+'">'+p.k+'</text>';
   }).join('');
   const posN=Math.round(r.kPos*100), dirTxt=(r.kDir>0?'상승':'하락');
@@ -1732,26 +1787,28 @@ function renderEgg(){
   el.innerHTML =
    '<svg class="egg-svg" viewBox="0 0 '+EGG.W+' '+EGG.H+'" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="코스톨라니 달걀 — 현재 '+P.k+' '+P.ph+'">'
   +  '<defs><filter id="eggGl" x="-55%" y="-55%" width="210%" height="210%">'
-  +    '<feGaussianBlur stdDeviation="3.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'
+  +    '<feGaussianBlur stdDeviation="3.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
+  //  ★ 숨결 — 러너는 선명한 흰 막대가 아니라 흐린 빛이다(가장자리가 서지 않게)
+  +    '<filter id="eggSoft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="1.8"/></filter></defs>'
   +  '<path d="'+eggArc(0,1)+' Z" fill="rgba(255,255,255,.022)" stroke="rgba(255,255,255,.07)" stroke-width="1"/>'
   +  segs
   //  현재 국면 호 위를 한 점의 빛이 지난다. pathLength=100으로 정규화해
   //  구간 길이를 몰라도 대시 패턴을 비율로 지정할 수 있다.
-  +  '<path class="egg-runner" d="'+eggArc(r.kPh/6+0.005,(r.kPh+1)/6-0.005)+'" fill="none" stroke="#fff" stroke-width="3.4"'
-  +    ' stroke-linecap="round" opacity=".62" pathLength="100" stroke-dasharray="11 89">'
-  +    '<animate attributeName="stroke-dashoffset" from="11" to="-89" dur="3.1s" repeatCount="indefinite"/>'
-  +    '<animate attributeName="opacity" values="0;.62;.62;0" keyTimes="0;.12;.8;1" dur="3.1s" repeatCount="indefinite"/></path>'
+  +  '<path class="egg-runner" d="'+eggArc(r.kPh/6+0.005,(r.kPh+1)/6-0.005)+'" fill="none" stroke="#fff" stroke-width="5"'
+  +    ' stroke-linecap="round" opacity=".42" pathLength="100" stroke-dasharray="16 84" filter="url(#eggSoft)">'
+  +    '<animate attributeName="stroke-dashoffset" from="16" to="-84" dur="4.2s" repeatCount="indefinite"/>'
+  +    '<animate attributeName="opacity" values="0;0;.42;0;0" keyTimes="0;.15;.5;.85;1" dur="4.2s" repeatCount="indefinite"/></path>'
   +  labs
-  +  '<text x="'+EGG.cx+'" y="'+(EGG.cy-11)+'" text-anchor="middle" font-size="26" font-weight="700" fill="'+P.c+'" letter-spacing="-1">'+P.k+'</text>'
+  +  '<text x="'+EGG.cx+'" y="'+(EGG.cy-11)+'" text-anchor="middle" font-size="26" font-weight="700" fill="'+eggT(P.c)+'" letter-spacing="-1">'+P.k+'</text>'
   +  '<text x="'+EGG.cx+'" y="'+(EGG.cy+12)+'" text-anchor="middle" font-size="11.5" font-weight="640" fill="rgba(255,255,255,.72)">'+P.act+'</text>'
   +  '<circle cx="'+m[0].toFixed(2)+'" cy="'+m[1].toFixed(2)+'" r="6" fill="none" stroke="'+P.c+'" stroke-width="1.6" opacity=".75">'
-  +    '<animate attributeName="r" values="6;12;6" dur="2.6s" repeatCount="indefinite"/>'
-  +    '<animate attributeName="opacity" values=".75;0;.75" dur="2.6s" repeatCount="indefinite"/></circle>'
+  +    '<animate attributeName="r" values="6;12;6" dur="4.2s" repeatCount="indefinite"/>'
+  +    '<animate attributeName="opacity" values=".6;0;.6" dur="4.2s" repeatCount="indefinite"/></circle>'
   +  '<circle cx="'+m[0].toFixed(2)+'" cy="'+m[1].toFixed(2)+'" r="4.8" fill="'+P.c+'" stroke="#0F1318" stroke-width="1.6"/>'
   +'</svg>'
   // 캡션은 한 줄뿐이고 글자색은 현재 국면 색과 맞춘다(§65).
   // 래더와 어긋나는 경우는 마우스오버 툴팁으로만 알리고, 자세한 설명은 모달이 맡는다.
-  +'<div class="egg-cap"><div class="pn" style="color:'+P.c+'"'
+  +'<div class="egg-cap"><div class="pn" style="color:'+eggT(P.c)+'"'
   +(agree?'':' title="래더 지시(TQQQ '+wP+'%)와 달걀 처방이 어긋납니다 — 래더를 따르세요"')
   +'>'+P.ph+' ('+posN+')</div></div>';
 }
@@ -1861,7 +1918,7 @@ if(window.Chart && IS_MOBILE()){ Chart.defaults.animation=false; }   // 모바�
    - 격자: 기존 3~4% 흰색은 사실상 보이지 않아 차트가 빈 판처럼 읽혔다 → 7%/10%.
      M2의 divider 기준(12%)보다는 낮게 둬서 데이터가 계속 주역이도록 한다.
    - 툴팁: 24dp 표면 + 87%/60% 글자. */
-const CH={tick:'rgba(255,255,255,.60)', tickDiv:'#E5CC9C',
+const CH={tick:'rgba(255,255,255,.60)', tickDiv:'#E0CDAA',
           grid:'rgba(255,255,255,.06)', gridFaint:'rgba(255,255,255,.04)'};   // 격자 = 지정 사양
 if(window.Chart){
   Chart.defaults.color=CH.tick;
@@ -1900,8 +1957,8 @@ function runCountUp(){
 }
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
 const pct = n => (n>=0?'+':'')+ (n*100).toFixed(1)+'%';
-const ALLOC_COLORS={TQQQ:'#B96A5B',QLD:'#C89173',QQQ:'#AA93C1',SCHD:'#89A5BF',GLD:'#DBB377',SGOV:'#91B694',CASH:'#94A5B6'};   // 차트 10슬롯 + 중립 슬레이트. GLD=금 톤(#EBCB8B, §41 gold — 레짐3 선색과 공유하나 차트 종류가 달라 충돌 없음)
-const ALLOC_GRAD={TQQQ:'#B96A5B',QLD:'#C89173',QQQ:'#AA93C1',SCHD:'#89A5BF',GLD:'#DBB377',SGOV:'#91B694',CASH:'#94A5B6'};
+const ALLOC_COLORS={TQQQ:'#AB7165',QLD:'#BD957F',QQQ:'#A796B6',SCHD:'#91A4B7',GLD:'#D3B58A',SGOV:'#99B49B',CASH:'#94A5B6'};   // 차트 10슬롯 + 중립 슬레이트. GLD=금 톤(#EBCB8B, §41 gold — 레짐3 선색과 공유하나 차트 종류가 달라 충돌 없음)
+const ALLOC_GRAD={TQQQ:'#AB7165',QLD:'#BD957F',QQQ:'#A796B6',SCHD:'#91A4B7',GLD:'#D3B58A',SGOV:'#99B49B',CASH:'#94A5B6'};
 const ALLOC_DISP={TQQQ:'TQQQ',QLD:'QLD',QQQ:'QQQ',SCHD:'SCHD',GLD:'GLD',SGOV:'SGOV',CASH:'현금'};
 const SCHD_FALLBACK=32.3;                                  // 시세 미수집 시 임시 단가($)
 const schdPx=row=>(row&&row.schd!=null&&!isNaN(+row.schd))?+row.schd:SCHD_FALLBACK;
@@ -2524,7 +2581,7 @@ function buildRegimeChart(ctx,s,lite){
   const ptR = lite ? s.map(o=>o.thrust?4:(o.regime===4?2.5:0)) : (c=>{const o=s[c.dataIndex]||{};return o.thrust?5:(o.regime===4?3:0);});
   const ptStyle = lite ? s.map(o=>o.thrust?'triangle':'circle') : (c=>{const o=s[c.dataIndex]||{};return o.thrust?'triangle':'circle';});
   const ptBg = lite ? s.map(o=>o.thrust?'#86C49B':'rgba(0,0,0,0)') : (c=>{const o=s[c.dataIndex]||{};return o.thrust?'#86C49B':'rgba(0,0,0,0)';});
-  const ptBd = lite ? s.map(o=>o.thrust?'#86C49B':(o.regime===4?'#B96A5B':'rgba(0,0,0,0)')) : (c=>{const o=s[c.dataIndex]||{};return o.thrust?'#86C49B':(o.regime===4?'#B96A5B':'rgba(0,0,0,0)');});
+  const ptBd = lite ? s.map(o=>o.thrust?'#86C49B':(o.regime===4?'#AB7165':'rgba(0,0,0,0)')) : (c=>{const o=s[c.dataIndex]||{};return o.thrust?'#86C49B':(o.regime===4?'#AB7165':'rgba(0,0,0,0)');});
   return new Chart(ctx,{type:'line',data:{labels:s.map(o=>o.date),datasets:[
     {label:'QQQ',data:s.map(o=>o.qqq),borderColor:regimeGradient,borderWidth:lite?2:2.6,tension:lite?0:.15,
      fill:true,backgroundColor:lite?hexRgba(lastCol,.08):areaFill,
@@ -2536,7 +2593,7 @@ function buildRegimeChart(ctx,s,lite){
      pointHoverBackgroundColor:'#C3CFDC',pointHoverBorderColor:'#C3CFDC',pointHoverBorderWidth:2,
      pointBorderColor:ptBd,
      pointBorderWidth:2},
-    {label:'200일선',data:s.map(o=>o.sma200),borderColor:'#E5CC9C',borderWidth:1.4,tension:0,pointRadius:0,pointHoverRadius:0,pointHitRadius:0,borderDash:[5,4]},
+    {label:'200일선',data:s.map(o=>o.sma200),borderColor:'#E0CDAA',borderWidth:1.4,tension:0,pointRadius:0,pointHoverRadius:0,pointHitRadius:0,borderDash:[5,4]},
     {label:'50일선',data:s.map(o=>o.sma50),borderColor:'#8BA0B4',borderWidth:1,tension:0,pointRadius:0,pointHoverRadius:0,pointHitRadius:0}
   ]},plugins:[glowPlugin],options:{responsive:true,maintainAspectRatio:false,normalized:true,animation:lite?false:undefined,interaction:{intersect:false,mode:'index'},
     plugins:{legend:{labels:{color:CH.tick,boxWidth:12,font:{size:11}}},
@@ -2573,8 +2630,8 @@ function renderAssetChart(data){
   const gradD=g.createLinearGradient(0,0,0,300);            // 배당 막대 — 아래로 사라진다
   gradD.addColorStop(0,'rgba(169,188,207,.45)'); gradD.addColorStop(1,'rgba(169,188,207,.03)');
   const ds=[
-    {label:'평가금액',data:evalAmt,borderColor:'#93C1A2',backgroundColor:grad,borderWidth:2.2,pointRadius:0,tension:.35,fill:true,order:1,yAxisID:'y'},
-    {label:'원금',data:principal,borderColor:'#8898A8',backgroundColor:gradP,borderWidth:2.2,pointRadius:0,tension:.35,fill:true,order:2,yAxisID:'y'}
+    {label:'평가금액',data:evalAmt,borderColor:'#9EBEA8',backgroundColor:grad,borderWidth:2.2,pointRadius:0,tension:.35,fill:true,order:1,yAxisID:'y'},
+    {label:'원금',data:principal,borderColor:'#8D98A3',backgroundColor:gradP,borderWidth:2.2,pointRadius:0,tension:.35,fill:true,order:2,yAxisID:'y'}
   ];
   if(hasDiv) ds.push({type:'bar',label:'배당',data:divs,backgroundColor:gradD,borderColor:'transparent',borderWidth:0,
     borderRadius:5,borderSkipped:false,maxBarThickness:26,order:3,yAxisID:'yDiv'});
@@ -3415,7 +3472,7 @@ function resetStrategyUI(){
 function showSyncWarn(html){
   let b=document.getElementById('syncWarn');
   if(!b){ b=document.createElement('div'); b.id='syncWarn';
-    b.style.cssText='position:fixed;left:10px;right:10px;bottom:10px;z-index:99999;background:rgba(74,36,38,.88);-webkit-backdrop-filter:blur(24px) saturate(120%);backdrop-filter:blur(24px) saturate(120%);color:#fff;padding:12px 15px;border-radius:18px;font:600 12.5px/1.5 -apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"Apple SD Gothic Neo\",Pretendard,system-ui,sans-serif;letter-spacing:-.01em;box-shadow:0 18px 40px -16px rgba(0,0,0,.6),inset 0 .5px 0 rgba(255,255,255,.18);border:.5px solid rgba(185,106,91,.5)';
+    b.style.cssText='position:fixed;left:10px;right:10px;bottom:10px;z-index:99999;background:rgba(74,36,38,.88);-webkit-backdrop-filter:blur(24px) saturate(120%);backdrop-filter:blur(24px) saturate(120%);color:#fff;padding:12px 15px;border-radius:18px;font:600 12.5px/1.5 -apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"Apple SD Gothic Neo\",Pretendard,system-ui,sans-serif;letter-spacing:-.01em;box-shadow:0 18px 40px -16px rgba(0,0,0,.6),inset 0 .5px 0 rgba(255,255,255,.18);border:.5px solid rgba(171,113,101,.5)';
     document.body.appendChild(b); }
   b.innerHTML=html+' <span onclick="this.parentNode.remove()" style="float:right;cursor:pointer;opacity:.8;padding-left:10px">✕</span>';
 }
@@ -3713,9 +3770,9 @@ function drawBtAsset(){
     ? {type:'logarithmic',ticks:{color:CH.tick,font:{size:10},callback:logCb},grid:{color:CH.grid}}
     : {ticks:{color:CH.tick,font:{size:10},callback:usdTick},grid:{color:CH.grid}};
   btAssetC=new Chart(ac,{type:'line',data:{labels:days.map(x=>x.date),datasets:[
-    {label:'평가금액',data:days.map(x=>x.val),borderColor:'#93C1A2',backgroundColor:grad,borderWidth:2,pointRadius:0,pointHoverRadius:3,pointHitRadius:0,tension:0,fill:!LOG_SCALE},
+    {label:'평가금액',data:days.map(x=>x.val),borderColor:'#9EBEA8',backgroundColor:grad,borderWidth:2,pointRadius:0,pointHoverRadius:3,pointHitRadius:0,tension:0,fill:!LOG_SCALE},
     ...bmDs,
-    {label:'투자원금',data:days.map(x=>x.invested),borderColor:'#8898A8',borderWidth:1.6,pointRadius:0,pointHoverRadius:0,pointHitRadius:0,tension:0,fill:false,borderDash:[5,4]}
+    {label:'투자원금',data:days.map(x=>x.invested),borderColor:'#8D98A3',borderWidth:1.6,pointRadius:0,pointHoverRadius:0,pointHitRadius:0,tension:0,fill:false,borderDash:[5,4]}
   ]},options:{responsive:true,maintainAspectRatio:false,normalized:true,animation:false,interaction:{intersect:false,mode:'index'},
     plugins:{legend:{labels:{color:CH.tick,boxWidth:12,font:{size:11}}},
       tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmtUSD(c.parsed.y)}}},
