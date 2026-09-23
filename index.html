@@ -989,8 +989,9 @@ tbody td{border-bottom-color:var(--row-line)}
     <div style="display:flex;align-items:center;gap:12px">
       <div class="section-title" style="margin:0"><span class="dot"></span>매매 이력</div>
       <div class="hspace" style="flex:1"></div>
-      <button class="btn ghost" onclick="depositContribution()">+ 적립금 입금</button>
-      <button class="btn primary" onclick="openTrade()">+ 매매 입력</button>
+      <button class="btn ghost" onclick="depositContribution()" title="설정한 1회 적립금을 입금하고 매수 팝업을 엽니다">적립금</button>
+      <button class="btn ghost" id="divBtn" onclick="recordDividend()" title="SCHD 보유 수량 × 최신 주당 배당 − 배당소득세를 계산해 자동 입력하고 매수 팝업을 엽니다">배당금</button>
+      <button class="btn primary" onclick="openTrade()">매매입력</button>
     </div>
     <div class="card" style="margin-top:14px;padding:0;overflow-x:auto">
       <table id="tradeTable">
@@ -1980,7 +1981,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='14.9.8';
+const APP_VERSION='14.9.9';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -3053,6 +3054,82 @@ async function depositContribution(){
     calcAmount();
   }
 }
+/* ★ v14.9.9 배당금 버튼 — SCHD 배당을 **그때그때** 계산해 자동 입력한다
+   ① 최신 배당(배당락일·주당 금액·최근 1년 합)은 Edge Function market-quotes **v4** 가 야후 events=div 로 가져온다.
+      v3 이하가 배포돼 있거나 실패하면 앱 내장 표(SCHD_DIVS)의 마지막 실측값으로 계산하고 확인창에 그 사실을 적는다.
+   ② 대상 수량 = 배당락일 **전날까지** 보유한 SCHD(매매이력 기준 · 배당락일 당일 매수분은 제외).
+   ③ 금액 = 수량 × 주당 배당 × (1 − 배당소득세) — 세율은 설정 → 세금 '배당소득세'(기본 15.4%).
+   ④ 확인 후 type 'div' · ticker SCHD 로 저장(현금에 자동 반영) → 매매입력 팝업을 열고 그 금액으로 살 SCHD 수량을 채운다
+      (백테스트와 같은 '배당 재투자' 규칙 · 종목은 팝업에서 바꿀 수 있다).
+   ⑤ 실시간으로 받은 배당 중 내장 표보다 새 것은 표에 이어 붙인다 → 백테스트의 최근 SCHD 배당도 최신이 된다. */
+async function fetchDivInfo(tk){
+  if(!DEMO && sb){
+    try{
+      const {data,error}=await Promise.race([
+        sb.functions.invoke('market-quotes',{body:{divs:[tk]}}),
+        new Promise((_r,rj)=>setTimeout(()=>rj(new Error('응답 시간 초과(12초)')),12000))]);
+      if(!error && data && data.divs && data.divs[tk] && data.divs[tk].last){
+        const d=data.divs[tk]; mergeDivs(tk,d.events);
+        return {last:d.last, ttm:+d.ttm||0, nT:+d.nT||0, px:+d.px||null, src:'live', ver:data.ver};
+      }
+      if(data && data.ver!=null && data.ver<4) console.warn('market-quotes v'+data.ver+' 배포됨 — 배당 조회는 v4 재배포 필요');
+    }catch(e){ console.warn('배당 조회 실패', e); }
+  }
+  if(tk==='SCHD' && SCHD_DIVS.length){
+    const L=SCHD_DIVS[SCHD_DIVS.length-1], lastMs=Date.parse(L[0]+'T00:00:00Z'); let ttm=0,nT=0;
+    for(let i=SCHD_DIVS.length-1;i>=0;i--){ if(lastMs-Date.parse(SCHD_DIVS[i][0]+'T00:00:00Z')>330*86400000) break; ttm+=SCHD_DIVS[i][1]; nT++; }
+    return {last:{date:L[0],amount:L[1]}, ttm, nT, px:pxAt(CUR,tk), src:'embedded'};
+  }
+  return null;
+}
+function mergeDivs(tk, events){
+  if(tk!=='SCHD' || !Array.isArray(events)) return 0;
+  let k=0; for(const e of events){ const last=SCHD_DIVS.length?SCHD_DIVS[SCHD_DIVS.length-1][0]:'';
+    if(e && e.date>last && +e.amount>0){ SCHD_DIVS.push([String(e.date).slice(0,10), +e.amount]); k++; } }
+  return k;
+}
+function qtyHeldBefore(tk, exDate){
+  let q=0; [...TRADES_CACHE].filter(t=>t.ticker===tk && t.date<exDate).sort(tradeOrder)
+    .forEach(t=>{ if(t.type==='buy') q+=(+t.qty||0); else if(t.type==='sell') q-=(+t.qty||0); });
+  return Math.max(0, +q.toFixed(6));
+}
+async function recordDividend(){
+  const tk='SCHD', btn=document.getElementById('divBtn'); if(btn) btn.disabled=true;
+  try{
+    flash('SCHD 최신 배당을 확인하는 중…');
+    const info=await fetchDivInfo(tk);
+    if(!info||!info.last){ flash('SCHD 배당 정보를 구하지 못했습니다 — 매매입력의 [배당]으로 직접 입력하세요'); return; }
+    const ex=String(info.last.date).slice(0,10), dps=+info.last.amount;
+    const qty=qtyHeldBefore(tk, ex);
+    if(!(qty>0)){ flash('배당락일('+ex+') 전날까지 SCHD 보유가 없습니다 — 이번 배당 대상이 아닙니다'); return; }
+    const rate=((TAXCFG&&TAXCFG.div!=null&&isFinite(+TAXCFG.div))?+TAXCFG.div:15.4)/100;
+    const gross=qty*dps, tax=gross*rate, net=gross-tax;
+    const today=todayStr(), fx=fxAsOf(today).fx, krw=Math.round(net*fx);
+    const px=(info.px>0)?info.px:pxAt(CUR,tk), yld=(px>0&&info.ttm>0)?info.ttm/px:null;
+    const stale=(Date.parse(today+'T00:00:00Z')-Date.parse(ex+'T00:00:00Z'))>100*86400000;
+    const dup=[...TRADES_CACHE].find(t=>t.type==='div'&&t.ticker===tk&&t.date>=ex);
+    const $=v=>'$'+v.toFixed(2);
+    const L=['SCHD 배당금 자동 입력','',
+      '배당락일 '+ex+' · 주당 $'+dps.toFixed(4)+(info.src==='live'?' (야후 실시간)':' (앱 내장 표)'),
+      '대상 수량 '+qty+'주 (배당락일 전날까지 보유)',
+      '세전 '+$(gross)+' − 배당소득세 '+(rate*100).toFixed(1)+'% '+$(tax)+' = '+$(net),
+      '→ '+krw.toLocaleString('ko-KR')+'원 (환율 '+Number(fx).toLocaleString('en-US')+')'];
+    if(yld!=null) L.push('참고 배당률: 최근 1년 $'+info.ttm.toFixed(3)+'('+info.nT+'회) ÷ 현재가 $'+px.toFixed(2)+' = 연 '+(yld*100).toFixed(2)+'%');
+    if(stale) L.push('','⚠️ 마지막 배당락일이 100일 넘게 지났습니다 — '+(info.src==='live'?'새 배당이 아직 발표되지 않았을 수 있습니다':'최신 배당을 받지 못했습니다(Edge Function market-quotes v4 재배포 필요)')+'. 금액을 확인하세요.');
+    if(dup) L.push('','⚠️ 이 배당락일 이후 SCHD 배당 기록이 이미 있습니다('+dup.date+') — 중복일 수 있습니다.');
+    L.push('','입력할까요? (저장 후 매매입력 팝업이 열립니다)');
+    if(!confirm(L.join('\n'))) return;
+    await saveTrade({date:today,ticker:tk,type:'div',qty:0,price:+net.toFixed(4),fx,amount_krw:krw,realized:0,account:'기본'});
+    await renderTrades();await renderProfit();await syncAutoMonthly();await renderMonthly();
+    flash('배당금 '+krw.toLocaleString('ko-KR')+'원 입력 완료(현금 반영) — 재투자 수량 자동 계산');
+    openTrade();
+    document.getElementById('f_ticker').value=tk; onTickerChange();
+    const p=numv('f_price'), fx2=numv('f_fx');
+    if(p>0&&fx2>0){ const q=Math.floor(krw/(p*fx2)*10)/10;
+      if(q>0){ document.getElementById('f_qty').value=q; calcAmount(); }
+      else flash('배당금이 0.1주 가격보다 작아 수량은 비워 두었습니다 — 다음 적립금과 합쳐 매수하세요'); }
+  } finally { if(btn) btn.disabled=false; }
+}
 function openTrade(id){
   document.getElementById('tradeId').value=id||'';
   document.getElementById('tradeModalTitle').textContent=id?'매매 수정':'매매 입력';
@@ -3284,7 +3361,7 @@ function tradeUSD(t){
 }
 async function renderTrades(){
   const ts=await getTrades();const b=document.getElementById('tradeBody');
-  if(!ts.length){b.innerHTML='<tr><td colspan="8" class="muted t-empty" style="text-align:center;padding:30px">매매 내역이 없습니다. “+ 매매 입력”으로 추가하세요.</td></tr>';return;}
+  if(!ts.length){b.innerHTML='<tr><td colspan="8" class="muted t-empty" style="text-align:center;padding:30px">매매 내역이 없습니다. “매매입력”으로 추가하세요.</td></tr>';return;}
   b.innerHTML=ts.map(t=>{const[lab,cls]=TYPE_LABEL[t.type]||['?',''];
     const cash=(t.type==='deposit'||t.type==='withdrawal');
     const div=(t.type==='div');
