@@ -785,36 +785,41 @@ tbody td{border-bottom-color:var(--row-line)}
    · 스캔(::after 흰 타원)과 광선(fillEdge 흰 띠)을 끈다 — 유리 반사는 "빛이 스친다"고 말하고,
      물결은 "차오른다"고 말한다. 둘이 같이 있으면 서로 다른 이야기를 한다.
    · 막대 안에 옅은 흰 물이 왼쪽에서 오른쪽으로 **차오른다**(4.2s — 테마의 숨 한 번). 물의 앞머리는
-     (v15.0.1 부터: 색면 윗면의 **가로 물결**이 왼쪽 → 오른쪽으로 흐른다 — 아래 규칙.)
+     (v15.0.2 부터: 윗면의 **가로 물결**이 왼쪽 → 오른쪽으로 흐르고, 물 높이가 꽉 참 ↔ 절반으로 밀물·썰물 — 아래 규칙.)
      끝까지 차면 사라지고 다시 차오른다. 행마다 --d3 만큼 늦게 출발해 위에서 아래로 번진다.
    · ⚠️ 마스크 두 겹(물결 타일 + 몸통)은 기본 합성(합집합)이라 mask-composite 에 기대지 않는다.
    · ⚠️ 글자(퍼센트)는 물 위에 올린다(z 1).
    ════════════════════════════════════════════════════════════════ */
 .pbar::after,.arow .rail::after{display:none}
-/* ★ v15.0.1 — **가로 물결**(사용자: 세로 물결선이 어색 → 가로로, 왼쪽에서 오른쪽으로 파도치게)
-   · 색면의 **윗면**이 사인 물결선이다(마스크 타일 40×26 · 가로 반복). 타일이 오른쪽으로 한 칸씩 흘러
-     물결이 왼쪽 → 오른쪽으로 진행한다(한 칸 = 이음새 없음).
-   · 두 겹: 앞 물결(::before · 색 100% · 2.8s)과 뒤 물결(::after · 같은 색 45% · 반 칸 어긋남 · 4.6s).
-     속도가 달라 마루가 겹쳤다 갈라지며 파도처럼 보이고, 앞 물결이 뒤 물결의 몸통을 덮어 윗면에만 옅은 띠가 남는다.
-   · 오른쪽 끝은 곧다(둥근 모서리는 그릇의 border-radius + overflow 가 자른다) — 끝이 곧 비중이다.
-   · 등장: 두 겹 모두 왼쪽에서 끝까지 차오른다(clip-path 1.3s · 행마다 --d3 늦게). clip-path 는 가상요소에 건다 —
-     부모의 drop-shadow 가 드러난 부분만 따라가게.
-   · 막대(b · .pseg)는 빈 그릇 — 크기(=비중)만 갖고 색은 가상요소가 칠한다. 글자(퍼센트)는 물 위(z 1). */
+/* ★ v15.0.2 — **밀물·썰물 + 큰 파도**(사용자: 파도가 왼→오로 흐르면서 막대가 꽉 찼다가 빠졌다가 반복 · 파도를 더 크게)
+   · 물(색면)은 막대보다 두 배 높은 판(::before/::after · height 200%)이고 윗면이 물결이다.
+     마스크 두 겹 = 물결 타일(64×11px · 가로 반복) + 그 아래 몸통(단색 · 1px 겹침) — 기본 합성(합집합).
+   · 파도: 타일이 오른쪽으로 한 칸(64px)씩 흘러 왼쪽 → 오른쪽으로 진행(이음새 없음). 진폭 ±3.5px(예전 ±2) · 파장 64px(예전 40).
+     두 겹 — 앞(색 100% · 3.0s) · 뒤(같은 색 45% · 반대 위상 · 5.0s).
+   · 밀물·썰물(allocTide 8.4s): 판을 위아래로 옮긴다. 꽉 참 = 물결 띠를 막대 위로 완전히 올림(−11px, 0~12% 머묾)
+     → 빠짐 = 막대 높이의 절반에 물결 가운데(25% − 4.5px, 56%) → 다시 꽉 참. 막대 **길이(= 비중)는 그대로**, 높이만 출렁인다.
+     행마다 --d3 만큼 늦게 출렁여 위에서 아래로 번진다.
+   · 등장: 왼쪽에서 끝까지 차오르는 와이프(1.3s) 동안은 꽉 찬 상태(fill both) → 이어서 밀물·썰물.
+   · 막대 안 글자(퍼센트)는 물이 빠져도 읽히게 막대 색 후광을 두른다 — 꽉 차면 배경과 같은 색이라 보이지 않는다. */
 .pseg:not(.empty),.arow .rail b{position:relative;background:transparent!important;box-shadow:none!important;
   animation:none!important;
   filter:drop-shadow(0 4px 7px color-mix(in srgb, var(--c,var(--accent)) 42%, transparent))}
-.pseg>span,.arow .rail b>span{position:relative;z-index:1}
-.arow .rail b::before,.arow .rail b::after,.pfill::before,.pfill::after{content:"";position:absolute;inset:0;pointer-events:none;
-  -webkit-mask:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 26' preserveAspectRatio='none'%3E%3Cpath d='M0 3.40 L1 3.71 L2 4.02 L3 4.31 L4 4.58 L5 4.81 L6 5.02 L7 5.18 L8 5.30 L9 5.38 L10 5.40 L11 5.38 L12 5.30 L13 5.18 L14 5.02 L15 4.81 L16 4.58 L17 4.31 L18 4.02 L19 3.71 L20 3.40 L21 3.09 L22 2.78 L23 2.49 L24 2.22 L25 1.99 L26 1.78 L27 1.62 L28 1.50 L29 1.42 L30 1.40 L31 1.42 L32 1.50 L33 1.62 L34 1.78 L35 1.99 L36 2.22 L37 2.49 L38 2.78 L39 3.09 L40 3.40 L40 26 L0 26 Z'/%3E%3C/svg%3E") 0 0/40px 100% repeat-x;
-          mask:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 26' preserveAspectRatio='none'%3E%3Cpath d='M0 3.40 L1 3.71 L2 4.02 L3 4.31 L4 4.58 L5 4.81 L6 5.02 L7 5.18 L8 5.30 L9 5.38 L10 5.40 L11 5.38 L12 5.30 L13 5.18 L14 5.02 L15 4.81 L16 4.58 L17 4.31 L18 4.02 L19 3.71 L20 3.40 L21 3.09 L22 2.78 L23 2.49 L24 2.22 L25 1.99 L26 1.78 L27 1.62 L28 1.50 L29 1.42 L30 1.40 L31 1.42 L32 1.50 L33 1.62 L34 1.78 L35 1.99 L36 2.22 L37 2.49 L38 2.78 L39 3.09 L40 3.40 L40 26 L0 26 Z'/%3E%3C/svg%3E") 0 0/40px 100% repeat-x;
-  animation:barWipe 1.3s cubic-bezier(.22,.9,.3,1) var(--d3,0s) both, allocWave 2.8s linear infinite}
-.arow .rail b::before{z-index:0;background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.01) 48%,rgba(0,0,0,.04)),var(--c,var(--accent))}
+.pseg>span,.arow .rail b>span{position:relative;z-index:1;
+  text-shadow:0 0 2px color-mix(in srgb, var(--c,var(--accent)) 92%, transparent),0 0 7px color-mix(in srgb, var(--c,var(--accent)) 75%, transparent)}
+.arow .rail b::before,.arow .rail b::after,.pfill::before,.pfill::after{content:"";position:absolute;left:0;right:0;top:0;height:200%;pointer-events:none;
+  -webkit-mask:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 11' preserveAspectRatio='none'%3E%3Cpath d='M0 4.50 L2 5.18 L4 5.84 L6 6.44 L8 6.97 L10 7.41 L12 7.73 L14 7.93 L16 8.00 L18 7.93 L20 7.73 L22 7.41 L24 6.97 L26 6.44 L28 5.84 L30 5.18 L32 4.50 L34 3.82 L36 3.16 L38 2.56 L40 2.03 L42 1.59 L44 1.27 L46 1.07 L48 1.00 L50 1.07 L52 1.27 L54 1.59 L56 2.03 L58 2.56 L60 3.16 L62 3.82 L64 4.50 L64 11 L0 11 Z'/%3E%3C/svg%3E") 0 0/64px 11px repeat-x,linear-gradient(#000,#000) 0 10px/100% calc(100% - 10px) no-repeat;
+          mask:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 11' preserveAspectRatio='none'%3E%3Cpath d='M0 4.50 L2 5.18 L4 5.84 L6 6.44 L8 6.97 L10 7.41 L12 7.73 L14 7.93 L16 8.00 L18 7.93 L20 7.73 L22 7.41 L24 6.97 L26 6.44 L28 5.84 L30 5.18 L32 4.50 L34 3.82 L36 3.16 L38 2.56 L40 2.03 L42 1.59 L44 1.27 L46 1.07 L48 1.00 L50 1.07 L52 1.27 L54 1.59 L56 2.03 L58 2.56 L60 3.16 L62 3.82 L64 4.50 L64 11 L0 11 Z'/%3E%3C/svg%3E") 0 0/64px 11px repeat-x,linear-gradient(#000,#000) 0 10px/100% calc(100% - 10px) no-repeat;
+  animation:barWipe 1.3s cubic-bezier(.22,.9,.3,1) var(--d3,0s) both, allocWave 3s linear infinite,
+            allocTide 8.4s ease-in-out calc(var(--d3,0s) + 1.3s) infinite both}
+.arow .rail b::before{z-index:0;background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.01) 24%,rgba(0,0,0,.04) 50%),var(--c,var(--accent))}
 .arow .rail b::after,.pfill::after{z-index:-1;opacity:.45;
-  -webkit-mask-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 26' preserveAspectRatio='none'%3E%3Cpath d='M0 2.60 L1 2.22 L2 1.86 L3 1.51 L4 1.19 L5 0.90 L6 0.66 L7 0.46 L8 0.32 L9 0.23 L10 0.20 L11 0.23 L12 0.32 L13 0.46 L14 0.66 L15 0.90 L16 1.19 L17 1.51 L18 1.86 L19 2.22 L20 2.60 L21 2.98 L22 3.34 L23 3.69 L24 4.01 L25 4.30 L26 4.54 L27 4.74 L28 4.88 L29 4.97 L30 5 L31 4.97 L32 4.88 L33 4.74 L34 4.54 L35 4.30 L36 4.01 L37 3.69 L38 3.34 L39 2.98 L40 2.60 L40 26 L0 26 Z'/%3E%3C/svg%3E");
-          mask-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 26' preserveAspectRatio='none'%3E%3Cpath d='M0 2.60 L1 2.22 L2 1.86 L3 1.51 L4 1.19 L5 0.90 L6 0.66 L7 0.46 L8 0.32 L9 0.23 L10 0.20 L11 0.23 L12 0.32 L13 0.46 L14 0.66 L15 0.90 L16 1.19 L17 1.51 L18 1.86 L19 2.22 L20 2.60 L21 2.98 L22 3.34 L23 3.69 L24 4.01 L25 4.30 L26 4.54 L27 4.74 L28 4.88 L29 4.97 L30 5 L31 4.97 L32 4.88 L33 4.74 L34 4.54 L35 4.30 L36 4.01 L37 3.69 L38 3.34 L39 2.98 L40 2.60 L40 26 L0 26 Z'/%3E%3C/svg%3E");
-  animation:barWipe 1.3s cubic-bezier(.22,.9,.3,1) var(--d3,0s) both, allocWave 4.6s linear infinite}
+  -webkit-mask-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 11' preserveAspectRatio='none'%3E%3Cpath d='M0 4.50 L2 3.72 L4 2.97 L6 2.28 L8 1.67 L10 1.17 L12 0.80 L14 0.58 L16 0.50 L18 0.58 L20 0.80 L22 1.17 L24 1.67 L26 2.28 L28 2.97 L30 3.72 L32 4.50 L34 5.28 L36 6.03 L38 6.72 L40 7.33 L42 7.83 L44 8.20 L46 8.42 L48 8.50 L50 8.42 L52 8.20 L54 7.83 L56 7.33 L58 6.72 L60 6.03 L62 5.28 L64 4.50 L64 11 L0 11 Z'/%3E%3C/svg%3E"),linear-gradient(#000,#000);
+          mask-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 11' preserveAspectRatio='none'%3E%3Cpath d='M0 4.50 L2 3.72 L4 2.97 L6 2.28 L8 1.67 L10 1.17 L12 0.80 L14 0.58 L16 0.50 L18 0.58 L20 0.80 L22 1.17 L24 1.67 L26 2.28 L28 2.97 L30 3.72 L32 4.50 L34 5.28 L36 6.03 L38 6.72 L40 7.33 L42 7.83 L44 8.20 L46 8.42 L48 8.50 L50 8.42 L52 8.20 L54 7.83 L56 7.33 L58 6.72 L60 6.03 L62 5.28 L64 4.50 L64 11 L0 11 Z'/%3E%3C/svg%3E"),linear-gradient(#000,#000);
+  animation:barWipe 1.3s cubic-bezier(.22,.9,.3,1) var(--d3,0s) both, allocWave 5s linear infinite,
+            allocTide 8.4s ease-in-out calc(var(--d3,0s) + 1.3s) infinite both}
 .arow .rail b::after{background:var(--c,var(--accent))}
-@keyframes allocWave{from{-webkit-mask-position:0 0;mask-position:0 0}to{-webkit-mask-position:40px 0;mask-position:40px 0}}
+@keyframes allocWave{from{-webkit-mask-position:0 0,0 10px;mask-position:0 0,0 10px}to{-webkit-mask-position:64px 0,0 10px;mask-position:64px 0,0 10px}}
+@keyframes allocTide{0%,12%,100%{transform:translateY(-11px)}56%{transform:translateY(calc(25% - 4.5px))}}
 /* ★ v15.0.1 — 현재 비중 알약은 **한 줄**(사용자: 여러 색이 한 막대 안에 — 중간에 끊기지 않게 자연스럽게)
    · 조각 사이 틈(gap)·조각별 그림자를 없애고, 색은 알약 전체에 깔린 .pfill 하나가 칠한다.
    · .pfill 의 가로 그라디언트(--g · pillFill 이 만든다)는 경계마다 ±min(4%, 좁은 쪽 조각의 35%)에 걸쳐
@@ -824,7 +829,7 @@ tbody td{border-bottom-color:var(--row-line)}
 .pbar .pseg:not(.empty){filter:none;border-radius:0}
 .pfill{position:absolute;inset:0;z-index:0;border-radius:9px;overflow:hidden;pointer-events:none;
   filter:drop-shadow(0 4px 7px rgba(0,0,0,.22))}
-.pfill::before{z-index:0;background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.01) 48%,rgba(0,0,0,.04)),var(--g)}
+.pfill::before{z-index:0;background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.01) 24%,rgba(0,0,0,.04) 50%),var(--g)}
 .pfill::after{background:var(--g)}
 
 
@@ -842,7 +847,7 @@ tbody td{border-bottom-color:var(--row-line)}
   animation:eggAura 4.2s ease-in-out infinite}
 @keyframes eggAura{0%,15%,85%,100%{opacity:.20;transform:scale(1)}50%{opacity:.95;transform:scale(1.12)}}   /* v14.9.7 */
 @media(prefers-reduced-motion:reduce){
-  .arow .rail b::before,.arow .rail b::after,.pfill::before,.pfill::after{animation:none}}
+  .arow .rail b::before,.arow .rail b::after,.pfill::before,.pfill::after{animation:none;transform:translateY(-11px)}}
 </style>
 </head>
 <body>
@@ -1980,7 +1985,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='15.0.1';
+const APP_VERSION='15.0.2';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
