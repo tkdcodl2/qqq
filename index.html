@@ -1015,6 +1015,7 @@ tbody td{border-bottom-color:var(--row-line)}
       <button class="btn ghost" id="divBtn" onclick="recordDividend()" title="SCHD 보유 수량 × 최신 주당 배당 − 배당소득세를 계산해 자동 입력하고, 목표 대비 가장 부족한 종목의 매수 팝업을 엽니다">배당금</button>
       <button class="btn primary" onclick="openTrade()">매매입력</button>
     </div>
+    <p class="note" id="pfShareNote" style="margin:10px 0 0;display:none"></p>
     <div class="card" style="margin-top:14px;padding:0;overflow-x:auto">
       <table id="tradeTable">
         <thead><tr><th>날짜</th><th>종목</th><th>구분</th><th>수량</th><th>단가</th><th>금액 (원 / $)</th><th>실현손익</th><th></th></tr></thead>
@@ -1361,6 +1362,131 @@ if (CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY && window.supabase) {
   sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
   DEMO = false;
 }
+/* ===================== v15.0.6 — 매매이력 공유(포트폴리오 DB) =====================
+   매매이력만 포트폴리오 앱의 Supabase(trades 표)에서 읽고 쓴다. 시세·설정·월별은 위의 이 앱 DB 그대로.
+   · 계좌: 포트폴리오 → 계좌 관리 → 'DCA' 버튼으로 지정 → ticker_prices '__dcaAccount__' = {"id","name"}.
+           id 로 찾으므로 포트폴리오에서 계좌 이름을 바꿔도 따라간다.
+   · 표 구조는 두 DB 모두 그대로 — 읽을 때 pfToDca · 쓸 때 dcaToPf 로 바꾼다.
+   · 지정이 없거나 연결 실패면 예전처럼 이 앱 DB 의 trades(PF_MODE=false) — 화면 아래 안내 줄에 이유.
+   · config.js 로 바꿀 수 있다: PORTFOLIO_SUPABASE_URL · PORTFOLIO_SUPABASE_ANON_KEY · PORTFOLIO_SHARE(false = 끄기).
+     기본값은 포트폴리오 앱이 이미 공개해 쓰는 publishable 키(브라우저용 공개 키). */
+const PF = {
+  url: CFG.PORTFOLIO_SUPABASE_URL || 'https://ccvkbifztddnvodkyvzp.supabase.co',
+  key: CFG.PORTFOLIO_SUPABASE_ANON_KEY || 'sb_publishable_jEUgyXlUiSCyPqbtXila3Q_p8Rigrnu',
+  on:  CFG.PORTFOLIO_SHARE !== false,
+};
+let pf = null, PF_MODE = false, PF_ACC_ID = null, PF_ACC = '', PF_WHY = '', PF_SKIP = 0, PF_MIG = null;
+const PF_T = {buy:'매수', sell:'매도', div:'배당', deposit:'입금', withdrawal:'출금'};
+const PF_R = {'매수':'buy', '매도':'sell', '배당':'div', '입금':'deposit', '출금':'withdrawal'};
+const PF_TKR = ['QQQ','QLD','TQQQ','SCHD','GLD','SGOV','CASH'];   // 이 앱이 계산하는 종목 — 그 밖의 종목 기록은 DCA 계산에서 뺀다
+const pfEsc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function pfToDca(r){
+  const type = PF_R[r.trade_type]; if(!type) return null;
+  const d = String(r.trade_date || '');
+  const date = /^\d{8}$/.test(d) ? d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8) : d.slice(0,10);
+  const cash = (type==='deposit' || type==='withdrawal');
+  /* 포트폴리오의 배당은 원화 금액만(단가 0 · 환율 1) → tradeUSD()가 fxOk 실패로 FXNOW 로 환산한다(기존 규칙) */
+  return {id:r.id, date, ticker: cash ? 'CASH' : String(r.ticker||'').toUpperCase(), type,
+          qty:+r.qty||0, price:+r.price||0, fx:+r.fx||1, amount_krw:+r.amount||0, realized:+r.realized||0, account:PF_ACC};
+}
+function dcaToPf(t){
+  const cash = (t.type==='deposit' || t.type==='withdrawal');
+  return {trade_date:String(t.date||'').replace(/-/g,'').slice(0,8), account_id:PF_ACC_ID,
+          ticker: cash ? PF_T[t.type] : String(t.ticker||'').toUpperCase(), trade_type:PF_T[t.type],
+          qty:+t.qty||0, price:+t.price||0, fx:+t.fx||1, amount:Math.round(+t.amount_krw||0), realized:Math.round(+t.realized||0)};
+}
+function pfNote(){
+  const el = document.getElementById('pfShareNote'); if(!el) return;
+  const W = PF_WHY;
+  el.innerHTML = PF_MODE
+    ? '🔗 <b>포트폴리오 DB 공유 중</b> · 계좌 <b>'+pfEsc(PF_ACC)+'</b> — 여기서 입력·수정·삭제한 매매가 포트폴리오 화면에도, 포트폴리오에서 한 것이 여기에도 반영됩니다.'
+      + (PF_SKIP ? ' <span class="muted">(이 계좌의 다른 종목 기록 '+PF_SKIP+'건은 DCA 계산에서 뺐습니다)</span>' : '')
+    : W==='off' || !W ? ''
+    : W==='nodca' ? '⚠ 포트폴리오에서 <b>DCA 전용 계좌</b>가 지정되지 않아 이 앱의 기존 DB 매매이력을 씁니다 — 포트폴리오 → 계좌 관리 → <b>DCA</b> 버튼으로 지정하세요.'
+    : W==='noacc' ? '⚠ 지정된 DCA 계좌를 포트폴리오 DB 에서 찾지 못했습니다(삭제됨?) — 포트폴리오에서 다시 지정하세요. 지금은 이 앱의 기존 DB.'
+    : W==='nolib' ? '⚠ Supabase 라이브러리를 불러오지 못해 포트폴리오 DB 에 연결하지 못했습니다 — 이 앱의 기존 DB.'
+    : '⚠ 포트폴리오 DB 연결 실패('+pfEsc(W.replace(/^err:/,''))+') — 이 앱의 기존 DB 매매이력을 씁니다.';
+  el.style.display = el.innerHTML ? '' : 'none';
+}
+async function pfInit(){
+  if(!PF.on){ PF_WHY='off'; pfNote(); return false; }
+  if(!window.supabase){ PF_WHY='nolib'; pfNote(); return false; }
+  try{
+    // 같은 페이지에 Supabase 클라이언트가 둘 — 인증 저장소 키를 나눠 서로 덮지 않게
+    pf = pf || window.supabase.createClient(PF.url, PF.key, {auth:{persistSession:false, autoRefreshToken:false, storageKey:'adca-pf'}});
+    const {data, error} = await pf.from('ticker_prices').select('displayname').eq('ticker','__dcaAccount__').maybeSingle();
+    if(error) throw error;
+    const raw = data && typeof data.displayname==='string' ? data.displayname.trim() : '';
+    if(!raw){ PF_WHY='nodca'; pfNote(); return false; }
+    const o = raw[0]==='{' ? JSON.parse(raw) : {name:raw};
+    let q = pf.from('accounts').select('id,name');
+    q = (o.id != null) ? q.eq('id', o.id) : q.eq('name', String(o.name||''));
+    const {data:acc, error:e2} = await q.maybeSingle();
+    if(e2) throw e2;
+    if(!acc){ PF_WHY='noacc'; pfNote(); return false; }
+    PF_ACC_ID = acc.id; PF_ACC = acc.name; PF_MODE = true; PF_WHY = ''; pfNote(); pfRealtime();
+    return true;
+  }catch(e){ PF_WHY = 'err:'+((e && e.message) || e); console.warn('[pf] 포트폴리오 DB 연결 실패', e); pfNote(); return false; }
+}
+/* 포트폴리오 화면에서 바꾸면 여기도 바로 — trades 표 변경을 듣고 0.8초 모아 다시 그린다(내가 저장한 것도 한 번 더 그려질 뿐 무해) */
+let _pfRt = null, _pfRtT = 0;
+function pfRealtime(){
+  if(_pfRt || !pf || !pf.channel) return;
+  try{
+    _pfRt = pf.channel('adca-trades').on('postgres_changes', {event:'*', schema:'public', table:'trades'}, () => {
+      clearTimeout(_pfRtT);
+      _pfRtT = setTimeout(async () => { try{ await renderTrades(); await renderProfit(); await syncAutoMonthly(); await renderMonthly(); }catch(e){ console.warn(e); } }, 800);
+    }).subscribe();
+  }catch(e){ console.warn('[pf] 실시간 구독 실패', e); }
+}
+/* 이 앱 DB 에만 있던 기존 매매이력 → 포트폴리오 DB 로 한 번 옮기기(날짜·구분·종목·수량·단가·금액이 같은 기록은 건너뛴다 · 원본은 지우지 않는다) */
+const PF_MIG_KEY = 'adca_pf_mig_v1';
+function pfKey(t){
+  const cash = (t.type==='deposit' || t.type==='withdrawal');
+  return [String(t.date||'').slice(0,10), t.type, cash ? 'CASH' : String(t.ticker||'').toUpperCase(),
+          (+t.qty||0).toFixed(4), (+t.price||0).toFixed(4), Math.round(+t.amount_krw||0)].join('|');
+}
+async function pfLegacyTrades(){
+  let rows = [];
+  for(let p=0; p<20; p++){
+    const {data, error} = await sb.from('trades').select('*').order('date').range(p*1000, p*1000+999);
+    if(error){ console.warn('[pf] 기존 DB trades 조회 실패', error); break; }
+    rows = rows.concat(data || []);
+    if(!data || data.length < 1000) break;
+  }
+  return rows;
+}
+async function pfMigrateCheck(){
+  if(!PF_MODE || DEMO || !sb) return;
+  try{ if(localStorage.getItem(PF_MIG_KEY)==='done') return; }catch(e){}
+  const legacy = (await pfLegacyTrades()).filter(t => PF_T[t.type]);
+  const have = new Set((await getTrades()).map(pfKey));
+  const miss = legacy.filter(t => !have.has(pfKey(t)));
+  if(!miss.length){ try{ localStorage.setItem(PF_MIG_KEY,'done'); }catch(e){} return; }
+  PF_MIG = miss;
+  const bs = 'margin-left:8px;border:0;border-radius:10px;padding:5px 12px;font:700 12px inherit;cursor:pointer';
+  showSyncWarn('🔗 이 앱의 기존 DB 에만 있는 <b>매매이력 '+miss.length+'건</b>을 포트폴리오 DB(계좌 <b>'+pfEsc(PF_ACC)+'</b>)로 옮길까요? '
+    + '기존 DB 의 기록은 지우지 않습니다.'
+    + '<button onclick="pfMigrate()" style="'+bs+';background:#fff;color:#222">옮기기</button>'
+    + '<button onclick="pfMigSkip()" style="'+bs+';background:rgba(255,255,255,.16);color:#fff">나중에</button>');
+}
+async function pfMigrate(){
+  const miss = PF_MIG || []; if(!miss.length || !PF_MODE) return;
+  let ok = 0;
+  for(let i=0; i<miss.length; i+=200){
+    const chunk = miss.slice(i, i+200).map(dcaToPf);
+    const {error} = await pf.from('trades').insert(chunk);
+    if(error){ flash('옮기기 실패: '+error.message); break; }
+    ok += chunk.length;
+  }
+  if(ok === miss.length){ try{ localStorage.setItem(PF_MIG_KEY,'done'); }catch(e){} }
+  const w = document.getElementById('syncWarn'); if(w) w.remove();
+  PF_MIG = null;
+  flash('기존 매매이력 '+ok+'건을 포트폴리오 DB 로 옮겼습니다');
+  await renderTrades(); await renderProfit(); await syncAutoMonthly(); await renderMonthly();
+}
+function pfMigSkip(){ const w = document.getElementById('syncWarn'); if(w) w.remove(); }   // 다음에 열 때 다시 묻는다
+
 // 데모 모드 인메모리 저장소
 let memTrades = [
   {id:1,date:'2025-12-01',ticker:'CASH',type:'deposit',qty:0,price:0,fx:1,amount_krw:5000000,realized:0,account:'기본'},
@@ -1409,6 +1535,20 @@ async function getMarketData(){
   return sanitizeRows(rows.reverse());
 }
 async function getTrades(){
+  if(PF_MODE){   // v15.0.6 — 포트폴리오 DB · DCA 계좌만 · 최신순
+    let rows = [];
+    for(let p=0; p<20; p++){
+      const {data, error} = await pf.from('trades').select('*').eq('account_id', PF_ACC_ID)
+        .order('trade_date', {ascending:false}).order('id', {ascending:false}).range(p*1000, p*1000+999);
+      if(error){ console.warn('[pf] trades 조회 실패', error); flash('매매이력 조회 실패: '+error.message); break; }
+      rows = rows.concat(data || []);
+      if(!data || data.length < 1000) break;
+    }
+    const out = []; let skip = 0;
+    rows.forEach(r => { const t = pfToDca(r); if(!t) return; if(PF_TKR.indexOf(t.ticker) < 0){ skip++; return; } out.push(t); });
+    if(skip !== PF_SKIP){ PF_SKIP = skip; pfNote(); }
+    return out.sort((a,b) => b.date.localeCompare(a.date) || ((+b.id||0) - (+a.id||0)));   // 최신순(같은 날은 나중 입력이 위)
+  }
   if(DEMO) return [...memTrades].sort((a,b)=>b.date.localeCompare(a.date));
   const {data}=await sb.from('trades').select('*').order('date',{ascending:false});
   return data||[];
@@ -1422,11 +1562,19 @@ function tradeSaveErr(prefix,error){                    // v12.0: SGOV 등 신�
   } else flash(prefix+' 실패: '+m);
 }
 async function saveTrade(t){
+  if(PF_MODE){   // v15.0.6 — 포트폴리오 DB 에 쓴다(계좌 = DCA 계좌 고정)
+    const row = dcaToPf(t);
+    if(!row.trade_type){ flash('저장 실패: 알 수 없는 구분 '+t.type); return; }
+    if(t.id){ const {error} = await pf.from('trades').update(row).eq('id', t.id).eq('account_id', PF_ACC_ID); if(error){ console.error(error); flash('수정 실패: '+error.message); } }
+    else { const {error} = await pf.from('trades').insert(row); if(error){ console.error(error); flash('저장 실패: '+error.message); } }
+    return;
+  }
   if(DEMO){ if(t.id){memTrades=memTrades.map(x=>x.id===t.id?{...x,...t}:x);} else {t.id=Date.now();memTrades.push(t);} return; }
   if(t.id){ const {id,created_at,...rest}=t; const {error}=await sb.from('trades').update(rest).eq('id',id); if(error) tradeSaveErr('수정',error); }
   else { const {id,...rest}=t; const {error}=await sb.from('trades').insert(rest); if(error) tradeSaveErr('저장',error); }
 }
 async function removeTrade(id){
+  if(PF_MODE){ const {error} = await pf.from('trades').delete().eq('id', id).eq('account_id', PF_ACC_ID); if(error){ console.error(error); flash('삭제 실패: '+error.message); } return; }   // v15.0.6
   if(DEMO){memTrades=memTrades.filter(x=>x.id!==id);return;}
   await sb.from('trades').delete().eq('id',id);
 }
@@ -1996,7 +2144,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='15.0.5';
+const APP_VERSION='15.0.6';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -2077,6 +2225,7 @@ const schdDivOn=(d,dPrev,px)=>{ // (dPrev, d] 사이 배당락이 있으면 주�
 /* ===================== 초기화 ===================== */
 async function init(){
   document.getElementById('appVer').textContent='v'+APP_VERSION;
+  const pfP = pfInit();                   // v15.0.6 — 포트폴리오 DB(매매이력 공유) 연결 — 시세를 받는 동안 같이
   mktLoadCache();                         // 캐시를 먼저 얹어 두면 renderDashboard가 빈 칸 대신 값을 그린다
   RAW_MD = attachCash(synthesizeMissing(await getMarketData()));
   SETTINGS = await getSettings();
@@ -2094,11 +2243,13 @@ async function init(){
   onCadenceChange();
   initBtDefaults();
   renderBtSandbox(STRAT);
+  await pfP;                              // v15.0.6 — 매매이력은 어느 DB 에서 읽을지 정해진 뒤에
   await renderTrades();
   await renderProfit();
   await syncAutoMonthly();
   await renderMonthly();
   runCountUp();
+  pfMigrateCheck();                       // v15.0.6 — 이 앱 DB 에만 있는 기존 기록 옮기기 제안(기다리지 않는다)
   initMkt();                              // 시장 지표는 마지막에 — 조회가 느려도 대시보드를 막지 않는다
 }
 
