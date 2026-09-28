@@ -785,41 +785,47 @@ tbody td{border-bottom-color:var(--row-line)}
    · 스캔(::after 흰 타원)과 광선(fillEdge 흰 띠)을 끈다 — 유리 반사는 "빛이 스친다"고 말하고,
      물결은 "차오른다"고 말한다. 둘이 같이 있으면 서로 다른 이야기를 한다.
    · 막대 안에 옅은 흰 물이 왼쪽에서 오른쪽으로 **차오른다**(4.2s — 테마의 숨 한 번). 물의 앞머리는
-     세로로 **출렁이는 물결선**이고(마스크 타일이 위로 흐른다), 앞머리가 가장 밝다.
+     (v15.0.1 부터: 색면 윗면의 **가로 물결**이 왼쪽 → 오른쪽으로 흐른다 — 아래 규칙.)
      끝까지 차면 사라지고 다시 차오른다. 행마다 --d3 만큼 늦게 출발해 위에서 아래로 번진다.
    · ⚠️ 마스크 두 겹(물결 타일 + 몸통)은 기본 합성(합집합)이라 mask-composite 에 기대지 않는다.
    · ⚠️ 글자(퍼센트)는 물 위에 올린다(z 1).
    ════════════════════════════════════════════════════════════════ */
 .pbar::after,.arow .rail::after{display:none}
-/* ★ v14.9.6 — **색 자체가 물결처럼 차오른다**(사용자: 색 위에 물결을 입히지 말고).
-   · 막대(b · .pseg)는 이제 **빈 그릇**이다 — 크기(=비중)만 갖고 색은 칠하지 않는다.
-   · 색은 ::before 가 칠한다. 그 오른쪽 끝이 **세로로 출렁이는 물결선**(사인 타일 마스크)이라
-     색면 자체가 물처럼 보인다. 물결선은 위로 천천히 흐른다(2.4s · 타일 한 칸 = 이음새 없음).
-   · 등장: 색이 왼쪽에서 비중 끝까지 **물결선을 앞세워 차오른다**(1.3s · 행마다 --d3 늦게).
-     예전의 곧은 와이프(clip-path)는 앞머리가 직선이었다.
-   · 그 뒤로는 4.2초 박자로 **살짝 밀려왔다 물러난다**(앞머리가 4px 안에서 출렁 — 값이 달라져 보이지 않는 폭).
-   · ⚠️ 두 애니메이션이 모두 `right` 를 움직인다 — 목록 **뒤쪽이 이긴다.** 출렁임은 등장이 끝난 뒤에
-     시작하므로(지연 + 채우기 없음) 등장 중에는 등장만, 그 뒤에는 출렁임만 적용된다.
-   · 색 물든 그림자는 그릇(b)에 drop-shadow 로 — 알파(물결 모양)를 그대로 따라간다.
-     box-shadow 였다면 물결 뒤에 네모난 그림자가 남는다.
-   · 목표 눈금(u)·퍼센트 글자는 색 위(z 1). 빈 알약(.pseg.empty)은 예전 그대로. */
+/* ★ v15.0.1 — **가로 물결**(사용자: 세로 물결선이 어색 → 가로로, 왼쪽에서 오른쪽으로 파도치게)
+   · 색면의 **윗면**이 사인 물결선이다(마스크 타일 40×26 · 가로 반복). 타일이 오른쪽으로 한 칸씩 흘러
+     물결이 왼쪽 → 오른쪽으로 진행한다(한 칸 = 이음새 없음).
+   · 두 겹: 앞 물결(::before · 색 100% · 2.8s)과 뒤 물결(::after · 같은 색 45% · 반 칸 어긋남 · 4.6s).
+     속도가 달라 마루가 겹쳤다 갈라지며 파도처럼 보이고, 앞 물결이 뒤 물결의 몸통을 덮어 윗면에만 옅은 띠가 남는다.
+   · 오른쪽 끝은 곧다(둥근 모서리는 그릇의 border-radius + overflow 가 자른다) — 끝이 곧 비중이다.
+   · 등장: 두 겹 모두 왼쪽에서 끝까지 차오른다(clip-path 1.3s · 행마다 --d3 늦게). clip-path 는 가상요소에 건다 —
+     부모의 drop-shadow 가 드러난 부분만 따라가게.
+   · 막대(b · .pseg)는 빈 그릇 — 크기(=비중)만 갖고 색은 가상요소가 칠한다. 글자(퍼센트)는 물 위(z 1). */
 .pseg:not(.empty),.arow .rail b{position:relative;background:transparent!important;box-shadow:none!important;
   animation:none!important;
   filter:drop-shadow(0 4px 7px color-mix(in srgb, var(--c,var(--accent)) 42%, transparent))}
 .pseg>span,.arow .rail b>span{position:relative;z-index:1}
-.pseg:not(.empty)::before,.arow .rail b::before{content:"";position:absolute;top:0;bottom:0;left:0;right:4px;
-  pointer-events:none;z-index:0;border-radius:8px 0 0 8px;
-  background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.01) 48%,rgba(0,0,0,.04)),var(--c,var(--accent));
-  -webkit-mask:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 26' preserveAspectRatio='none'%3E%3Cpath d='M0 0 L9 0 L9.96 1 L10.86 2 L11.65 3 L12.29 4 L12.74 5 L12.97 6 L12.97 7 L12.74 8 L12.29 9 L11.65 10 L10.86 11 L9.96 12 L9 13 L8.04 14 L7.14 15 L6.35 16 L5.71 17 L5.26 18 L5.03 19 L5.03 20 L5.26 21 L5.71 22 L6.35 23 L7.14 24 L8.04 25 L9 26 L0 26Z' fill='black'/%3E%3C/svg%3E") right 0 / 14px 26px repeat-y, linear-gradient(#000,#000) left top / calc(100% - 13px) 100% no-repeat;
-          mask:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 26' preserveAspectRatio='none'%3E%3Cpath d='M0 0 L9 0 L9.96 1 L10.86 2 L11.65 3 L12.29 4 L12.74 5 L12.97 6 L12.97 7 L12.74 8 L12.29 9 L11.65 10 L10.86 11 L9.96 12 L9 13 L8.04 14 L7.14 15 L6.35 16 L5.71 17 L5.26 18 L5.03 19 L5.03 20 L5.26 21 L5.71 22 L6.35 23 L7.14 24 L8.04 25 L9 26 L0 26Z' fill='black'/%3E%3C/svg%3E") right 0 / 14px 26px repeat-y, linear-gradient(#000,#000) left top / calc(100% - 13px) 100% no-repeat;
-  animation:allocRise 1.3s cubic-bezier(.22,.9,.3,1) var(--d3,0s) both,
-            allocSlosh 4.2s ease-in-out calc(var(--d3,0s) + 1.3s) infinite,
-            allocSurf 2.4s linear infinite}
-@keyframes allocRise {from{right:100%}to{right:4px}}
-@keyframes allocSlosh{0%,100%{right:4px}50%{right:0}}
-@keyframes allocSurf{
-  from{-webkit-mask-position:right 0,left top;mask-position:right 0,left top}
-  to  {-webkit-mask-position:right -26px,left top;mask-position:right -26px,left top}}
+.arow .rail b::before,.arow .rail b::after,.pfill::before,.pfill::after{content:"";position:absolute;inset:0;pointer-events:none;
+  -webkit-mask:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 26' preserveAspectRatio='none'%3E%3Cpath d='M0 3.40 L1 3.71 L2 4.02 L3 4.31 L4 4.58 L5 4.81 L6 5.02 L7 5.18 L8 5.30 L9 5.38 L10 5.40 L11 5.38 L12 5.30 L13 5.18 L14 5.02 L15 4.81 L16 4.58 L17 4.31 L18 4.02 L19 3.71 L20 3.40 L21 3.09 L22 2.78 L23 2.49 L24 2.22 L25 1.99 L26 1.78 L27 1.62 L28 1.50 L29 1.42 L30 1.40 L31 1.42 L32 1.50 L33 1.62 L34 1.78 L35 1.99 L36 2.22 L37 2.49 L38 2.78 L39 3.09 L40 3.40 L40 26 L0 26 Z'/%3E%3C/svg%3E") 0 0/40px 100% repeat-x;
+          mask:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 26' preserveAspectRatio='none'%3E%3Cpath d='M0 3.40 L1 3.71 L2 4.02 L3 4.31 L4 4.58 L5 4.81 L6 5.02 L7 5.18 L8 5.30 L9 5.38 L10 5.40 L11 5.38 L12 5.30 L13 5.18 L14 5.02 L15 4.81 L16 4.58 L17 4.31 L18 4.02 L19 3.71 L20 3.40 L21 3.09 L22 2.78 L23 2.49 L24 2.22 L25 1.99 L26 1.78 L27 1.62 L28 1.50 L29 1.42 L30 1.40 L31 1.42 L32 1.50 L33 1.62 L34 1.78 L35 1.99 L36 2.22 L37 2.49 L38 2.78 L39 3.09 L40 3.40 L40 26 L0 26 Z'/%3E%3C/svg%3E") 0 0/40px 100% repeat-x;
+  animation:barWipe 1.3s cubic-bezier(.22,.9,.3,1) var(--d3,0s) both, allocWave 2.8s linear infinite}
+.arow .rail b::before{z-index:0;background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.01) 48%,rgba(0,0,0,.04)),var(--c,var(--accent))}
+.arow .rail b::after,.pfill::after{z-index:-1;opacity:.45;
+  -webkit-mask-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 26' preserveAspectRatio='none'%3E%3Cpath d='M0 2.60 L1 2.22 L2 1.86 L3 1.51 L4 1.19 L5 0.90 L6 0.66 L7 0.46 L8 0.32 L9 0.23 L10 0.20 L11 0.23 L12 0.32 L13 0.46 L14 0.66 L15 0.90 L16 1.19 L17 1.51 L18 1.86 L19 2.22 L20 2.60 L21 2.98 L22 3.34 L23 3.69 L24 4.01 L25 4.30 L26 4.54 L27 4.74 L28 4.88 L29 4.97 L30 5 L31 4.97 L32 4.88 L33 4.74 L34 4.54 L35 4.30 L36 4.01 L37 3.69 L38 3.34 L39 2.98 L40 2.60 L40 26 L0 26 Z'/%3E%3C/svg%3E");
+          mask-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 26' preserveAspectRatio='none'%3E%3Cpath d='M0 2.60 L1 2.22 L2 1.86 L3 1.51 L4 1.19 L5 0.90 L6 0.66 L7 0.46 L8 0.32 L9 0.23 L10 0.20 L11 0.23 L12 0.32 L13 0.46 L14 0.66 L15 0.90 L16 1.19 L17 1.51 L18 1.86 L19 2.22 L20 2.60 L21 2.98 L22 3.34 L23 3.69 L24 4.01 L25 4.30 L26 4.54 L27 4.74 L28 4.88 L29 4.97 L30 5 L31 4.97 L32 4.88 L33 4.74 L34 4.54 L35 4.30 L36 4.01 L37 3.69 L38 3.34 L39 2.98 L40 2.60 L40 26 L0 26 Z'/%3E%3C/svg%3E");
+  animation:barWipe 1.3s cubic-bezier(.22,.9,.3,1) var(--d3,0s) both, allocWave 4.6s linear infinite}
+.arow .rail b::after{background:var(--c,var(--accent))}
+@keyframes allocWave{from{-webkit-mask-position:0 0;mask-position:0 0}to{-webkit-mask-position:40px 0;mask-position:40px 0}}
+/* ★ v15.0.1 — 현재 비중 알약은 **한 줄**(사용자: 여러 색이 한 막대 안에 — 중간에 끊기지 않게 자연스럽게)
+   · 조각 사이 틈(gap)·조각별 그림자를 없애고, 색은 알약 전체에 깔린 .pfill 하나가 칠한다.
+   · .pfill 의 가로 그라디언트(--g · pillFill 이 만든다)는 경계마다 ±min(4%, 좁은 쪽 조각의 35%)에 걸쳐
+     두 색을 섞는다 → 색이 번지듯 넘어간다. 물결도 알약 전체에 하나로 흘러 경계에서 끊기지 않는다.
+   · 조각(.pseg)은 글자만 올리는 투명한 칸(flex = 비중). */
+.pbar{gap:0}
+.pbar .pseg:not(.empty){filter:none;border-radius:0}
+.pfill{position:absolute;inset:0;z-index:0;border-radius:9px;overflow:hidden;pointer-events:none;
+  filter:drop-shadow(0 4px 7px rgba(0,0,0,.22))}
+.pfill::before{z-index:0;background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.01) 48%,rgba(0,0,0,.04)),var(--g)}
+.pfill::after{background:var(--g)}
 
 
 /* ════════════════════════════════════════════════════════════════
@@ -836,7 +842,7 @@ tbody td{border-bottom-color:var(--row-line)}
   animation:eggAura 4.2s ease-in-out infinite}
 @keyframes eggAura{0%,15%,85%,100%{opacity:.20;transform:scale(1)}50%{opacity:.95;transform:scale(1.12)}}   /* v14.9.7 */
 @media(prefers-reduced-motion:reduce){
-  .pseg:not(.empty)::before,.arow .rail b::before{animation:none;right:0}}
+  .arow .rail b::before,.arow .rail b::after,.pfill::before,.pfill::after{animation:none}}
 </style>
 </head>
 <body>
@@ -1974,7 +1980,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='15.0.0';
+const APP_VERSION='15.0.1';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -2451,6 +2457,19 @@ function renderIndicators(r){
    위 : 현재 비중 하나만 — 조각을 떼어 라운드 처리한 분절형 알약(옛 '목표/현재' 두 막대 중 하나를 없앴다)
    아래: 종목별 굵은 행 — 채움=현재, 흰 눈금=목표, 오른쪽=실행할 매매 주수
    목표를 별도 막대로 또 그리지 않는다. 아래 행의 눈금이 같은 정보를 더 정확히 준다. */
+/* ★ v15.0.1 현재 비중 알약의 색 — 조각 색을 한 줄 그라디언트로 잇는다.
+   경계마다 ±min(4%, 좁은 쪽 조각 폭의 35%)에 걸쳐 두 색을 섞어 끊김 없이 넘어가게 한다. */
+function pillFill(shown){
+  const S=shown.reduce((a,x)=>a+x[1],0)||1; let acc=0;
+  const seg=shown.map(([n,v])=>{ const a=acc; acc+=v/S*100; return {c:ALLOC_GRAD[n]||'#94A5B6', a, b:acc, w:v/S*100}; });
+  const st=[];
+  seg.forEach((g,i)=>{
+    const dl=i>0?Math.min(4,0.35*Math.min(g.w,seg[i-1].w)):0;
+    const dr=i<seg.length-1?Math.min(4,0.35*Math.min(g.w,seg[i+1].w)):0;
+    st.push(g.c+' '+(g.a+dl).toFixed(2)+'%', g.c+' '+(g.b-dr).toFixed(2)+'%');
+  });
+  return '<div class="pfill" style="--g:linear-gradient(90deg,'+st.join(',')+')"></div>';
+}
 function renderAllocBars(){
   const w=CUR.w, t=tgtOf(CUR);   // ★ v15.0 배당유지+금 — SCHD = max(현재 비중, 바닥) · 나머지를 래더(TQQQ w · GLD/SGOV 7:3)로
   const stockVal = CUR_PORT?CUR_PORT.val:null;
@@ -2471,7 +2490,7 @@ function renderAllocBars(){
   const banded = reband>0 && curWt!=null && Math.abs(curWt-t.TQQQ)<reband;   // 목표 TQQQ = w × (1 − SCHD) · 밴드 내면 매매 생략
   const shown = cur.filter(([,v])=>v>0.0001);
   const pill = shown.length
-    ? shown.map(([n,v])=>`<div class="pseg" style="flex:${v};--c:${ALLOC_GRAD[n]}" title="${ALLOC_DISP[n]} ${Math.round(v*1000)/10}%">`
+    ? pillFill(shown) + shown.map(([n,v])=>`<div class="pseg" style="flex:${v};--c:${ALLOC_GRAD[n]}" title="${ALLOC_DISP[n]} ${Math.round(v*1000)/10}%">`
         +(v>=0.17?`<span class="t">${ALLOC_DISP[n]}</span>`:'')
         +(v>=0.09?`<span class="p">${Math.round(v*100)}%</span>`:'')+`</div>`).join('')
     : '<div class="pseg empty">보유 종목이 없습니다</div>';
