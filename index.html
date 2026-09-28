@@ -785,7 +785,7 @@ tbody td{border-bottom-color:var(--row-line)}
    · 스캔(::after 흰 타원)과 광선(fillEdge 흰 띠)을 끈다 — 유리 반사는 "빛이 스친다"고 말하고,
      물결은 "차오른다"고 말한다. 둘이 같이 있으면 서로 다른 이야기를 한다.
    · 막대 안에 옅은 흰 물이 왼쪽에서 오른쪽으로 **차오른다**(4.2s — 테마의 숨 한 번). 물의 앞머리는
-     (v15.0.4 부터: 윗면의 **가로 물결**이 왼쪽 → 오른쪽으로 흐르고, 색이 왼쪽부터 끝까지 차오른 뒤 오른쪽으로 빠져나간다 — 아래 규칙.)
+     (v15.0.5 부터: 앞머리의 **가로 물결**이 왼쪽 → 오른쪽으로 치고 그 뒤를 물이 따라와 윗면까지 꽉 채운 뒤, 오른쪽으로 빠져나간다 — 아래 규칙.)
      끝까지 차면 사라지고 다시 차오른다. 행마다 --d3 만큼 늦게 출발해 위에서 아래로 번진다.
    · ⚠️ 마스크 두 겹(물결 타일 + 몸통)은 기본 합성(합집합)이라 mask-composite 에 기대지 않는다.
    · ⚠️ 글자(퍼센트)는 물 위에 올린다(z 1).
@@ -810,20 +810,27 @@ tbody td{border-bottom-color:var(--row-line)}
 .pseg>span,.arow .rail b>span{position:relative;z-index:1;
   text-shadow:0 0 2px color-mix(in srgb, var(--c,var(--accent)) 92%, transparent),0 0 7px color-mix(in srgb, var(--c,var(--accent)) 75%, transparent)}
 .arow .rail b::before,.arow .rail b::after,.pfill::before,.pfill::after{content:"";position:absolute;inset:0;pointer-events:none;
-  -webkit-mask:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 11' preserveAspectRatio='none'%3E%3Cpath d='M0 4.50 L2 5.18 L4 5.84 L6 6.44 L8 6.97 L10 7.41 L12 7.73 L14 7.93 L16 8.00 L18 7.93 L20 7.73 L22 7.41 L24 6.97 L26 6.44 L28 5.84 L30 5.18 L32 4.50 L34 3.82 L36 3.16 L38 2.56 L40 2.03 L42 1.59 L44 1.27 L46 1.07 L48 1.00 L50 1.07 L52 1.27 L54 1.59 L56 2.03 L58 2.56 L60 3.16 L62 3.82 L64 4.50 L64 11 L0 11 Z'/%3E%3C/svg%3E") 0 0/64px 11px repeat-x,linear-gradient(#000,#000) 0 10px/100% calc(100% - 10px) no-repeat;
-          mask:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 11' preserveAspectRatio='none'%3E%3Cpath d='M0 4.50 L2 5.18 L4 5.84 L6 6.44 L8 6.97 L10 7.41 L12 7.73 L14 7.93 L16 8.00 L18 7.93 L20 7.73 L22 7.41 L24 6.97 L26 6.44 L28 5.84 L30 5.18 L32 4.50 L34 3.82 L36 3.16 L38 2.56 L40 2.03 L42 1.59 L44 1.27 L46 1.07 L48 1.00 L50 1.07 L52 1.27 L54 1.59 L56 2.03 L58 2.56 L60 3.16 L62 3.82 L64 4.50 L64 11 L0 11 Z'/%3E%3C/svg%3E") 0 0/64px 11px repeat-x,linear-gradient(#000,#000) 0 10px/100% calc(100% - 10px) no-repeat;
+  -webkit-mask:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 11' preserveAspectRatio='none'%3E%3Cpath d='M0 4.50 L2 5.18 L4 5.84 L6 6.44 L8 6.97 L10 7.41 L12 7.73 L14 7.93 L16 8.00 L18 7.93 L20 7.73 L22 7.41 L24 6.97 L26 6.44 L28 5.84 L30 5.18 L32 4.50 L34 3.82 L36 3.16 L38 2.56 L40 2.03 L42 1.59 L44 1.27 L46 1.07 L48 1.00 L50 1.07 L52 1.27 L54 1.59 L56 2.03 L58 2.56 L60 3.16 L62 3.82 L64 4.50 L64 11 L0 11 Z'/%3E%3C/svg%3E") 0 0/64px 11px repeat-x,linear-gradient(#000,#000) 0 10px/100% calc(100% - 10px) no-repeat,linear-gradient(90deg,#000 calc(100% - 80px),transparent) 0 0/0% 11px no-repeat;
+          mask:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 11' preserveAspectRatio='none'%3E%3Cpath d='M0 4.50 L2 5.18 L4 5.84 L6 6.44 L8 6.97 L10 7.41 L12 7.73 L14 7.93 L16 8.00 L18 7.93 L20 7.73 L22 7.41 L24 6.97 L26 6.44 L28 5.84 L30 5.18 L32 4.50 L34 3.82 L36 3.16 L38 2.56 L40 2.03 L42 1.59 L44 1.27 L46 1.07 L48 1.00 L50 1.07 L52 1.27 L54 1.59 L56 2.03 L58 2.56 L60 3.16 L62 3.82 L64 4.50 L64 11 L0 11 Z'/%3E%3C/svg%3E") 0 0/64px 11px repeat-x,linear-gradient(#000,#000) 0 10px/100% calc(100% - 10px) no-repeat,linear-gradient(90deg,#000 calc(100% - 80px),transparent) 0 0/0% 11px no-repeat;
   animation:allocFlow 8.4s ease-in-out var(--d3,0s) infinite both, allocWave 3s linear infinite}
 .arow .rail b::before{z-index:0;background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.01) 48%,rgba(0,0,0,.04)),var(--c,var(--accent))}
 .arow .rail b::after,.pfill::after{z-index:-1;opacity:.45;
-  -webkit-mask-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 11' preserveAspectRatio='none'%3E%3Cpath d='M0 4.50 L2 3.72 L4 2.97 L6 2.28 L8 1.67 L10 1.17 L12 0.80 L14 0.58 L16 0.50 L18 0.58 L20 0.80 L22 1.17 L24 1.67 L26 2.28 L28 2.97 L30 3.72 L32 4.50 L34 5.28 L36 6.03 L38 6.72 L40 7.33 L42 7.83 L44 8.20 L46 8.42 L48 8.50 L50 8.42 L52 8.20 L54 7.83 L56 7.33 L58 6.72 L60 6.03 L62 5.28 L64 4.50 L64 11 L0 11 Z'/%3E%3C/svg%3E"),linear-gradient(#000,#000);
-          mask-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 11' preserveAspectRatio='none'%3E%3Cpath d='M0 4.50 L2 3.72 L4 2.97 L6 2.28 L8 1.67 L10 1.17 L12 0.80 L14 0.58 L16 0.50 L18 0.58 L20 0.80 L22 1.17 L24 1.67 L26 2.28 L28 2.97 L30 3.72 L32 4.50 L34 5.28 L36 6.03 L38 6.72 L40 7.33 L42 7.83 L44 8.20 L46 8.42 L48 8.50 L50 8.42 L52 8.20 L54 7.83 L56 7.33 L58 6.72 L60 6.03 L62 5.28 L64 4.50 L64 11 L0 11 Z'/%3E%3C/svg%3E"),linear-gradient(#000,#000);
+  -webkit-mask-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 11' preserveAspectRatio='none'%3E%3Cpath d='M0 4.50 L2 3.72 L4 2.97 L6 2.28 L8 1.67 L10 1.17 L12 0.80 L14 0.58 L16 0.50 L18 0.58 L20 0.80 L22 1.17 L24 1.67 L26 2.28 L28 2.97 L30 3.72 L32 4.50 L34 5.28 L36 6.03 L38 6.72 L40 7.33 L42 7.83 L44 8.20 L46 8.42 L48 8.50 L50 8.42 L52 8.20 L54 7.83 L56 7.33 L58 6.72 L60 6.03 L62 5.28 L64 4.50 L64 11 L0 11 Z'/%3E%3C/svg%3E"),linear-gradient(#000,#000),linear-gradient(90deg,#000 calc(100% - 80px),transparent);
+          mask-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 11' preserveAspectRatio='none'%3E%3Cpath d='M0 4.50 L2 3.72 L4 2.97 L6 2.28 L8 1.67 L10 1.17 L12 0.80 L14 0.58 L16 0.50 L18 0.58 L20 0.80 L22 1.17 L24 1.67 L26 2.28 L28 2.97 L30 3.72 L32 4.50 L34 5.28 L36 6.03 L38 6.72 L40 7.33 L42 7.83 L44 8.20 L46 8.42 L48 8.50 L50 8.42 L52 8.20 L54 7.83 L56 7.33 L58 6.72 L60 6.03 L62 5.28 L64 4.50 L64 11 L0 11 Z'/%3E%3C/svg%3E"),linear-gradient(#000,#000),linear-gradient(90deg,#000 calc(100% - 80px),transparent);
   animation:allocFlow 8.4s ease-in-out calc(var(--d3,0s) + .3s) infinite both, allocWave 5s linear infinite}
 .arow .rail b::after{background:var(--c,var(--accent))}
-@keyframes allocWave{from{-webkit-mask-position:0 0,0 10px;mask-position:0 0,0 10px}to{-webkit-mask-position:64px 0,0 10px;mask-position:64px 0,0 10px}}
+@keyframes allocWave{from{-webkit-mask-position:0 0,0 10px,0 0;mask-position:0 0,0 10px,0 0}to{-webkit-mask-position:64px 0,0 10px,0 0;mask-position:64px 0,0 10px,0 0}}
+/* v15.0.5 — 파도 뒤를 물이 따라와 **윗면까지 꽉** 채운다(사용자: 파도가 끝났는데도 막대 상단까지 꽉 차지 않음).
+   · 세 번째 마스크 겹(윗면 11px 단색, 끝 80px 은 투명으로 흐려짐)의 너비 = 앞머리 위치(0 → 100%) — 같은 키프레임·같은 가속이라 딱 붙어 간다.
+     → 파도는 **앞머리 80px 에만** 보이고, 그 뒤는 평평하게 꽉 찬 물이 따라온다.
+   · 앞머리가 끝에 닿은 뒤(36%) 0.8초 동안 너비를 100% + 80px 로 마저 늘려 끝의 파도까지 가라앉힌다(46%) → 꽉 찬 채 머묾(→70%).
+   · 빠질 땐 꽉 찬 채로 왼쪽 꼬리부터 오른쪽으로 흘러 나간다(70 → 96%). 되감기(100% → 0%)는 빈 → 빈이라 보이지 않는다.
+   · 한 숨 8.4초: 차오름 3.0초 · 가라앉음 0.8초 · 머묾 2.0초 · 빠짐 2.2초 · 빈 채 0.3초. */
 @keyframes allocFlow{
-  0%{-webkit-clip-path:inset(0 100% 0 0% round 10px);clip-path:inset(0 100% 0 0% round 10px)}
-  38%,68%{-webkit-clip-path:inset(0 0% 0 0% round 10px);clip-path:inset(0 0% 0 0% round 10px)}
-  96%,100%{-webkit-clip-path:inset(0 0% 0 100% round 10px);clip-path:inset(0 0% 0 100% round 10px)}}
+  0%{-webkit-clip-path:inset(0 100% 0 0% round 10px);clip-path:inset(0 100% 0 0% round 10px);-webkit-mask-size:64px 11px,100% calc(100% - 10px),0% 11px;mask-size:64px 11px,100% calc(100% - 10px),0% 11px}
+  36%{-webkit-clip-path:inset(0 0% 0 0% round 10px);clip-path:inset(0 0% 0 0% round 10px);-webkit-mask-size:64px 11px,100% calc(100% - 10px),100% 11px;mask-size:64px 11px,100% calc(100% - 10px),100% 11px}
+  46%,70%{-webkit-clip-path:inset(0 0% 0 0% round 10px);clip-path:inset(0 0% 0 0% round 10px);-webkit-mask-size:64px 11px,100% calc(100% - 10px),calc(100% + 80px) 11px;mask-size:64px 11px,100% calc(100% - 10px),calc(100% + 80px) 11px}
+  96%,100%{-webkit-clip-path:inset(0 0% 0 100% round 10px);clip-path:inset(0 0% 0 100% round 10px);-webkit-mask-size:64px 11px,100% calc(100% - 10px),calc(100% + 80px) 11px;mask-size:64px 11px,100% calc(100% - 10px),calc(100% + 80px) 11px}}
 /* ★ v15.0.1 — 현재 비중 알약은 **한 줄**(사용자: 여러 색이 한 막대 안에 — 중간에 끊기지 않게 자연스럽게)
    · 조각 사이 틈(gap)·조각별 그림자를 없애고, 색은 알약 전체에 깔린 .pfill 하나가 칠한다.
    · .pfill 의 가로 그라디언트(--g · pillFill 이 만든다)는 경계마다 ±min(4%, 좁은 쪽 조각의 35%)에 걸쳐
@@ -851,7 +858,7 @@ tbody td{border-bottom-color:var(--row-line)}
   animation:eggAura 4.2s ease-in-out infinite}
 @keyframes eggAura{0%,15%,85%,100%{opacity:.20;transform:scale(1)}50%{opacity:.95;transform:scale(1.12)}}   /* v14.9.7 */
 @media(prefers-reduced-motion:reduce){
-  .arow .rail b::before,.arow .rail b::after,.pfill::before,.pfill::after{animation:none}}
+  .arow .rail b::before,.arow .rail b::after,.pfill::before,.pfill::after{animation:none;-webkit-mask-size:64px 11px,100% calc(100% - 10px),calc(100% + 80px) 11px;mask-size:64px 11px,100% calc(100% - 10px),calc(100% + 80px) 11px}}
 </style>
 </head>
 <body>
@@ -1989,7 +1996,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='15.0.4';
+const APP_VERSION='15.0.5';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
