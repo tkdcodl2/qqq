@@ -785,19 +785,23 @@ tbody td{border-bottom-color:var(--row-line)}
    · 스캔(::after 흰 타원)과 광선(fillEdge 흰 띠)을 끈다 — 유리 반사는 "빛이 스친다"고 말하고,
      물결은 "차오른다"고 말한다. 둘이 같이 있으면 서로 다른 이야기를 한다.
    · 막대 안에 옅은 흰 물이 왼쪽에서 오른쪽으로 **차오른다**(4.2s — 테마의 숨 한 번). 물의 앞머리는
-     (v15.0.3 부터: 윗면의 **가로 물결**이 왼쪽 → 오른쪽으로 흐르고, 색이 왼쪽부터 끝까지 차올랐다 물러난다 — 아래 규칙.)
+     (v15.0.4 부터: 윗면의 **가로 물결**이 왼쪽 → 오른쪽으로 흐르고, 색이 왼쪽부터 끝까지 차오른 뒤 오른쪽으로 빠져나간다 — 아래 규칙.)
      끝까지 차면 사라지고 다시 차오른다. 행마다 --d3 만큼 늦게 출발해 위에서 아래로 번진다.
    · ⚠️ 마스크 두 겹(물결 타일 + 몸통)은 기본 합성(합집합)이라 mask-composite 에 기대지 않는다.
    · ⚠️ 글자(퍼센트)는 물 위에 올린다(z 1).
    ════════════════════════════════════════════════════════════════ */
 .pbar::after,.arow .rail::after{display:none}
-/* ★ v15.0.3 — **왼쪽에서 오른쪽으로 차오르는 파도**(사용자: 전체가 낮아졌다 차오르는 대신 좌→우로 점점 채워지게)
-   · 한 번의 숨(allocFlow 8.4s): 비어 있다가 **왼쪽부터 오른쪽 끝(= 비중)까지 차오르고**(0→38% · 3.2초)
-     → 꽉 찬 채 머물고(38→70% · 2.7초) → 파도가 빠지듯 오른쪽에서 왼쪽으로 물러나고(70→96% · 2.2초) → 잠깐 빈 채(0.3초) → 반복.
-   · 차오르는 앞머리는 둥근 물마루(clip-path inset … round 0 10px 10px 0) — 곧은 와이프 선이 아니다.
-     clip-path 라 판 자체는 늘 막대 크기 그대로 → 알약의 가로 그라디언트(종목 색 위치)가 차오르는 동안 찌그러지지 않는다.
+/* ★ v15.0.4 — **파도가 왼쪽에서 오른쪽으로 치며 차오르고, 빠질 때도 오른쪽으로 흘러 나간다**
+   (사용자: 좌→우로 파도치며 점점 꽉 차게 · 빠질 때도 우측으로 — v15.0.3 은 오른쪽에서 왼쪽으로 물러났다)
+   · 한 숨(allocFlow 8.4s · clip-path inset(위 오른쪽 아래 왼쪽 round 10px)):
+     빈 채 → **왼쪽부터 오른쪽 끝(= 비중)까지 차오름**(0→38% · 3.2초 · 오른쪽 inset 100%→0)
+     → 꽉 찬 채 머묾(38→68% · 2.5초)
+     → **왼쪽 꼬리부터 오른쪽으로 빠져나감**(68→96% · 2.4초 · 왼쪽 inset 0→100%, 오른쪽 끝은 그대로)
+     → 오른쪽 끝에서 빈 채 잠깐(0.3초) → 처음(왼쪽에서 빈 채)으로 — 두 상태 모두 비어 있어 되감기가 보이지 않는다.
+     물이 늘 한 방향(왼→오)으로만 흐른다. 앞머리·꼬리 모두 둥근 물마루(round 10px).
+   · clip-path 라 판 자체는 늘 막대 크기 → 알약의 가로 그라디언트(종목 색 위치)가 흐르는 동안 찌그러지지 않는다.
    · 파도(윗면 물결 64×11 · 진폭 ±3.5/±4px)는 그동안 계속 왼쪽 → 오른쪽으로 흐른다(allocWave 앞 3s / 뒤 5s).
-   · 뒤 물결(45%)은 0.3초 늦게 따라온다 — 물러날 때 옅은 물 자국이 앞 물결보다 잠깐 더 남는다.
+   · 뒤 물결(45%)은 0.3초 늦게 따라온다 — 차오를 땐 앞 물결 뒤에 숨고, 빠질 땐 옅은 꼬리(물 자국)로 잠깐 남는다.
    · 행마다 --d3 만큼 늦게(0.16초 간격) 출발해 위에서 아래로 번진다. 막대 안 글자는 막대 색 후광으로 빈 동안에도 읽힌다.
    · 움직임 줄이기 설정 = 애니메이션 없음(꽉 찬 채 정지). */
 .pseg:not(.empty),.arow .rail b{position:relative;background:transparent!important;box-shadow:none!important;
@@ -817,9 +821,9 @@ tbody td{border-bottom-color:var(--row-line)}
 .arow .rail b::after{background:var(--c,var(--accent))}
 @keyframes allocWave{from{-webkit-mask-position:0 0,0 10px;mask-position:0 0,0 10px}to{-webkit-mask-position:64px 0,0 10px;mask-position:64px 0,0 10px}}
 @keyframes allocFlow{
-  0%,100%{-webkit-clip-path:inset(0 100% 0 0 round 0 10px 10px 0);clip-path:inset(0 100% 0 0 round 0 10px 10px 0)}
-  38%,70%{-webkit-clip-path:inset(0 0% 0 0 round 0 10px 10px 0);clip-path:inset(0 0% 0 0 round 0 10px 10px 0)}
-  96%{-webkit-clip-path:inset(0 100% 0 0 round 0 10px 10px 0);clip-path:inset(0 100% 0 0 round 0 10px 10px 0)}}
+  0%{-webkit-clip-path:inset(0 100% 0 0% round 10px);clip-path:inset(0 100% 0 0% round 10px)}
+  38%,68%{-webkit-clip-path:inset(0 0% 0 0% round 10px);clip-path:inset(0 0% 0 0% round 10px)}
+  96%,100%{-webkit-clip-path:inset(0 0% 0 100% round 10px);clip-path:inset(0 0% 0 100% round 10px)}}
 /* ★ v15.0.1 — 현재 비중 알약은 **한 줄**(사용자: 여러 색이 한 막대 안에 — 중간에 끊기지 않게 자연스럽게)
    · 조각 사이 틈(gap)·조각별 그림자를 없애고, 색은 알약 전체에 깔린 .pfill 하나가 칠한다.
    · .pfill 의 가로 그라디언트(--g · pillFill 이 만든다)는 경계마다 ±min(4%, 좁은 쪽 조각의 35%)에 걸쳐
@@ -1985,7 +1989,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='15.0.3';
+const APP_VERSION='15.0.4';
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
