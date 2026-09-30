@@ -2236,7 +2236,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='15.7';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
+const APP_VERSION='15.8';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -2343,6 +2343,8 @@ async function init(){
   runCountUp();
   pfMigrateCheck();                       // v15.0.6 — 이 앱 DB 에만 있는 기존 기록 옮기기 제안(기다리지 않는다)
   initMkt();                              // 시장 지표는 마지막에 — 조회가 느려도 대시보드를 막지 않는다
+  autoRefreshPrices('open');              // ★ v15.8 §122 — 열 때마다 새 종가를 받아 온다(대시보드를 먼저 그린 뒤, 뒤에서)
+  watchResume();                          // ★ v15.8 — 폰에서 백그라운드 10분+ 뒤 다시 열면 한 번 더
 }
 
 /* ===================== 시장 지표 스트립 (§83 v14.9) =====================
@@ -4340,12 +4342,13 @@ function switchTab(t){
    Supabase Edge Function 'fetch-market-data'(db/fetch-market-data.ts)가 네이버→야후 순으로
    4종목 종가와 USD/KRW를 받아 market_data에 upsert한다. 평소에는 cron이 돌리고, 이 버튼은 즉시 실행용.
    함수가 없거나 호출이 막혀도 DB 재조회는 항상 수행한다 — cron이 이미 갱신해 둔 경우가 있기 때문. */
-async function updatePrices(btn){
+async function updatePrices(btn, opt){
+  const auto=!!(opt&&opt.auto);          // ★ v15.8 — 자동(열 때): 알림은 새 거래일일 때만 · 실패는 조용히 · 시장 지표는 initMkt 가 이미 받는다
   const b=btn||document.getElementById('btnUpdatePrices');
-  if(!b||b.classList.contains('busy')) return;
-  if(DEMO){ flash('데모 모드입니다 — Supabase 연결 후 사용하세요'); return; }
-  b.classList.add('busy');
-  fetchMkt(true);                         // 시세 버튼은 시장 지표도 같이 새로 받는다(await 하지 않는다)
+  if(b&&b.classList.contains('busy')) return;
+  if(DEMO){ if(!auto) flash('데모 모드입니다 — Supabase 연결 후 사용하세요'); return; }
+  if(b) b.classList.add('busy');
+  if(!auto) fetchMkt(true);               // 시세 버튼은 시장 지표도 같이 새로 받는다(await 하지 않는다)
   const before = CUR ? CUR.date : '';
   let fnErr=null;
   try{
@@ -4365,15 +4368,37 @@ async function updatePrices(btn){
     await renderMonthly();
     const after = CUR ? CUR.date : '';
     if(after && after!==before) flash('시세 갱신 완료 · '+after);
+    else if(auto) { /* 자동: 새 거래일이 없으면 조용히 */ }
     else if(fnErr) flash('갱신 함수 호출 실패 — 최신 데이터는 '+(after||'없음'));
     else flash('이미 최신입니다 · '+(after||'-'));
     if(fnErr) console.warn('fetch-market-data 호출 실패', fnErr);
   }catch(e){
     console.warn('시세 재조회 실패', e);
-    flash('시세 갱신 실패 — 네트워크를 확인하세요');
+    if(!auto) flash('시세 갱신 실패 — 네트워크를 확인하세요');
   }finally{
-    b.classList.remove('busy');
+    if(b) b.classList.remove('busy');
   }
+}
+/* ★ v15.8 §122 — 열 때마다 시세 자동 갱신. 버튼과 같은 경로(fetch-market-data → DB 재조회 → 다시 그리기)를 조용히 한 번.
+   2분 안 재호출은 건너뛴다(새로고침 연타 · 탭 여러 개) — localStorage 가 막혀 있어도 동작은 한다. */
+const PX_AUTO_KEY='adca_px_auto_v1', PX_AUTO_GAP=2*60*1000, PX_RESUME_GAP=10*60*1000;
+function autoRefreshPrices(why){
+  if(DEMO) return false;
+  let last=0; try{ last=+localStorage.getItem(PX_AUTO_KEY)||0; }catch(e){}
+  const now=Date.now(); if(now-last<PX_AUTO_GAP) return false;
+  try{ localStorage.setItem(PX_AUTO_KEY,String(now)); }catch(e){}
+  updatePrices(null,{auto:true,why});
+  return true;
+}
+/* 폰 PWA 는 홈 화면에서 다시 열어도 새로 불러오지 않고 이어서 보여 준다 — 10분 넘게 가려져 있다 돌아오면 '새로 연 것'으로 본다. */
+let PX_HIDDEN_AT=0;
+function watchResume(){
+  if(watchResume.on) return; watchResume.on=true;
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden){ PX_HIDDEN_AT=Date.now(); return; }
+    if(PX_HIDDEN_AT && Date.now()-PX_HIDDEN_AT>=PX_RESUME_GAP){ autoRefreshPrices('resume'); if(typeof fetchMkt==='function') fetchMkt(true); }
+    PX_HIDDEN_AT=0;
+  });
 }
 
 function flash(msg){
