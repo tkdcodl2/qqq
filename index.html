@@ -2220,7 +2220,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='15.5';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
+const APP_VERSION='15.6';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -3672,6 +3672,14 @@ async function renderTrades(){
     <td class="t-actions"><button class="icon-btn" onclick="editTrade('${t.id}')">수정</button><button class="icon-btn" onclick="delTrade('${t.id}')">삭제</button></td></tr>`;}).join('');
 }
 
+/* ★ v15.6 §120 — '기록 불일치'의 [고치기]: 그 매도의 수정 창을 열고 실현손익 칸만 장부 값으로 채운다. 저장은 사용자가 누른다
+   (매매이력은 포트폴리오 앱과 공유 — 저장하면 그쪽 기록도 같은 값이 된다). */
+async function fixRealized(id, v){
+  await editTrade(id);
+  const el=document.getElementById('f_realized'); if(el) el.value=Number(v).toLocaleString('ko-KR');
+  const w=document.getElementById('realizedWrap'); if(w) w.style.display='';
+  flash('실현손익을 장부 값 '+won(v)+'으로 채웠습니다 — 저장을 누르면 반영됩니다');
+}
 /* ===================== 수익분석 ===================== */
 async function renderProfit(){
   const ts=await getTrades(); TRADES_CACHE=ts;
@@ -3679,12 +3687,14 @@ async function renderProfit(){
   const fxNow=FXNOW;
   const H={}; ['QQQ','QLD','TQQQ','SCHD','GLD','SGOV'].forEach(k=>H[k]={qty:0,cost:0}); // cost in KRW of remaining (avg)
   let totalRealized=0, totalDividend=0, cash=0, netDeposits=0, sellCount=0;
+  const SELLS=[];   // ★ v15.6 §120 — 매도별 {기록 실현손익, 장부로 다시 계산한 값} — 불일치가 난 매도를 짚는다
   const DIV={QQQ:0,QLD:0,TQQQ:0,SCHD:0,GLD:0,SGOV:0};
   // process chronologically
   [...ts].sort(tradeOrder).forEach(t=>{
     const k=t.ticker; if(!H[k]&&t.type!=='deposit'&&t.type!=='withdrawal')H[k]={qty:0,cost:0};
     if(t.type==='buy'){H[k].qty+=+t.qty;H[k].cost+=+t.amount_krw;cash-=+t.amount_krw;}
-    else if(t.type==='sell'){const avg=H[k].qty>0?H[k].cost/H[k].qty:0;H[k].cost-=avg*(+t.qty);H[k].qty-=+t.qty;totalRealized+=(+t.realized||0);cash+=+t.amount_krw;sellCount++;}
+    else if(t.type==='sell'){const held=H[k].qty, avg=held>0?H[k].cost/held:0;H[k].cost-=avg*(+t.qty);H[k].qty-=+t.qty;totalRealized+=(+t.realized||0);cash+=+t.amount_krw;sellCount++;
+      SELLS.push({id:t.id,date:t.date,k,qty:+t.qty,stored:(+t.realized||0),calc:(+t.amount_krw||0)-avg*(+t.qty),over:(+t.qty)>held+1e-9});}
     else if(t.type==='div'){totalDividend+=+t.amount_krw;cash+=+t.amount_krw;if(DIV[k]!=null)DIV[k]+=+t.amount_krw;}
     else if(t.type==='deposit'){cash+=+t.amount_krw;netDeposits+=+t.amount_krw;}
     else if(t.type==='withdrawal'){cash-=+t.amount_krw;netDeposits-=+t.amount_krw;}
@@ -3763,7 +3773,20 @@ async function renderProfit(){
   if(!warnEl&&cumEl){ warnEl=document.createElement('p'); warnEl.id='cumWarn'; warnEl.className='note'; warnEl.style.cssText='margin-top:10px'; cumEl.parentNode.insertBefore(warnEl,cumEl.nextSibling); }
   if(warnEl){
     if(Math.abs(ledgerGap)>gapTol){
-      warnEl.innerHTML='⚠️ <b>기록 불일치 '+won(ledgerGap)+'</b> — 총수익(총자산−입금누계)이 실현손익+배당+평가손익('+won(expectPL)+')과 다릅니다. 매수 기록 없이 매도를 입력했거나, 입금(이체) 기록이 누락된 경우입니다. 매매이력에서 해당 거래의 짝(매수 또는 입금)을 추가하면 맞춰집니다.';
+      /* ★ v15.6 §120 — 불일치 = Σ매도(매도금액 − 평균단가 원가×수량 − 기록 실현손익). 입금·시세·환율은 양쪽에서 상쇄되어 원인이 될 수 없다
+         (옛 문구의 '입금 누락'은 틀린 안내였다). 차이가 난 매도를 직접 짚고, [고치기]로 그 매도의 수정 창을 장부 값이 채워진 채 연다.
+         원인 셋: ① 실현손익을 0(빈칸)으로 저장 — 포트폴리오 앱은 0 을 '기록 없음'으로 보고 다시 계산하지만 이 앱은 0 으로 합산한다
+                  ② 매도 뒤 그 이전 매수를 고쳤거나 다른 평단(예: 포트폴리오 앱의 '지금 보유' 평단)으로 입력 ③ 보유보다 많이 매도(앞선 매수 기록 없음 — 매수를 추가해야 한다). */
+      const bad=SELLS.map(x=>Object.assign(x,{d:x.calc-x.stored})).filter(x=>Math.abs(x.d)>=1).sort((a,b)=>Math.abs(b.d)-Math.abs(a.d));
+      const why=x=>x.over?'보유보다 많이 매도 — 앞선 매수 기록이 없습니다(매수를 추가하세요)':(x.stored===0?'실현손익이 빈칸(0)으로 저장됨':'기록값이 장부 평단(매수 당시 환율)과 다름');
+      const li=bad.slice(0,5).map(x=>'<span style="display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-top:7px">'
+        +'<span class="mono">'+x.date+'</span><b>'+x.k+'</b><span>매도 '+(+x.qty).toLocaleString('ko-KR',{maximumFractionDigits:4})+'주</span>'
+        +'<span class="mono">기록 '+won(x.stored)+' → 장부 '+won(Math.round(x.calc))+' (차이 '+won(Math.round(x.d))+')</span>'
+        +'<span style="color:var(--text2)">'+why(x)+'</span>'
+        +(x.over?'':'<button class="mini-trade" onclick="fixRealized(\''+String(x.id).replace(/[^\w-]/g,'')+'\','+Math.round(x.calc)+')">고치기</button>')+'</span>').join('');
+      warnEl.innerHTML='⚠️ <b>기록 불일치 '+won(ledgerGap)+'</b> — 매도의 실현손익 합계가 장부(평균단가 · 매수 당시 환율)로 다시 계산한 값과 다릅니다. '
+        +(bad.length?'아래 매도의 기록값을 장부 값으로 고치면 맞춰집니다.':'매도별 차이는 1원 미만입니다(반올림).')
+        +li+(bad.length>5?'<span style="display:block;margin-top:7px;color:var(--text2)">외 '+(bad.length-5)+'건</span>':'');
       warnEl.style.color='var(--gold)';
     } else { warnEl.textContent='✓ 기록 정합: 총수익 = 실현손익 + 배당 + 평가손익'+(Math.abs(ledgerGap)>=0.5?' (표시 차이 '+won(ledgerGap)+'은 실현손익 원 단위 반올림)':''); warnEl.style.color='var(--text2)'; }
   }
