@@ -859,6 +859,36 @@ tbody td{border-bottom-color:var(--row-line)}
 @keyframes eggAura{0%,15%,85%,100%{opacity:.20;transform:scale(1)}50%{opacity:.95;transform:scale(1.12)}}   /* v14.9.7 */
 @media(prefers-reduced-motion:reduce){
   .arow .rail b::before,.arow .rail b::after,.pfill::before,.pfill::after{animation:none;-webkit-mask-size:64px 11px,100% calc(100% - 10px),calc(100% + 80px) 11px;mask-size:64px 11px,100% calc(100% - 10px),calc(100% + 80px) 11px}}
+/* ══ v15.2 — 현재 비중 카드: 이중 도넛(바깥 = 지금 · 안쪽 얇은 링 = 목표) + 막대 (§116) ══
+   도넛 규칙은 사용자가 첨부한 다른 앱 대시보드에서 그대로 가져왔다(그 파일 1760–1799 · 1823–1843행):
+   전체 숨(donutRing 4.2s · drop-shadow 3겹) · 도는 용 빛(donut-spark: 마디 12 · 8s 회전 · 숨 4.2s 동기 · 꿈틀 2.8s · 캔버스 뒤).
+   ⚠️ 조각 자체는 움직이지 않는다 — 값이 바뀐 것으로 오해한다(참고 앱 원칙). 도는 것은 빛뿐.
+   빛의 색 = TQQQ 색(ALLOC_COLORS) 계열 — TQQQ 색을 바꾸면 --h1/--h2/--h3(숨) · --sk1/--sk2(빛)도 같이 바꾼다.
+   하단 설명문(arow-cap)과 누적 알약(pbar)은 만들지 않는다(§113 사용자 지시) — 옛 CSS 는 물결 규칙과 얽혀 있어 남긴다. */
+.alloc-split{display:grid;grid-template-columns:auto minmax(0,1fr);gap:22px;align-items:center}
+.alloc-split .arow-list{border-top:none;padding-top:0}
+@media(max-width:560px){.alloc-split{grid-template-columns:1fr;gap:16px}.alloc-split>.donut-wrap{margin:0 auto}}
+.donut-wrap{position:relative;container-type:inline-size;width:140px;height:140px;
+  --h1:rgba(240,122,99,.52);--h2:rgba(242,142,122,.58);--h3:rgba(187,95,77,.38);--sk1:245,169,153;--sk2:240,122,99}
+.donut-wrap>canvas{position:relative;z-index:1}
+.donut-wrap>.donut-center{z-index:2}
+.donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;max-width:82%;pointer-events:none}
+.donut-center-sub{font-size:10px;color:var(--text2);line-height:1.2;max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.donut-center-value{font-family:var(--font-num);font-variant-numeric:tabular-nums;font-weight:700;font-size:clamp(10px,2.0vw,22px);font-size:clamp(10px,16cqw,22px);letter-spacing:-.5px;line-height:1.1;color:var(--text);white-space:nowrap;max-width:100%}
+.donut-center-label{font-size:10px;color:var(--text2);letter-spacing:.5px}
+.donut-wrap>.donut-spark{position:absolute;inset:0;z-index:0;pointer-events:none;animation:donutOrbitCW 8s linear infinite}
+.donut-spark>i{position:absolute;inset:0;transform:rotate(var(--a,0deg))}
+.donut-spark>i::before{content:"";position:absolute;left:50%;top:4%;width:calc(34% * var(--s,1));height:calc(18% * var(--s,1));border-radius:50%;
+  background:radial-gradient(ellipse,rgba(var(--sk1),calc(.50 * var(--o,1))) 0%,rgba(var(--sk2),calc(.28 * var(--o,1))) 40%,transparent 72%);
+  filter:blur(7px);transform:translate(-50%,-50%) scale(.70);opacity:0;
+  animation:donutBreathe 4.2s ease-in-out infinite, donutSerp 2.8s ease-in-out infinite;animation-delay:var(--bd,0s),var(--ph,0s)}
+@keyframes donutSerp{0%,100%{translate:0 -2px}50%{translate:0 3px}}
+@keyframes donutOrbitCW{to{transform:rotate(360deg)}}
+@keyframes donutBreathe{0%,15%,85%,100%{opacity:0;transform:translate(-50%,-50%) scale(.70)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.30)}}
+.donut-live>canvas{animation:donutRing 4.2s ease-in-out infinite}
+@keyframes donutRing{0%,15%,85%,100%{filter:drop-shadow(0 0 0 rgba(0,0,0,0)) drop-shadow(0 0 0 rgba(0,0,0,0)) drop-shadow(0 0 0 rgba(0,0,0,0))}
+  50%{filter:drop-shadow(0 0 11px var(--h1)) drop-shadow(0 0 32px var(--h2)) drop-shadow(0 0 56px var(--h3))}}
+@media (prefers-reduced-motion: reduce){.donut-spark>i::before{animation:none!important}.donut-wrap>.donut-spark{display:none}.donut-live>canvas{animation:none!important;filter:none!important}}
 </style>
 </head>
 <body>
@@ -2190,7 +2220,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='15.1';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
+const APP_VERSION='15.2';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -2214,8 +2244,8 @@ function runCountUp(){
 }
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
 const pct = n => (n>=0?'+':'')+ (n*100).toFixed(1)+'%';
-const ALLOC_COLORS={TQQQ:'#AB7165',QLD:'#BD957F',QQQ:'#A796B6',SCHD:'#91A4B7',GLD:'#D3B58A',SGOV:'#99B49B',CASH:'#94A5B6'};   // 차트 10슬롯 + 중립 슬레이트. GLD=금 톤(#EBCB8B, §41 gold — 레짐3 선색과 공유하나 차트 종류가 달라 충돌 없음)
-const ALLOC_GRAD={TQQQ:'#AB7165',QLD:'#BD957F',QQQ:'#A796B6',SCHD:'#91A4B7',GLD:'#D3B58A',SGOV:'#99B49B',CASH:'#94A5B6'};
+const ALLOC_COLORS={TQQQ:'#F07A63',QLD:'#BD957F',QQQ:'#A796B6',SCHD:'#86C49B',GLD:'#D8A98F',SGOV:'#7FA6E0',CASH:'#94A5B6'};   // ★ v15.2 §116 — 진한 다홍(참고 파일 --red-s) · SCHD 녹색(--accent) · GLD 샌드(--warn) · SGOV 파랑(--ext-mark 를 밝힘). 바꾸면 CSS .donut-wrap 의 --h1~3 · --sk1~2 도 같이.   // 차트 10슬롯 + 중립 슬레이트. GLD=금 톤(#EBCB8B, §41 gold — 레짐3 선색과 공유하나 차트 종류가 달라 충돌 없음)
+const ALLOC_GRAD={TQQQ:'#F07A63',QLD:'#BD957F',QQQ:'#A796B6',SCHD:'#86C49B',GLD:'#D8A98F',SGOV:'#7FA6E0',CASH:'#94A5B6'};
 const ALLOC_DISP={TQQQ:'TQQQ',QLD:'QLD',QQQ:'QQQ',SCHD:'SCHD',GLD:'GLD',SGOV:'SGOV',CASH:'현금'};
 const SCHD_FALLBACK=32.3;                                  // 시세 미수집 시 임시 단가($)
 const schdPx=row=>(row&&row.schd!=null&&!isNaN(+row.schd))?+row.schd:SCHD_FALLBACK;
@@ -2672,17 +2702,7 @@ function renderIndicators(r){
    목표를 별도 막대로 또 그리지 않는다. 아래 행의 눈금이 같은 정보를 더 정확히 준다. */
 /* ★ v15.0.1 현재 비중 알약의 색 — 조각 색을 한 줄 그라디언트로 잇는다.
    경계마다 ±min(4%, 좁은 쪽 조각 폭의 35%)에 걸쳐 두 색을 섞어 끊김 없이 넘어가게 한다. */
-function pillFill(shown){
-  const S=shown.reduce((a,x)=>a+x[1],0)||1; let acc=0;
-  const seg=shown.map(([n,v])=>{ const a=acc; acc+=v/S*100; return {c:ALLOC_GRAD[n]||'#94A5B6', a, b:acc, w:v/S*100}; });
-  const st=[];
-  seg.forEach((g,i)=>{
-    const dl=i>0?Math.min(4,0.35*Math.min(g.w,seg[i-1].w)):0;
-    const dr=i<seg.length-1?Math.min(4,0.35*Math.min(g.w,seg[i+1].w)):0;
-    st.push(g.c+' '+(g.a+dl).toFixed(2)+'%', g.c+' '+(g.b-dr).toFixed(2)+'%');
-  });
-  return '<div class="pfill" style="--g:linear-gradient(90deg,'+st.join(',')+')"></div>';
-}
+let allocDonut=null;   // ★ v15.2 — 현재 비중 도넛(Chart.js). 처음 한 번만 만들고 그 뒤엔 값만 조용히 갱신한다(§116).
 function renderAllocBars(){
   const w=CUR.w, t=tgtOf(CUR);   // ★ v15.0 배당유지+금 — SCHD = max(현재 비중, 바닥) · 나머지를 래더(TQQQ w · GLD/SGOV 7:3)로
   const stockVal = CUR_PORT?CUR_PORT.val:null;
@@ -2702,11 +2722,6 @@ function renderAllocBars(){
   const curWt=(CUR_PORT&&CUR_PORT.total>0)?(((CUR_PORT.val&&CUR_PORT.val.TQQQ)||0)/CUR_PORT.total):null;
   const banded = reband>0 && curWt!=null && Math.abs(curWt-t.TQQQ)<reband;   // 목표 TQQQ = w × (1 − SCHD) · 밴드 내면 매매 생략
   const shown = cur.filter(([,v])=>v>0.0001);
-  const pill = shown.length
-    ? pillFill(shown) + shown.map(([n,v])=>`<div class="pseg" style="flex:${v};--c:${ALLOC_GRAD[n]}" title="${ALLOC_DISP[n]} ${Math.round(v*1000)/10}%">`
-        +(v>=0.17?`<span class="t">${ALLOC_DISP[n]}</span>`:'')
-        +(v>=0.09?`<span class="p">${Math.round(v*100)}%</span>`:'')+`</div>`).join('')
-    : '<div class="pseg empty">보유 종목이 없습니다</div>';
   const rows = TK.map(k=>{
     const v=(cur.find(x=>x[0]===k)||[k,0])[1], tg=t[k], sh=sharesFor(k);
     const shN = sh===null?null:Math.floor(Math.abs(sh));
@@ -2717,17 +2732,83 @@ function renderAllocBars(){
     else if(sh>0) act=`<b class="up">+${shN}주</b>`;
     else act=`<b class="down">−${shN}주</b>`;
     const wide=v>=0.16;
-    return `<div class="arow" style="--d3:${(0.10+TK.indexOf(k)*0.16).toFixed(2)}s"><span class="k"><i style="background:${ALLOC_COLORS[k]}"></i>${k}</span>`
+    return `<div class="arow" data-k="${k}" style="--d3:${(0.10+TK.indexOf(k)*0.16).toFixed(2)}s"><span class="k"><i style="background:${ALLOC_COLORS[k]}"></i>${k}</span>`
       + `<span class="rail"><b style="width:${Math.max(v*100,1.6).toFixed(1)}%;--c:${ALLOC_GRAD[k]}">`
       + (wide?`<span class="p">${Math.round(v*100)}%</span>`:'') + `</b>`
       + `<span class="mkc"><u style="left:calc((100% - 8px) * ${tg.toFixed(4)} + 4px)" title="목표 ${Math.round(tg*100)}%"></u></span>`
       + (wide?'':`<span class="out">${Math.round(v*100)}%</span>`) + `</span>`
       + `<span class="act">${act}</span></div>`;
   }).join('');
-  el.innerHTML = `<div class="abar-label">현재 비중${hasCur?'':' (보유 없음)'}</div>`
-    + `<div class="pbar">${pill}</div>`
-    + `<div class="arow-list">${rows}</div>`
-    + `<div class="arow-cap">채움 = 현재 · 흰 눈금 = 목표(TQQQ ${Math.round(t.TQQQ*100)}% · SCHD ${Math.round(t.SCHD*100)}%(바닥 ${Math.round(t.f*100)}% · 팔지 않음) · GLD·SGOV 7:3) · 오른쪽 = 맞추는 데 필요한 주수</div>`;
+  // ★ v15.2 — 누적 알약 · 설명문 대신 이중 도넛 + 막대(§116). 도넛 DOM 은 한 번만 만든다 — innerHTML 로 매번 갈면
+  //   캔버스가 새로 생겨 회전 애니메이션이 매 갱신마다 돌고, 값이 바뀐 것으로 오해한다.
+  let list = (el.querySelector ? el.querySelector('.alloc-split>.arow-list') : null);
+  if(!list){
+    el.innerHTML = `<div class="abar-label">현재 비중${hasCur?'':' (보유 없음)'}</div>`
+      + `<div class="alloc-split"><div class="donut-wrap"><canvas id="allocDonut" aria-label="현재 비중 도넛"></canvas>`
+      + `<div class="donut-center"><div class="donut-center-sub" id="allocDcTop"></div><div class="donut-center-value" id="allocDcVal"></div><div class="donut-center-label" id="allocDcLab"></div></div></div>`
+      + `<div class="arow-list">${rows}</div></div>`;
+  } else {
+    const lab=el.querySelector('.abar-label'); if(lab) lab.textContent='현재 비중'+(hasCur?'':' (보유 없음)');
+    list.innerHTML=rows;
+  }
+  drawAllocDonut(el, shown, t, hasCur);
+}
+/* ★ v15.2 — 이중 도넛(§116). 바깥 두꺼운 링 = 지금 비중(weight 2.4), 안쪽 얇은 링 = 목표 비중(weight 1 · 반투명 .5).
+   설정은 첨부 참고 앱의 도넛 그대로: cutout · 테두리 0 · hoverOffset · 회전+확대 700ms easeOutCubic · 툴팁 테마 · 가운데 글자(조각에 올리면 그 조각, 떠나면 복귀).
+   가운데 기본 = 가장 큰 종목(%) 과 그 목표. 막대 행에 올리면 같은 조각이 튀어나온다. */
+function drawAllocDonut(el, shown, t, hasCur){
+  const cv=document.getElementById('allocDonut'); if(!cv||typeof Chart==='undefined') return;
+  const TK=['TQQQ','SCHD','GLD','SGOV'], CARD='#20262F';   // 링 사이 틈 = 카드 합성색(--e03)
+  const EMPTY='rgba(255,255,255,.06)';
+  const rgba=(h,a)=>{ const x=parseInt(h.slice(1),16); return 'rgba('+(x>>16&255)+','+(x>>8&255)+','+(x&255)+','+a+')'; };
+  const s=shown.map(x=>x[0]), sv=shown.map(x=>x[1]*100);
+  const ts=TK.filter(k=>t[k]>0.0001), tv=ts.map(k=>t[k]*100);
+  const dsCur = hasCur
+    ? {label:'지금',data:sv,backgroundColor:s.map(k=>ALLOC_COLORS[k]),borderWidth:0,hoverBorderColor:'transparent',hoverOffset:6,weight:2.4}
+    : {label:'지금',data:[100],backgroundColor:[EMPTY],hoverBackgroundColor:[EMPTY],borderWidth:0,hoverOffset:0,weight:2.4};
+  const dsTgt = {label:'목표',data:tv,backgroundColor:ts.map(k=>rgba(ALLOC_COLORS[k],.5)),hoverBackgroundColor:ts.map(k=>rgba(ALLOC_COLORS[k],.5)),
+    borderWidth:1.5,borderColor:CARD,hoverBorderColor:CARD,hoverOffset:0,weight:1};
+  const lead = hasCur ? s[sv.indexOf(Math.max.apply(null,sv))] : null;
+  const center=(k)=>{ const q=id=>document.getElementById(id); if(!q('allocDcVal')) return;
+    if(!k){ q('allocDcTop').textContent=''; q('allocDcVal').textContent=hasCur?'':'보유 없음'; q('allocDcLab').textContent=''; return; }
+    const v=shown.find(x=>x[0]===k);
+    q('allocDcTop').textContent=k; q('allocDcVal').textContent=Math.round((v?v[1]:0)*100)+'%'; q('allocDcLab').textContent='목표 '+Math.round((t[k]||0)*100)+'%'; };
+  const reset=()=>center(lead);
+  const keyOf=(c)=>{ const hv=allocDonut.$hover||[s,ts]; return c.datasetIndex===0?hv[0][c.index]:hv[1][c.index]; };
+  if(allocDonut && allocDonut.canvas===cv){
+    allocDonut.data.datasets[0]=dsCur; allocDonut.data.datasets[1]=dsTgt; allocDonut.$hover=[s,ts]; allocDonut.update('none');   // 값만 조용히
+  } else {
+    if(allocDonut){ try{ allocDonut.destroy(); }catch(e){} }
+    if(Chart.defaults&&Chart.defaults.plugins&&Chart.defaults.plugins.tooltip){ const tt=Chart.defaults.plugins.tooltip;
+      tt.backgroundColor='rgba(40,49,61,.96)'; tt.titleColor='rgba(255,255,255,.87)'; tt.bodyColor='rgba(255,255,255,.87)'; tt.borderColor='rgba(255,255,255,.10)'; tt.borderWidth=1; }
+    const reduced = !!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);   // ⚠️ 검사 하네스는 전역 matchMedia 가 없다 — window. 을 붙인다
+    allocDonut=new Chart(cv,{type:'doughnut',data:{labels:[],datasets:[dsCur,dsTgt]},
+      options:{cutout:'58%',responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{ const k=keyOf(c); return k?(c.dataset.label+' '+k+' '+Math.round(c.raw)+'%'):''; }}}},
+        animation:reduced?{duration:0}:{animateScale:true,animateRotate:true,duration:700,easing:'easeOutCubic'},
+        onHover:(e,els)=>{ if(!els||!els.length) return reset(); const k=keyOf(els[0]); if(k) center(k); else reset(); }}});
+    allocDonut.$hover=[s,ts];
+    cv.onmouseleave=reset;
+    mountAllocSpark(el);
+  }
+  reset();
+  (el.querySelectorAll ? el.querySelectorAll('.arow') : []).forEach(r=>{
+    const k=r.dataset&&r.dataset.k, i=s.indexOf(k);
+    r.onmouseenter=()=>{ if(!allocDonut||!allocDonut.setActiveElements) return; allocDonut.setActiveElements(i>=0?[{datasetIndex:0,index:i}]:[]); allocDonut.update(); if(k) center(k); };
+    r.onmouseleave=()=>{ if(!allocDonut||!allocDonut.setActiveElements) return; allocDonut.setActiveElements([]); allocDonut.update(); reset(); };
+  });
+}
+/* 도는 용 빛 — 참고 앱 _mountDonutSparks() 그대로(마디 12 · 머리 0° → 꼬리 −8.5°씩 · 크기 −.05 · 세기 (1−k/12)^1.3 · 위상 −.28s).
+   광원을 심는 같은 순간에 전체 숨(.donut-live)을 켠다 — 미리 켜 두면 둘의 박자가 어긋난다. */
+function mountAllocSpark(el){
+  const w = el.querySelector ? el.querySelector('.donut-wrap') : null;
+  if(!w || (w.querySelector && w.querySelector(':scope > .donut-spark'))) return;
+  const d=document.createElement('div'); d.className='donut-spark';
+  const SEG=12;
+  for(let k=0;k<SEG;k++){ const seg=document.createElement('i');
+    seg.style.setProperty('--a',(-8.5*k).toFixed(1)+'deg'); seg.style.setProperty('--s',(1-0.05*k).toFixed(2));
+    seg.style.setProperty('--o',Math.pow(1-k/SEG,1.3).toFixed(3)); seg.style.setProperty('--ph',(-0.28*k).toFixed(2)+'s'); d.appendChild(seg); }
+  w.classList.add('donut-live'); w.appendChild(d);
 }
 
 let CHART_RANGE=260;
