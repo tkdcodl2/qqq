@@ -869,7 +869,7 @@ tbody td{border-bottom-color:var(--row-line)}
 .alloc-split .arow-list{border-top:none;padding-top:0}
 @media(max-width:560px){.alloc-split{grid-template-columns:1fr;gap:16px}.alloc-split>.donut-wrap{margin:0 auto}}
 .donut-wrap{position:relative;container-type:inline-size;width:140px;height:140px;
-  --h1:rgba(224,137,124,.52);--h2:rgba(229,155,144,.58);--h3:rgba(175,107,97,.38);--sk1:235,178,168;--sk2:224,137,124}   /* v15.3 — 다홍 #E0897C 계열 */
+  --h1:rgba(197,144,117,.52);--h2:rgba(205,161,138,.58);--h3:rgba(154,112,91,.38);--sk1:217,183,166;--sk2:197,144,117}   /* v15.5 — TQQQ = 달걀 B1 #C59075 계열 */
 .donut-wrap>canvas{position:relative;z-index:1}
 .donut-wrap>.donut-center{z-index:2}
 .donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;max-width:82%;pointer-events:none}
@@ -2220,7 +2220,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='15.4';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
+const APP_VERSION='15.5';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -2244,8 +2244,8 @@ function runCountUp(){
 }
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
 const pct = n => (n>=0?'+':'')+ (n*100).toFixed(1)+'%';
-const ALLOC_COLORS={TQQQ:'#E0897C',QLD:'#BD957F',QQQ:'#A796B6',SCHD:'#8EB294',GLD:'#D3BF86',SGOV:'#819DC3',CASH:'#94A5B6'};   // ★ v15.4 §118 — 다홍(참고 파일 --red) 그대로 · 녹색 · 노랑 · 파랑은 v15.3 에서 채도 ×0.75 · 밝기 −0.02(OKLCH)로 살짝 가라앉힘. 바꾸면 CSS .donut-wrap 의 --h1~3 · --sk1~2 도 같이.   // 차트 10슬롯 + 중립 슬레이트. GLD=금 톤(#EBCB8B, §41 gold — 레짐3 선색과 공유하나 차트 종류가 달라 충돌 없음)
-const ALLOC_GRAD={TQQQ:'#E0897C',QLD:'#BD957F',QQQ:'#A796B6',SCHD:'#8EB294',GLD:'#D3BF86',SGOV:'#819DC3',CASH:'#94A5B6'};
+const ALLOC_COLORS={TQQQ:'#C59075',QLD:'#BD957F',QQQ:'#A796B6',SCHD:'#BBC6A6',GLD:'#D3BF86',SGOV:'#9EB5C5',CASH:'#94A5B6'};   // ★ v15.5 §119 — 달걀 국면 색과 같은 색: TQQQ = B1 · SCHD = A2 · SGOV = B2 · GLD 는 달걀에 노랑이 없어 v15.4 그대로. 달걀 색을 바꾸면 여기와 CSS .donut-wrap 의 --h1~3 · --sk1~2 도 같이(ui_render_check 가 확인). 바꾸면 CSS .donut-wrap 의 --h1~3 · --sk1~2 도 같이.   // 차트 10슬롯 + 중립 슬레이트. GLD=금 톤(#EBCB8B, §41 gold — 레짐3 선색과 공유하나 차트 종류가 달라 충돌 없음)
+const ALLOC_GRAD={TQQQ:'#C59075',QLD:'#BD957F',QQQ:'#A796B6',SCHD:'#BBC6A6',GLD:'#D3BF86',SGOV:'#9EB5C5',CASH:'#94A5B6'};
 const ALLOC_DISP={TQQQ:'TQQQ',QLD:'QLD',QQQ:'QQQ',SCHD:'SCHD',GLD:'GLD',SGOV:'SGOV',CASH:'현금'};
 const SCHD_FALLBACK=32.3;                                  // 시세 미수집 시 임시 단가($)
 const schdPx=row=>(row&&row.schd!=null&&!isNaN(+row.schd))?+row.schd:SCHD_FALLBACK;
