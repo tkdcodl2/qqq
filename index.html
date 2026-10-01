@@ -909,6 +909,68 @@ tbody td{border-bottom-color:var(--row-line)}
 /* ★ v15.9 §123 — 로딩 중(html.boot)에는 반복(infinite) 애니메이션만 멈춘다. 카드 등장 애니메이션은 그대로 — 멈추면 카드가 투명한 채로 남는다.
    그 가운데 9개(box-shadow · background-position · 마스크 · filter)는 매 프레임 메인 스레드에서 다시 그려 시세 받기 · 계산을 밀어냈다. */
 html.boot body::before,html.boot .logo::before,html.boot .section-title .dot::after,html.boot .mkt-live,html.boot .state-box::after,html.boot .state-name::before,html.boot .gauge-track::after,html.boot .gpip.on,html.boot .gpip.on::after,html.boot .pbar::after,html.boot .arow .rail::after,html.boot .arow .rail u,html.boot .egg-box::before,html.boot .fg-bar::after,html.boot .fg-tick,html.boot .fg-row .b i::after,html.boot .arow .rail b::before,html.boot .arow .rail b::after,html.boot .pfill::before,html.boot .pfill::after,html.boot .donut-wrap>.donut-spark,html.boot .donut-spark>i::before,html.boot .donut-live>canvas{animation-play-state:paused!important}
+/* ══ ★ v16.0 §124 — 무거운 효과를 '정지한 층 + opacity/transform' 으로 (모양은 거의 같게) ══════════════════════════════
+   매 프레임 다시 그려야 하는 속성(filter · box-shadow · clip-path · mask-size/position · height)을 더는 애니메이션하지 않는다.
+   무거운 모양은 정지한 층에 한 번 그려 두고, 그 층의 opacity · transform 만 움직인다 → 브라우저가 메인 스레드 없이 합성만 한다. */
+/* ① 도넛 숨결 — 캔버스 filter 애니메이션 대신, 도넛 뒤 고리 모양 빛 층(그라디언트 · 정지)의 opacity · scale. 4.2s · 같은 위상(도는 빛과 맞춤) */
+.donut-live>canvas{animation:none!important}
+.donut-wrap>.donut-glow{position:absolute;inset:-34%;z-index:0;pointer-events:none;border-radius:50%;opacity:0;transform:scale(.94);will-change:opacity,transform;
+  background:radial-gradient(closest-side circle at 50% 50%,
+    rgba(var(--sk2),0) 0%, rgba(var(--sk2),.05) 13%, rgba(var(--sk2),.15) 23%, rgba(var(--sk1),.40) 30.5%, rgba(var(--sk2),.52) 33%,
+    rgba(var(--sk2),.52) 56%, rgba(var(--sk1),.42) 58%, rgba(var(--sk2),.27) 64%, rgba(var(--sk2),.14) 73%, rgba(var(--sk2),.06) 84%, rgba(var(--sk2),0) 100%);
+  animation:donutGlow 4.2s ease-in-out infinite}
+@keyframes donutGlow{0%,15%,85%,100%{opacity:0;transform:scale(.94)}50%{opacity:1;transform:scale(1)}}
+/* ② 막대 물결 — ::before/::after 마스크 애니메이션을 끄고 막대 안 층(.lq)으로. 채움(0→36%) · 머묾(→70%) · 빠짐(96%) 은 그대로, translateX 로 */
+.arow .rail b::before,.arow .rail b::after{content:none!important;animation:none!important}
+.arow .rail b>.lq{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;border-radius:inherit;will-change:transform;
+  animation:lqFlow 8.4s ease-in-out var(--d3,0s) infinite both}
+.arow .rail b>.lq.lq2{z-index:-1;opacity:.45;animation-delay:calc(var(--d3,0s) + .3s)}
+.arow .rail b>.lq>.flat{position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.01) 48%,rgba(0,0,0,.04)),var(--c,var(--accent));
+  -webkit-mask:linear-gradient(#000,#000) 0 10px/100% calc(100% - 10px) no-repeat,linear-gradient(90deg,#000 calc(100% - 80px),transparent) 0 0/100% 11px no-repeat;
+          mask:linear-gradient(#000,#000) 0 10px/100% calc(100% - 10px) no-repeat,linear-gradient(90deg,#000 calc(100% - 80px),transparent) 0 0/100% 11px no-repeat}
+.arow .rail b>.lq>.wv{position:absolute;inset:0;overflow:hidden;will-change:opacity;
+  -webkit-mask:linear-gradient(90deg,transparent calc(100% - 80px),#000) 0 0/100% 11px no-repeat;
+          mask:linear-gradient(90deg,transparent calc(100% - 80px),#000) 0 0/100% 11px no-repeat;
+  animation:lqCrest 8.4s ease-in-out var(--d3,0s) infinite both}
+.arow .rail b>.lq.lq2>.wv{animation-delay:calc(var(--d3,0s) + .3s)}
+.arow .rail b>.lq>.wv>i{position:absolute;top:0;bottom:0;left:-64px;right:0;will-change:transform;
+  background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.01) 48%,rgba(0,0,0,.04)),var(--c,var(--accent));
+  -webkit-mask:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 11' preserveAspectRatio='none'%3E%3Cpath d='M0 4.50 L2 5.18 L4 5.84 L6 6.44 L8 6.97 L10 7.41 L12 7.73 L14 7.93 L16 8.00 L18 7.93 L20 7.73 L22 7.41 L24 6.97 L26 6.44 L28 5.84 L30 5.18 L32 4.50 L34 3.82 L36 3.16 L38 2.56 L40 2.03 L42 1.59 L44 1.27 L46 1.07 L48 1.00 L50 1.07 L52 1.27 L54 1.59 L56 2.03 L58 2.56 L60 3.16 L62 3.82 L64 4.50 L64 11 L0 11 Z'/%3E%3C/svg%3E") 0 0/64px 11px repeat-x;mask:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 11' preserveAspectRatio='none'%3E%3Cpath d='M0 4.50 L2 5.18 L4 5.84 L6 6.44 L8 6.97 L10 7.41 L12 7.73 L14 7.93 L16 8.00 L18 7.93 L20 7.73 L22 7.41 L24 6.97 L26 6.44 L28 5.84 L30 5.18 L32 4.50 L34 3.82 L36 3.16 L38 2.56 L40 2.03 L42 1.59 L44 1.27 L46 1.07 L48 1.00 L50 1.07 L52 1.27 L54 1.59 L56 2.03 L58 2.56 L60 3.16 L62 3.82 L64 4.50 L64 11 L0 11 Z'/%3E%3C/svg%3E") 0 0/64px 11px repeat-x;
+  animation:lqWave 3s linear infinite}
+.arow .rail b>.lq>.cap{position:absolute;left:0;right:0;top:0;height:11px;will-change:opacity;opacity:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.07)),var(--c,var(--accent));
+  animation:lqCap 8.4s ease-in-out var(--d3,0s) infinite both}   /* 머묾 · 빠짐 동안 윗면을 끝까지 평평하게(원래 46~70% 의 '윗면 꽉 참') */
+.arow .rail b>.lq.lq2>.cap{animation-delay:calc(var(--d3,0s) + .3s)}
+.arow .rail b>.lq.lq2>.flat,.arow .rail b>.lq.lq2>.wv>i,.arow .rail b>.lq.lq2>.cap{background:var(--c,var(--accent))}
+.arow .rail b>.lq.lq2>.wv>i{animation-duration:5s}
+@keyframes lqFlow{0%{transform:translateX(-100%)}36%,70%{transform:translateX(0)}96%,100%{transform:translateX(100%)}}
+@keyframes lqCrest{0%,36%{opacity:1}46%,100%{opacity:0}}
+@keyframes lqCap{0%,36%{opacity:0}46%,100%{opacity:1}}
+@keyframes lqWave{from{transform:translateX(0)}to{transform:translateX(64px)}}
+/* ③ 공포탐욕 눈금 맥박 — height(매 프레임 레이아웃) · box-shadow 대신 scaleY(위 기준 18→21px) + 빛 층 opacity */
+.fg-tick{animation:tickIn .8s var(--ease) .2s both, tickBeatT 2.4s ease-in-out .95s infinite;box-shadow:0 0 9px rgba(255,255,255,.55);transform-origin:50% 0}
+.fg-tick::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;box-shadow:0 0 20px rgba(255,255,255,.95);opacity:0;animation:fxGlow 2.4s ease-in-out .95s infinite}
+@keyframes tickBeatT{0%,100%{transform:translateX(-50%) scaleY(1)}50%{transform:translateX(-50%) scaleY(1.1667)}}
+/* ④ 단계 이름 점 — box-shadow 6→18px 대신 정지 그림자(6px) + 겹친 빛 점(::after · 18px 3px) opacity */
+.state-name{position:relative}
+.state-name::before{animation:none;box-shadow:0 0 6px var(--rc,var(--glow))}
+.state-name::after{content:"";position:absolute;left:0;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;pointer-events:none;
+  box-shadow:0 0 18px 3px var(--rc,var(--glow));opacity:0;animation:fxGlow 2.4s ease-in-out infinite}
+/* ⑤ 단계 칸 빛 — box-shadow 13→24px 대신 정지 그림자 + 빛 층(::before) opacity. 칸 안 반짝임(::after)은 원래 꺼져 있어 잘림을 풀어도 같다 */
+.gpip.on{animation:pipIn .62s var(--ease) var(--d,0s) both;overflow:visible;
+  box-shadow:0 0 13px -4px color-mix(in srgb, var(--rc,var(--accent)) 40%, transparent), var(--shadow-hi)}
+.gpip.on::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  box-shadow:0 0 24px 0 color-mix(in srgb, var(--rc,var(--accent)) 85%, transparent);opacity:0;animation:fxGlow 2.6s ease-in-out var(--d,0s) infinite}
+@keyframes fxGlow{0%,100%{opacity:0}50%{opacity:1}}
+html.boot .donut-wrap>.donut-glow,html.boot .arow .rail b>.lq,html.boot .arow .rail b>.lq>.wv,html.boot .arow .rail b>.lq>.wv>i,html.boot .arow .rail b>.lq>.cap,html.boot .fg-tick::after,html.boot .state-name::after,html.boot .gpip.on::before{animation-play-state:paused!important}
+@media (prefers-reduced-motion: reduce){
+  .donut-wrap>.donut-glow{display:none}
+  .arow .rail b>.lq,.arow .rail b>.lq>.wv>i{animation:none!important;transform:none!important}
+  .arow .rail b>.lq>.wv{animation:none!important;opacity:0}
+  .arow .rail b>.lq>.cap{animation:none!important;opacity:1}
+  .fg-tick::after,.state-name::after,.gpip.on::before{animation:none!important;opacity:0}
+}
 </style>
 </head>
 <body>
@@ -2309,7 +2371,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='15.9';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
+const APP_VERSION='16.0';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -2829,6 +2891,7 @@ function renderAllocBars(){
     const wide=v>=0.16;
     return `<div class="arow" data-k="${k}" style="--d3:${(0.10+TK.indexOf(k)*0.16).toFixed(2)}s"><span class="k"><i style="background:${ALLOC_COLORS[k]}"></i>${k}</span>`
       + `<span class="rail"><b style="width:${Math.max(v*100,1.6).toFixed(1)}%;--c:${ALLOC_GRAD[k]}">`
+      + `<span class="lq"><span class="flat"></span><span class="wv"><i></i></span><span class="cap"></span></span><span class="lq lq2"><span class="flat"></span><span class="wv"><i></i></span><span class="cap"></span></span>`   // ★ v16.0 §124 — 물결을 합성 전용 층으로
       + (wide?`<span class="p">${Math.round(v*100)}%</span>`:'') + `</b>`
       + `<span class="mkc"><u style="left:calc((100% - 8px) * ${tg.toFixed(4)} + 4px)" title="목표 ${Math.round(tg*100)}%"></u></span>`
       + (wide?'':`<span class="out">${Math.round(v*100)}%</span>`) + `</span>`
@@ -2903,6 +2966,7 @@ function mountAllocSpark(el){
   for(let k=0;k<SEG;k++){ const seg=document.createElement('i');
     seg.style.setProperty('--a',(-8.5*k).toFixed(1)+'deg'); seg.style.setProperty('--s',(1-0.05*k).toFixed(2));
     seg.style.setProperty('--o',Math.pow(1-k/SEG,1.3).toFixed(3)); seg.style.setProperty('--ph',(-0.28*k).toFixed(2)+'s'); d.appendChild(seg); }
+  const g=document.createElement('i'); g.className='donut-glow'; w.insertBefore(g, w.firstChild);   // ★ v16.0 §124 — 숨결 = 정지한 고리 빛 층의 opacity · scale(캔버스 filter 애니메이션 대신)
   w.classList.add('donut-live'); w.appendChild(d);
 }
 
