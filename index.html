@@ -1010,6 +1010,11 @@ html.boot .arow .rail b>.lq>.cap2,html.boot .arow .rail b>.lq>.cap0{animation-pl
   .gpip.on{animation:none!important}
   .arow .rail b>.lq>.wv.wv2,.arow .rail b>.lq>.cap2,.arow .rail b>.lq>.cap0{animation:none!important;opacity:0}
 }
+/* ★ v16.6 §131 — 보유 표 현재가 옆 세션 배지(장중 · 프리장 · 애프터장 · 데이장 · 전일종가) */
+.lq-sess{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:99px;font-size:10px;font-weight:600;line-height:1.5;vertical-align:1px;
+  background:var(--ov06);color:var(--text2);font-family:inherit;letter-spacing:0}
+.lq-sess.day{color:#9EB5C5}
+.lq-sess.prev{opacity:.7}
 </style>
 </head>
 <body>
@@ -2428,7 +2433,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='16.4';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
+const APP_VERSION='16.6';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -2541,7 +2546,8 @@ async function init(){
   pfMigrateCheck();                       // v15.0.6 — 이 앱 DB 에만 있는 기존 기록 옮기기 제안(기다리지 않는다)
   initMkt();                              // 시장 지표는 마지막에 — 조회가 느려도 대시보드를 막지 않는다
   autoRefreshPrices('open');              // ★ v15.8 §122 — 열 때마다 새 종가를 받아 온다(대시보드를 먼저 그린 뒤, 뒤에서)
-  watchResume();                          // ★ v15.8 — 폰에서 백그라운드 10분+ 뒤 다시 열면 한 번 더
+  watchResume();
+  startLivePoll();                         // ★ v16.6 §131 — 화면이 보이는 동안 60초마다 현재가                          // ★ v15.8 — 폰에서 백그라운드 10분+ 뒤 다시 열면 한 번 더
 }
 
 /* ===================== 시장 지표 스트립 (§83 v14.9) =====================
@@ -2925,8 +2931,25 @@ function provisionalPort(){
   let o=null; try{ o=JSON.parse(localStorage.getItem(HOLD_KEY)||'null'); }catch(e){ return null; }
   if(!o||o.v!==1||!o.qty) return null;
   const v={QQQ:0,QLD:0,TQQQ:0,SCHD:0,GLD:0,SGOV:0}; let tot=0;
-  for(const k in v){ const q=+o.qty[k]||0; if(q<=1e-9) continue; const px=pxAt(CUR,k); if(px==null) continue; v[k]=q*px*FXNOW; tot+=v[k]; }
+  for(const k in v){ const q=+o.qty[k]||0; if(q<=1e-9) continue; const px=pxNow(k); if(px==null) continue; v[k]=q*px*FXNOW; tot+=v[k]; }
   return tot>0 ? {total:tot, val:v, provisional:true} : null;
+}
+/* ★ v16.6 — 막대 행을 통째로 갈지 않고 필요한 곳만 고친다: 채움 폭 · 색 · 글자 · 목표 눈금 · 주수. 물결 층(.lq)은 그대로 두어 애니메이션이 이어진다. */
+function patchAllocRows(list, html){
+  const tmp=document.createElement('div'); tmp.innerHTML=html;
+  const nw=[...tmp.children], old=[...list.children];
+  const same = nw.length===old.length && nw.every((r,i)=>old[i].dataset && r.dataset && old[i].dataset.k===r.dataset.k);
+  if(!same || !list.querySelector || !tmp.querySelector){ list.innerHTML=html; return; }
+  nw.forEach((r,i)=>{
+    const o=old[i], q=(el,s)=>el.querySelector(s);
+    const ob=q(o,'.rail>b'), nb=q(r,'.rail>b'); if(ob&&nb) ob.setAttribute('style', nb.getAttribute('style'));
+    const op=q(o,'.rail>b>.p'), np=q(r,'.rail>b>.p');
+    if(!!op!==!!np){ list.replaceChild(r, o); return; }   // 글자 위치(안 · 밖)가 바뀌면 그 행만 교체
+    if(op&&np) op.textContent=np.textContent;
+    const oo=q(o,'.rail>.out'), no=q(r,'.rail>.out'); if(oo&&no) oo.textContent=no.textContent;
+    const ou=q(o,'.mkc>u'), nu=q(r,'.mkc>u'); if(ou&&nu){ ou.setAttribute('style', nu.getAttribute('style')); ou.title=nu.title; }
+    const oa=q(o,'.act'), na=q(r,'.act'); if(oa&&na&&oa.innerHTML!==na.innerHTML) oa.innerHTML=na.innerHTML;
+  });
 }
 function renderAllocBars(){
   const w=CUR.w, t=tgtOf(CUR);   // ★ v15.0 배당유지+금 — SCHD = max(현재 비중, 바닥) · 나머지를 래더(TQQQ w · GLD/SGOV 7:3)로
@@ -2942,7 +2965,7 @@ function renderAllocBars(){
   function sharesFor(k){
     if(!PORT||!CUR||PORT.total<=0) return null;
     const deltaVal=t[k]*PORT.total-((PORT.val&&PORT.val[k])||0);   // +면 매수, −면 매도
-    const px=pxAt(CUR,k), priceKRW=(px!=null?px:0)*FXNOW;
+    const px=pxNow(k), priceKRW=(px!=null?px:0)*FXNOW;
     return priceKRW>0 ? deltaVal/priceKRW : null;
   }
   const reband=((STRAT&&STRAT.params&&+STRAT.params.rebBand)||0)/100;
@@ -2977,7 +3000,7 @@ function renderAllocBars(){
       + `<div class="arow-list">${rows}</div></div>`;
   } else {
     const lab=el.querySelector('.abar-label'); if(lab) lab.textContent='현재 비중'+((hasCur||pending)?'':' (보유 없음)');
-    list.innerHTML=rows;
+    patchAllocRows(list, rows);   // ★ v16.6 — 같은 종목 행이면 폭 · 글자만 제자리 갱신(물결이 매분 다시 시작하지 않게)
   }
   drawAllocDonut(el, shown, t, hasCur, pending);
 }
@@ -3672,7 +3695,7 @@ function openTrade(id){
     document.getElementById('f_date').value=todayStr();   // v12.0: CUR.date(미국 마지막 거래일)가 아니라 오늘 날짜
     document.getElementById('f_type').value='buy';document.getElementById('f_ticker').value=regBuy(CUR.regime);
     const _tk=document.getElementById('f_ticker').value;
-    document.getElementById('f_qty').value='';const _px=pxAt(CUR,_tk); document.getElementById('f_price').value=_px!=null?_px.toFixed(2):'';   // SGOV 분기가 없어 undefined.toFixed로 터졌던 자리
+    document.getElementById('f_qty').value='';const _px=pxNow(_tk); document.getElementById('f_price').value=_px!=null?_px.toFixed(2):'';   // SGOV 분기가 없어 undefined.toFixed로 터졌던 자리
     document.getElementById('f_div_amt').value='';
     DIV_CCY='USD'; applyDivCcyUI();
     applyFxForDate(true);                               // 날짜(오늘) 환율 자동 적용
@@ -3779,7 +3802,7 @@ function qtUSD(krw){ return '$'+(krw/(QT.fx||FXNOW)).toLocaleString('en-US',{min
 function qtNum(q){ return (+q).toLocaleString('ko-KR',{maximumFractionDigits:4}); }
 function openQuickTrade(ticker, side){
   if(!CUR){ flash('시세 로딩 중입니다. 잠시 후 다시 시도하세요'); return; }
-  const price = pxAt(CUR,ticker);
+  const price = pxNow(ticker);   // ★ v16.6 — 현재가(없으면 종가)
   if(price==null||!(price>0)){ flash(ticker+' 현재가를 가져올 수 없습니다'); return; }
   QT={ticker, side, price, fx:FXNOW, cash:CUR_CASH||0, held:HOLD_QTY[ticker]||0, qty:0, amount:0, pct:0};
   const ov=document.getElementById('qtModal');
@@ -3918,9 +3941,9 @@ async function fixRealized(id, v){
   flash('실현손익을 장부 값 '+won(v)+'으로 채웠습니다 — 저장을 누르면 반영됩니다');
 }
 /* ===================== 수익분석 ===================== */
-async function renderProfit(){
-  const ts=await getTrades(); TRADES_CACHE=ts;
-  const last={}; ['QQQ','QLD','TQQQ','SCHD','GLD','SGOV'].forEach(k=>last[k]=pxAt(CUR,k));
+async function renderProfit(pre){   // ★ v16.6 — pre: 받아 둔 매매이력(현재가만 바뀐 다시 그리기는 다시 받지 않는다)
+  const ts=Array.isArray(pre)?pre:await getTrades(); TRADES_CACHE=ts;
+  const last={}; ['QQQ','QLD','TQQQ','SCHD','GLD','SGOV'].forEach(k=>last[k]=pxNow(k));   // ★ v16.6 — 현재가(없으면 종가)
   const fxNow=FXNOW;
   const H={}; ['QQQ','QLD','TQQQ','SCHD','GLD','SGOV'].forEach(k=>H[k]={qty:0,cost:0}); // cost in KRW of remaining (avg)
   let totalRealized=0, totalDividend=0, cash=0, netDeposits=0, sellCount=0;
@@ -3958,7 +3981,7 @@ async function renderProfit(){
   const hb=document.getElementById('holdBody');
   hb.innerHTML=rows.length?rows.map(r=>`<tr><td class="tkr">${tkrCell(r.k)}</td><td class="mono">${(+r.qty).toLocaleString('ko-KR',{maximumFractionDigits:0})}</td>
     <td class="mono">$${r.avgUSD.toFixed(2)}</td>
-    <td class="mono">$${r.price.toFixed(2)}</td>
+    <td class="mono">$${r.price.toFixed(2)}${lqBadge(r.k)}</td>
     <td class="mono">${won(r.cost)}${usdSub(r.cost)}</td>
     <td class="mono">${won(r.val)}${usdSub(r.val)}</td>
     <td class="mono ${r.pl>=0?'up':'down'}">${won(r.pl)}${usdSub(r.pl)}</td>
@@ -3973,7 +3996,8 @@ async function renderProfit(){
   let todayPL=0;
   if(SERIES.length>=2){ const prev=SERIES[SERIES.length-2];
     rows.forEach(r=>{
-      const pv=pxAt(prev,r.k), cp=pxAt(CUR,r.k);
+      const q=liveFresh()&&LIVEQ[r.k];   // ★ v16.6 — 현재가가 있으면 그 기준가(정규장이면 전일 종가 · 확장 시간이면 그날 정규장) 대비
+      const pv=q?((q.prevClose>0)?q.prevClose:pxAt(CUR,r.k)):pxAt(prev,r.k), cp=q?q.price:pxAt(CUR,r.k);
       if(pv==null||cp==null) return;      // 전일/당일 시세가 없는 종목은 제외 — NaN이 합계 전체를 오염시킨다
       todayPL += (+H[r.k].qty) * (cp-pv) * fxNow;
     }); }
@@ -4562,6 +4586,121 @@ function switchTab(t){
    Supabase Edge Function 'fetch-market-data'(db/fetch-market-data.ts)가 네이버→야후 순으로
    4종목 종가와 USD/KRW를 받아 market_data에 upsert한다. 평소에는 cron이 돌리고, 이 버튼은 즉시 실행용.
    함수가 없거나 호출이 막혀도 DB 재조회는 항상 수행한다 — cron이 이미 갱신해 둔 경우가 있기 때문. */
+/* ══ ★ v16.6 §131 — 현재가(정규장 · 프리장 · 애프터장 · 데이장): 포트폴리오 앱과 같은 방식 ══════════════════════════
+   프록시 = 포트폴리오 프로젝트의 financial-proxy(헤더는 Content-Type 만 — 그쪽 앱과 같음).
+   ① 야후 v7 quote 배치({url, yahoo:true}) · marketState 로 가격 선택 ② 데이장(ET 20:00~04:00, 일~목 밤)엔 KIS 주간거래({kisOverseas:true, mode:'day'})
+   ③ 어디서도 못 받으면 DB 마지막 종가. 보유 평가 · 금일손익 · 비중 · 주수 · 매매 기본가 · 환율에만 쓴다 — 신호(레짐 · 달걀 · 래더)는 종가 그대로. */
+const PROXY_URL = String(PF.url||'').replace(/\/+$/,'') + '/functions/v1/financial-proxy';
+const LQ_SYMS = ['TQQQ','SCHD','GLD','SGOV','QQQ','QLD'];
+const LQ_LABEL = {PRE:'프리장', REGULAR:'장중', POST:'애프터장', POSTPOST:'애프터장', PREPRE:'장전', CLOSED:'마감', DAY:'데이장'};
+const LQ_FRESH_MS = 15*60*1000, LQ_POLL_MS = 60*1000;
+let LIVEQ = {}, LIVEQ_AT = 0, LIVE_FX = null, LIVEQ_ERR = '', _lqTimer = null;
+let lqNow = () => new Date();   // 검사에서 시각을 바꿔 끼울 수 있게
+function _etParts(d){
+  const parts = new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(d||lqNow());
+  const get = t => (parts.find(x=>x.type===t)||{}).value;
+  return {wd:get('weekday'), mins:(Number(get('hour'))%24)*60+Number(get('minute'))};
+}
+/* 포트폴리오 앱 _usSession · _usDayMarketOpen 과 같은 경계(DST 는 Intl 이 처리) */
+function usSession(d){
+  try{ const {wd,mins}=_etParts(d); if(wd==='Sat'||wd==='Sun') return 'CLOSED';
+    if(mins>=240&&mins<570) return 'PRE'; if(mins>=570&&mins<960) return 'REGULAR'; if(mins>=960&&mins<1200) return 'POST'; return 'CLOSED'; }
+  catch(e){ return null; }
+}
+function usDayMarketOpen(d){
+  try{ const {wd,mins}=_etParts(d);
+    if(mins>=1200 && ['Sun','Mon','Tue','Wed','Thu'].includes(wd)) return true;   // 20:00 ET ~ 자정
+    if(mins<240 && ['Mon','Tue','Wed','Thu','Fri'].includes(wd)) return true;     // 자정 ~ 04:00 ET
+    return false; }
+  catch(e){ return false; }
+}
+/* 포트폴리오 앱 _extPickPrice 와 같은 순서 — 세션이 비활성이면 야후가 {} 를 주므로 '숫자인지'로 판정한다 */
+function lqPick(q){
+  const num = v => (typeof v==='number' && isFinite(v) && v>0) ? v : null;
+  const pre=num(q.preMarketPrice), post=num(q.postMarketPrice), reg=num(q.regularMarketPrice), pc=num(q.regularMarketPreviousClose);
+  const st=q.marketState||null; let price=null, session=st;
+  if(st==='PRE') price=pre||reg||pc;
+  else if(st==='REGULAR') price=reg||pc;
+  else if(st==='POST'||st==='POSTPOST') price=post||reg||pc;
+  else price=post||pre||reg||pc;
+  if(price==null) return null;
+  if(price===pre && st!=='REGULAR') session='PRE'; else if(price===post && st!=='REGULAR') session='POST';
+  const isPrevOnly = (price===pc && price!==reg);
+  // 확장 시간(프리 · 애프터)의 기준은 그날 정규장 가격, 정규장이면 전일 종가
+  const prevClose = (session==='PRE'||session==='POST'||session==='POSTPOST') ? (reg||pc) : pc;
+  return {price, prevClose: prevClose||null, session, isPrevOnly};
+}
+async function proxyPost(body, ms){
+  const r = await fetch(PROXY_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body), signal:AbortSignal.timeout(ms||9000)});
+  if(!r.ok){ let t=''; try{ t=(await r.text()).replace(/\s+/g,' ').slice(0,60); }catch(e){} const e=new Error('HTTP '+r.status+(t?' · '+t:'')); e.status=r.status; throw e; }
+  return r.json();
+}
+async function fetchLiveQuotes(){
+  if(DEMO || !PF.url) return false;
+  const out={}, why=[]; let fx=null;
+  try{   // ① 야후 배치 — 정규 · 프리 · 애프터 + 환율
+    const url='https://query2.finance.yahoo.com/v7/finance/quote?symbols='+encodeURIComponent(LQ_SYMS.concat(['KRW=X']).join(','));
+    const j=await proxyPost({url, yahoo:true}, 9000);
+    const list=(((j&&j.data)||j||{}).quoteResponse||{}).result||[];
+    list.forEach(q=>{ if(!q||!q.symbol) return;
+      if(q.symbol==='KRW=X'){ const v=+q.regularMarketPrice; if(v>900&&v<2500) fx=v; return; }
+      const p=lqPick(q); if(p) out[q.symbol]=p; });
+    if(!list.length) why.push('야후 응답 비어 있음');
+  }catch(e){ why.push('야후 '+(e&&e.message||e)); }
+  if(usDayMarketOpen()){   // ② 데이장 — 야후는 20:00 ET 이후 값을 멈춘다
+    try{
+      const j=await proxyPost({kisOverseas:true, symbols:LQ_SYMS, mode:'day'}, 20000);
+      Object.entries((j&&j.data)||{}).forEach(([sym,v])=>{
+        const pr=+v.price, base=(+v.base>0)?+v.base:null; if(!(pr>0)) return;
+        if(v.isPrevOnly && out[sym]) return;   // 데이장 체결 없음 — 야후 값을 둔다
+        out[sym]={price:pr, prevClose:base, session:'DAY', isPrevOnly:!!v.isPrevOnly};
+      });
+      if(j && !j.found && j.asked) why.push('데이장 0/'+j.asked+((j.reasons||[]).length?' · '+String(j.reasons[0]).slice(0,40):''));
+    }catch(e){ why.push('데이장 '+(e&&e.message||e)); }
+  }
+  for(const k of Object.keys(out)){   // ③ 이상값 — DB 마지막 종가의 절반~2배 밖이면 버린다(종목 매핑 오류 방지)
+    const c=CUR?pxAt(CUR,k):null;
+    if(c>0 && (out[k].price<c*0.5 || out[k].price>c*2)){ why.push(k+' 이상값 '+out[k].price); delete out[k]; }
+  }
+  LIVEQ_ERR=why.join(' · ');
+  if(!Object.keys(out).length) return false;
+  LIVEQ=out; LIVEQ_AT=Date.now(); if(fx) LIVE_FX=fx;
+  return true;
+}
+function liveFresh(){ return !!LIVEQ_AT && (Date.now()-LIVEQ_AT) < LQ_FRESH_MS; }
+function pxNow(k){ const q=liveFresh()&&LIVEQ[k]; return (q&&q.price>0) ? q.price : pxAt(CUR,k); }
+function lqTime(){ return LIVEQ_AT ? new Date(LIVEQ_AT).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:false}) : ''; }
+function lqLabelOf(q){ return q ? (q.isPrevOnly ? '전일종가' : (LQ_LABEL[q.session]||q.session||'')) : ''; }
+function lqSummary(){ const q=LIVEQ.TQQQ||Object.values(LIVEQ)[0]; return (lqLabelOf(q)||'현재가')+' · '+lqTime(); }
+function lqBadge(k){
+  const q=liveFresh()&&LIVEQ[k]; if(!q) return '';
+  const lab=lqLabelOf(q); if(!lab) return '';
+  return '<span class="lq-sess'+(q.session==='DAY'?' day':'')+(q.isPrevOnly?' prev':'')+'" title="현재가 '+lab+' · '+lqTime()+' 기준">'+lab+'</span>';
+}
+/* 60초마다(화면이 보일 때) 현재가만 다시 — 평가만 고친다(매매이력은 받아 둔 것으로 · 막대는 제자리 갱신) */
+function startLivePoll(){
+  if(_lqTimer || DEMO) return;
+  _lqTimer=setInterval(async()=>{
+    if(document.hidden) return;
+    const ok=await fetchLiveQuotes().catch(()=>false);
+    if(ok){ if(LIVE_FX) FXNOW=LIVE_FX; try{ await renderProfit(TRADES_CACHE); }catch(e){ console.warn('현재가 반영 실패', e); } }
+  }, LQ_POLL_MS);
+}
+/* ★ v16.5 §130 — 갱신 함수 실패의 이유를 사람이 읽을 말로. 함수(v5.1)는 정상이면 늘 200 이라, 실패는 대개 함수가 돌기 전 단계다. */
+async function fnReason(e){
+  if(!e) return '';
+  const name=e.name||'', msg=String(e.message||'');
+  if(name==='UpsertError') return 'DB 저장 오류 · '+msg.slice(0,60);
+  if(name==='FunctionsFetchError'||/Failed to send a request/i.test(msg)) return '브라우저가 함수에 닿지 못함 — CORS 없는 옛 판 배포 · 네트워크';
+  if(name==='FunctionsRelayError') return 'Supabase 중계 오류';
+  const st=e.context&&e.context.status;
+  if(st){
+    let body=''; try{ const t=await e.context.clone().text(); try{ const j=JSON.parse(t); body=j.msg||j.message||j.error||j.code||''; }catch(_){ body=t; } }catch(_){}
+    const hint=st===401?'키 확인 실패':st===403?'권한 없음':st===404?'함수 없음(배포 이름)':(st===546||st===504||st===408)?'시간 초과':st>=500?'함수 오류':'';
+    return 'HTTP '+st+(hint?' '+hint:'')+(body?' · '+String(body).replace(/\s+/g,' ').slice(0,60):'');
+  }
+  return msg.slice(0,80)||name||'알 수 없음';
+}
 async function updatePrices(btn, opt){
   const auto=!!(opt&&opt.auto);          // ★ v15.8 — 자동(열 때): 알림은 새 거래일일 때만 · 실패는 조용히 · 시장 지표는 initMkt 가 이미 받는다
   const b=btn||document.getElementById('btnUpdatePrices');
@@ -4577,6 +4716,7 @@ async function updatePrices(btn, opt){
     SERIES = computeFG(computeKosto(computeSeries(RAW_MD)));
     CUR = SERIES[SERIES.length-1];
     FXNOW = (CUR && CUR.fx) ? +CUR.fx : FXNOW;
+    if(liveFresh()&&LIVE_FX) FXNOW=LIVE_FX;   // ★ v16.6 — 현재가를 받아 둔 동안은 실시간 환율
     renderDashboard();
     renderModalRegimes();
     await renderTrades();
@@ -4588,18 +4728,19 @@ async function updatePrices(btn, opt){
     if(auto && MD_FROM_CACHE){   // 캐시로 열었으면 서버 함수 전에 DB 최근분부터 — cron 이 넣어 둔 새 종가가 1번 요청으로 바로 뜬다
       try{ const r0=await mdRefresh(); if(r0.changed) await apply(r0.rows); }catch(e){ console.warn('최근 시세 확인 실패', e); }
     }
-    try{
-      const {error}=await sb.functions.invoke('fetch-market-data',{body:{}});
-      if(error) fnErr=error;
-    }catch(e){ fnErr=e; }
+    /* ★ v16.6 §131 — 브라우저에서 fetch-market-data 를 더는 부르지 않는다. 새 형식 키(sb_publishable_)는 JWT 가 아니라
+       JWT 확인이 켜진 그 함수가 거절했을 가능성이 크다(§130 '호출 실패'). 종가는 서버 cron 이 넣고, 현재가는 아래 financial-proxy 로. */
     if(auto){ const r=await mdRefresh(); if(r.changed) await apply(r.rows); }
     else await apply(await getMarketData({full:true}));   // 버튼: 전체를 다시(병렬) — 사용자가 누른 것이므로 확실하게
     const after = CUR ? CUR.date : '';
-    if(after && after!==before) flash('시세 갱신 완료 · '+after);
-    else if(auto) { /* 자동: 새 거래일이 없으면 조용히 */ }
-    else if(fnErr) flash('갱신 함수 호출 실패 — 최신 데이터는 '+(after||'없음'));
-    else flash('이미 최신입니다 · '+(after||'-'));
-    if(fnErr) console.warn('fetch-market-data 호출 실패', fnErr);
+    // ★ v16.6 §131 — 현재가(정규장 · 프리장 · 애프터장 · 데이장) — 포트폴리오 앱의 financial-proxy
+    const lqOk = await fetchLiveQuotes().catch(e=>{ LIVEQ_ERR=String((e&&e.message)||e); return false; });
+    if(lqOk){ if(LIVE_FX) FXNOW=LIVE_FX; await renderProfit(TRADES_CACHE); }
+    if(!auto){
+      if(lqOk) flash('현재가 갱신 · '+lqSummary()+(after&&after!==before?' · 종가 '+after:''));
+      else flash('현재가 받기 실패'+(LIVEQ_ERR?' ('+LIVEQ_ERR.slice(0,80)+')':'')+' — 종가 '+(after||'-')+' 기준');
+    } else if(after && after!==before) flash('시세 갱신 완료 · '+after);
+    if(!lqOk) console.warn('현재가(financial-proxy) 실패 — '+LIVEQ_ERR);
   }catch(e){
     console.warn('시세 재조회 실패', e);
     if(!auto) flash('시세 갱신 실패 — 네트워크를 확인하세요');
