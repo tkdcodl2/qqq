@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<script data-boot>/* v15.9 §123 — 첫 대시보드 전에는 반복 애니메이션을 멈춘다(로딩 중 매 프레임 다시 그리기 방지) · 8초 안전장치 */document.documentElement.classList.add('boot');setTimeout(function(){document.documentElement.classList.remove('boot');},8000);</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Adaptive DCA</title>
@@ -905,6 +906,9 @@ tbody td{border-bottom-color:var(--row-line)}
 @keyframes donutRing{0%,15%,85%,100%{filter:drop-shadow(0 0 0 rgba(0,0,0,0)) drop-shadow(0 0 0 rgba(0,0,0,0)) drop-shadow(0 0 0 rgba(0,0,0,0))}
   50%{filter:drop-shadow(0 0 11px var(--h1)) drop-shadow(0 0 32px var(--h2)) drop-shadow(0 0 56px var(--h3))}}
 @media (prefers-reduced-motion: reduce){.donut-spark>i::before{animation:none!important}.donut-wrap>.donut-spark{display:none}.donut-live>canvas{animation:none!important;filter:none!important}}
+/* ★ v15.9 §123 — 로딩 중(html.boot)에는 반복(infinite) 애니메이션만 멈춘다. 카드 등장 애니메이션은 그대로 — 멈추면 카드가 투명한 채로 남는다.
+   그 가운데 9개(box-shadow · background-position · 마스크 · filter)는 매 프레임 메인 스레드에서 다시 그려 시세 받기 · 계산을 밀어냈다. */
+html.boot body::before,html.boot .logo::before,html.boot .section-title .dot::after,html.boot .mkt-live,html.boot .state-box::after,html.boot .state-name::before,html.boot .gauge-track::after,html.boot .gpip.on,html.boot .gpip.on::after,html.boot .pbar::after,html.boot .arow .rail::after,html.boot .arow .rail u,html.boot .egg-box::before,html.boot .fg-bar::after,html.boot .fg-tick,html.boot .fg-row .b i::after,html.boot .arow .rail b::before,html.boot .arow .rail b::after,html.boot .pfill::before,html.boot .pfill::after,html.boot .donut-wrap>.donut-spark,html.boot .donut-spark>i::before,html.boot .donut-live>canvas{animation-play-state:paused!important}
 </style>
 </head>
 <body>
@@ -1490,7 +1494,7 @@ function pfRealtime(){
   try{
     _pfRt = pf.channel('adca-trades').on('postgres_changes', {event:'*', schema:'public', table:'trades'}, () => {
       clearTimeout(_pfRtT);
-      _pfRtT = setTimeout(async () => { try{ await renderTrades(); await renderProfit(); await syncAutoMonthly(); await renderMonthly(); }catch(e){ console.warn(e); } }, 800);
+      _pfRtT = setTimeout(async () => { tradesDirty(); try{ await renderTrades(); await renderProfit(); await syncAutoMonthly(); await renderMonthly(); }catch(e){ console.warn(e); } }, 800);
     }).subscribe();
   }catch(e){ console.warn('[pf] 실시간 구독 실패', e); }
 }
@@ -1530,7 +1534,7 @@ async function pfMigrate(){
   let ok = 0;
   for(let i=0; i<miss.length; i+=200){
     const chunk = miss.slice(i, i+200).map(dcaToPf);
-    const {error} = await pf.from('trades').insert(chunk);
+    const {error} = await pf.from('trades').insert(chunk); tradesDirty();
     if(error){ flash('옮기기 실패: '+error.message); break; }
     ok += chunk.length;
   }
@@ -1575,21 +1579,73 @@ function sanitizeRows(rows){
     return !spike;
   });
 }
-async function getMarketData(){
+/* ★ v15.9 §123 — 시세 캐시(이 기기 localStorage). 열 방식 {keys, cols} 로 줄여 약 0.5MB. DB 원본 행을 그대로 담고, 꺼낼 때마다 sanitizeRows 를 다시 거친다.
+   · 캐시가 있으면 네트워크를 기다리지 않고 바로 그린다 → 뒤에서 최근 15거래일만 받아 합친다(mdRefresh).
+   · 7일마다 한 번은 전체를 다시 받는다(과거 행 보정 · 백필 반영). 캐시가 깨졌거나 저장 공간이 모자라면 그냥 전체를 받는다. */
+const MD_KEY='adca_md_v1', MD_FULL_EVERY=7*24*3600*1000, MD_RECENT=15;
+let MD_RAW=null, MD_FROM_CACHE=false, MD_NEED_FULL=false;
+function mdCacheLoad(){
+  try{
+    const o=JSON.parse(localStorage.getItem(MD_KEY)||'null');
+    if(!o||o.v!==1||!Array.isArray(o.keys)||!Array.isArray(o.cols)||!o.cols.length) return null;
+    const len=o.cols[0].length, rows=new Array(len);
+    for(let i=0;i<len;i++){ const r={}; for(let k=0;k<o.keys.length;k++){ const v=o.cols[k][i]; r[o.keys[k]]=(v===undefined?null:v); } rows[i]=r; }   // null 도 그대로(DB 행과 같은 모양 — +null 은 0, +undefined 는 NaN)
+    return rows.length&&rows[0].date ? {rows, fullAt:+o.fullAt||0} : null;
+  }catch(e){ return null; }
+}
+function mdCacheSave(rows, full){
+  try{
+    const ks=new Set(); rows.forEach(r=>Object.keys(r).forEach(k=>ks.add(k)));
+    const keys=[...ks], cols=keys.map(k=>rows.map(r=>r[k]===undefined?null:r[k]));
+    let fullAt=Date.now(); if(!full){ try{ const o=JSON.parse(localStorage.getItem(MD_KEY)||'null'); if(o&&o.fullAt) fullAt=+o.fullAt; }catch(e){} }
+    localStorage.setItem(MD_KEY, JSON.stringify({v:1, fullAt, keys, cols}));
+  }catch(e){ try{ localStorage.removeItem(MD_KEY); }catch(_){} console.warn('시세 캐시 저장 실패(공간 부족 등) — 다음엔 전체를 받는다', e); }
+}
+const mdCopy=()=>MD_RAW.map(r=>({...r}));   // 뒤의 attachCash · synthesizeMissing 이 행을 고치므로 원본은 따로 둔다
+async function getMarketData(opt){
   if (DEMO) return DEMO_MARKET.map(r=>({date:r.d,qqq:r.q,qld:r.l,tqqq:r.t}));
-  // 최신부터 1,000행씩 최대 12페이지(약 47년) 페이지네이션 → 다시 날짜순 정렬
+  opt=opt||{};
+  if(!opt.full){
+    const c=mdCacheLoad();
+    if(c){ MD_RAW=c.rows; MD_FROM_CACHE=true; MD_NEED_FULL=(Date.now()-c.fullAt>MD_FULL_EVERY); return sanitizeRows(mdCopy()); }
+  }
+  MD_FROM_CACHE=false; MD_NEED_FULL=false;
+  // 전체: 첫 페이지에서 전체 개수를 받고 나머지 페이지를 한꺼번에(예전엔 1,000행씩 차례로 7번 기다렸다)
   // (Supabase REST는 요청당 최대 1,000행이므로 range(0,1499)는 조용히 잘립니다)
+  const pageQ=p=>sb.from('market_data').select('*').order('date',{ascending:false}).range(p*1000,p*1000+999);
+  const first=await sb.from('market_data').select('*',{count:'exact'}).order('date',{ascending:false}).range(0,999);
   let rows=[];
-  for(let p=0;p<12;p++){
-    const {data,error}=await sb.from('market_data').select('*').order('date',{ascending:false}).range(p*1000,p*1000+999);
-    if(error){console.warn('market_data 조회 오류',error);break;}
-    rows=rows.concat(data||[]);
-    if(!data||data.length<1000) break;
+  if(first.error){ console.warn('market_data 조회 오류',first.error); }
+  else {
+    rows=first.data||[];
+    const total=+first.count||0;
+    if(total>rows.length){
+      const pages=Math.min(12,Math.ceil(total/1000)), rs=await Promise.all(Array.from({length:pages-1},(_,i)=>pageQ(i+1)));
+      for(const r of rs){ if(r.error){ console.warn('market_data 조회 오류',r.error); break; } rows=rows.concat(r.data||[]); }
+    } else if(!total && rows.length===1000){   // 개수를 못 받으면 예전처럼 차례로
+      for(let p=1;p<12;p++){ const {data,error}=await pageQ(p); if(error){console.warn('market_data 조회 오류',error);break;} rows=rows.concat(data||[]); if(!data||data.length<1000) break; }
+    }
   }
   if(!rows.length){console.warn('market_data 비어있음→데모 사용');return DEMO_MARKET.map(r=>({date:r.d,qqq:r.q,qld:r.l,tqqq:r.t}));}
-  return sanitizeRows(rows.reverse());
+  const byDate=new Map(); rows.forEach(r=>{ if(r&&r.date) byDate.set(r.date,r); });   // 받는 사이 행이 끼어들어 겹쳐도 한 번만
+  MD_RAW=[...byDate.values()].sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
+  mdCacheSave(MD_RAW,true);
+  return sanitizeRows(mdCopy());
 }
-async function getTrades(){
+/* 최근분만 받아 캐시에 합친다(서버 함수는 최근 10거래일을 다시 쓴다 → 15거래일 겹쳐 받는다). 바뀐 게 없으면 changed:false. */
+async function mdRefresh(){
+  if(DEMO) return {rows:await getMarketData(), changed:false};
+  if(!MD_RAW||!MD_RAW.length||MD_NEED_FULL){ const rows=await getMarketData({full:true}); return {rows, changed:true}; }
+  const since=MD_RAW[Math.max(0,MD_RAW.length-MD_RECENT)].date;
+  const {data,error}=await sb.from('market_data').select('*').gte('date',since).order('date',{ascending:true}).range(0,999);
+  if(error||!Array.isArray(data)) throw (error||new Error('market_data 최근분 조회 실패'));
+  const idx=new Map(MD_RAW.map((r,i)=>[r.date,i])); let changed=false;
+  const same=(a,b)=>{ const ks=new Set([...Object.keys(a),...Object.keys(b)]); for(const k of ks){ const x=a[k], y=b[k]; if(!((x==null&&y==null)||x===y)) return false; } return true; };
+  for(const r of data){ if(!r||!r.date) continue; const i=idx.get(r.date); if(i==null){ MD_RAW.push(r); changed=true; } else if(!same(MD_RAW[i],r)){ MD_RAW[i]=r; changed=true; } }
+  if(changed){ MD_RAW.sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0); mdCacheSave(MD_RAW,false); }
+  return {rows:sanitizeRows(mdCopy()), changed};
+}
+async function getTradesRaw(){
   if(PF_MODE){   // v15.0.6 — 포트폴리오 DB · DCA 계좌만 · 최신순
     let rows = [];
     for(let p=0; p<20; p++){
@@ -1616,7 +1672,8 @@ function tradeSaveErr(prefix,error){                    // v12.0: SGOV 등 신�
     showSyncWarn('⚠ <b>SGOV 매매 저장에는 Supabase 마이그레이션(1회)이 필요합니다</b> — trades 테이블의 티커 체크 제약이 v13.0 이전 목록이라 막힌 것입니다. Supabase → SQL Editor에서 아래를 실행하세요:<br><span style="font-family:ui-monospace,monospace;background:rgba(0,0,0,.3);padding:2px 6px;border-radius:5px;display:inline-block;margin-top:5px">alter table trades drop constraint if exists trades_ticker_check;<br>alter table trades add constraint trades_ticker_check check (ticker in (\'QQQ\',\'QLD\',\'TQQQ\',\'SCHD\',\'GLD\',\'SGOV\',\'CASH\'));</span><br><span style="opacity:.85;font-weight:500">기존 데이터는 그대로 유지되며, 실행 후 다시 저장하면 됩니다.</span>');
   } else flash(prefix+' 실패: '+m);
 }
-async function saveTrade(t){
+async function saveTrade(t){ try{ return await saveTradeRaw(t); } finally { tradesDirty(); } }
+async function saveTradeRaw(t){
   if(PF_MODE){   // v15.0.6 — 포트폴리오 DB 에 쓴다(계좌 = DCA 계좌 고정)
     const row = dcaToPf(t);
     if(!row.trade_type){ flash('저장 실패: 알 수 없는 구분 '+t.type); return; }
@@ -1628,7 +1685,8 @@ async function saveTrade(t){
   if(t.id){ const {id,created_at,...rest}=t; const {error}=await sb.from('trades').update(rest).eq('id',id); if(error) tradeSaveErr('수정',error); }
   else { const {id,...rest}=t; const {error}=await sb.from('trades').insert(rest); if(error) tradeSaveErr('저장',error); }
 }
-async function removeTrade(id){
+async function removeTrade(id){ try{ return await removeTradeRaw(id); } finally { tradesDirty(); } }
+async function removeTradeRaw(id){
   if(PF_MODE){ const {error} = await pf.from('trades').delete().eq('id', id).eq('account_id', PF_ACC_ID); if(error){ console.error(error); flash('삭제 실패: '+error.message); } return; }   // v15.0.6
   if(DEMO){memTrades=memTrades.filter(x=>x.id!==id);return;}
   await sb.from('trades').delete().eq('id',id);
@@ -1642,16 +1700,31 @@ async function saveSettings(s){
   if(DEMO){memSettings={...memSettings,...s};return;}
   await sb.from('settings').upsert({id:1,...s});
 }
-async function getMonthly(){
+async function getMonthlyRaw(){
   if(DEMO) return [...memMonthly];
   const {data}=await sb.from('monthly').select('*').order('ym');
   return data||[];
 }
-async function saveMonthly(r){
+/* ★ v15.9 §123 — 같은 순간의 중복 조회를 한 번으로(열 때 매매이력 5번 · 월별 2번 부르던 것). 10초 동안 같은 요청을 나눠 쓰고,
+   저장 · 삭제 · 옮기기 · 포트폴리오 앱의 실시간 변경이 오면 즉시 버린다. 돌려주는 배열은 복사본(부르는 쪽이 정렬 · 수정해도 안전). */
+const MEMO_MS=10*1000; let _tsMemo=null, _moMemo=null;
+function tradesDirty(){ _tsMemo=null; }
+function monthlyDirty(){ _moMemo=null; }
+async function getTrades(){
+  if(!_tsMemo||Date.now()-_tsMemo.t>MEMO_MS||_tsMemo.pf!==PF_MODE){ const p=getTradesRaw(); _tsMemo={t:Date.now(), p, pf:PF_MODE}; p.catch(()=>{ if(_tsMemo&&_tsMemo.p===p) _tsMemo=null; }); }
+  return (await _tsMemo.p).slice();
+}
+async function getMonthly(){
+  if(!_moMemo||Date.now()-_moMemo.t>MEMO_MS){ const p=getMonthlyRaw(); _moMemo={t:Date.now(), p}; p.catch(()=>{ if(_moMemo&&_moMemo.p===p) _moMemo=null; }); }
+  return (await _moMemo.p).slice();
+}
+async function saveMonthly(r){ try{ return await saveMonthlyRaw(r); } finally { monthlyDirty(); } }
+async function saveMonthlyRaw(r){
   if(DEMO){ const i=memMonthly.findIndex(x=>x.ym===r.ym); if(i>=0)memMonthly[i]={...memMonthly[i],...r}; else memMonthly.push(r); return; }
   const {error}=await sb.from('monthly').upsert(r,{onConflict:'ym'}); if(error){console.error(error);flash('월별 저장 실패: '+error.message);}
 }
-async function removeMonthly(ym){
+async function removeMonthly(ym){ try{ return await removeMonthlyRaw(ym); } finally { monthlyDirty(); } }
+async function removeMonthlyRaw(ym){
   if(DEMO){memMonthly=memMonthly.filter(x=>x.ym!==ym);return;}
   await sb.from('monthly').delete().eq('ym',ym);
 }
@@ -2236,7 +2309,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='15.8';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
+const APP_VERSION='15.9';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -2319,8 +2392,11 @@ async function init(){
   document.getElementById('appVer').textContent='v'+APP_VERSION;
   const pfP = pfInit();                   // v15.0.6 — 포트폴리오 DB(매매이력 공유) 연결 — 시세를 받는 동안 같이
   mktLoadCache();                         // 캐시를 먼저 얹어 두면 renderDashboard가 빈 칸 대신 값을 그린다
-  RAW_MD = attachCash(synthesizeMissing(await getMarketData()));
-  SETTINGS = await getSettings();
+  const setP = getSettings();              // ★ v15.9 — 설정 · 매매이력 · 월별을 시세와 동시에 받기 시작한다
+  pfP.then(()=>{ getTrades().catch(()=>{}); });   // (매매이력은 어느 DB 인지 정해진 뒤) — 뒤의 renderTrades 등이 이 요청을 나눠 쓴다
+  getMonthly().catch(()=>{});
+  RAW_MD = attachCash(synthesizeMissing(await getMarketData()));   // 캐시가 있으면 네트워크를 기다리지 않는다
+  SETTINGS = await setP;
   loadStrategy(SETTINGS);                 // 사용자 전략 설정(비중·파라미터) 적용 후 단계 계산
   loadUserDefault(SETTINGS);              // 사용자 지정 기본값(초기화 복원값) 로드: 클라우드 우선 → 로컬
   loadTaxcfg(SETTINGS);                   // 세금·수수료 설정 로드: 클라우드 우선 → 로컬
@@ -2341,6 +2417,7 @@ async function init(){
   await syncAutoMonthly();
   await renderMonthly();
   runCountUp();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>document.documentElement.classList.remove('boot')));   // ★ v15.9 — 보유 · 수익 · 월별까지 그린 뒤 반복 애니메이션 다시 켜기(첫 대시보드 직후에 켜면 그 뒤 응답 처리가 밀렸다)
   pfMigrateCheck();                       // v15.0.6 — 이 앱 DB 에만 있는 기존 기록 옮기기 제안(기다리지 않는다)
   initMkt();                              // 시장 지표는 마지막에 — 조회가 느려도 대시보드를 막지 않는다
   autoRefreshPrices('open');              // ★ v15.8 §122 — 열 때마다 새 종가를 받아 온다(대시보드를 먼저 그린 뒤, 뒤에서)
@@ -4351,12 +4428,9 @@ async function updatePrices(btn, opt){
   if(!auto) fetchMkt(true);               // 시세 버튼은 시장 지표도 같이 새로 받는다(await 하지 않는다)
   const before = CUR ? CUR.date : '';
   let fnErr=null;
-  try{
-    const {error}=await sb.functions.invoke('fetch-market-data',{body:{}});
-    if(error) fnErr=error;
-  }catch(e){ fnErr=e; }
-  try{
-    RAW_MD = attachCash(synthesizeMissing(await getMarketData()));
+  /* ★ v15.9 §123 — 받은 시세를 그리는 한 단계. 자동 갱신은 바뀐 게 있을 때만 부른다(예전엔 매번 6,900행을 다시 받고 전부 다시 그렸다). */
+  const apply=async(md)=>{
+    RAW_MD = attachCash(synthesizeMissing(md));
     SERIES = computeFG(computeKosto(computeSeries(RAW_MD)));
     CUR = SERIES[SERIES.length-1];
     FXNOW = (CUR && CUR.fx) ? +CUR.fx : FXNOW;
@@ -4366,6 +4440,17 @@ async function updatePrices(btn, opt){
     await renderProfit();
     await syncAutoMonthly();
     await renderMonthly();
+  };
+  try{
+    if(auto && MD_FROM_CACHE){   // 캐시로 열었으면 서버 함수 전에 DB 최근분부터 — cron 이 넣어 둔 새 종가가 1번 요청으로 바로 뜬다
+      try{ const r0=await mdRefresh(); if(r0.changed) await apply(r0.rows); }catch(e){ console.warn('최근 시세 확인 실패', e); }
+    }
+    try{
+      const {error}=await sb.functions.invoke('fetch-market-data',{body:{}});
+      if(error) fnErr=error;
+    }catch(e){ fnErr=e; }
+    if(auto){ const r=await mdRefresh(); if(r.changed) await apply(r.rows); }
+    else await apply(await getMarketData({full:true}));   // 버튼: 전체를 다시(병렬) — 사용자가 누른 것이므로 확실하게
     const after = CUR ? CUR.date : '';
     if(after && after!==before) flash('시세 갱신 완료 · '+after);
     else if(auto) { /* 자동: 새 거래일이 없으면 조용히 */ }
