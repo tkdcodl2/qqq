@@ -2428,7 +2428,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='16.3';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
+const APP_VERSION='16.4';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -2918,23 +2918,35 @@ function renderIndicators(r){
 /* ★ v15.0.1 현재 비중 알약의 색 — 조각 색을 한 줄 그라디언트로 잇는다.
    경계마다 ±min(4%, 좁은 쪽 조각 폭의 35%)에 걸쳐 두 색을 섞어 끊김 없이 넘어가게 한다. */
 let allocDonut=null;   // ★ v15.2 — 현재 비중 도넛(Chart.js). 처음 한 번만 만들고 그 뒤엔 값만 조용히 갱신한다(§116).
+/* ★ v16.4 §129 — 매매이력이 오기 전에 쓰는 보유: 지난번에 기억한 보유 수량 × 오늘 시세 × 환율(renderTrades 와 같은 식). 기억이 없으면 null. */
+const HOLD_KEY='adca_hold_v1';
+function provisionalPort(){
+  if(DEMO||!CUR) return null;
+  let o=null; try{ o=JSON.parse(localStorage.getItem(HOLD_KEY)||'null'); }catch(e){ return null; }
+  if(!o||o.v!==1||!o.qty) return null;
+  const v={QQQ:0,QLD:0,TQQQ:0,SCHD:0,GLD:0,SGOV:0}; let tot=0;
+  for(const k in v){ const q=+o.qty[k]||0; if(q<=1e-9) continue; const px=pxAt(CUR,k); if(px==null) continue; v[k]=q*px*FXNOW; tot+=v[k]; }
+  return tot>0 ? {total:tot, val:v, provisional:true} : null;
+}
 function renderAllocBars(){
   const w=CUR.w, t=tgtOf(CUR);   // ★ v15.0 배당유지+금 — SCHD = max(현재 비중, 바닥) · 나머지를 래더(TQQQ w · GLD/SGOV 7:3)로
-  const stockVal = CUR_PORT?CUR_PORT.val:null;
-  const stockTot = CUR_PORT?CUR_PORT.total:0;
+  const PORT = CUR_PORT || provisionalPort();   // ★ v16.4 — 매매이력 전엔 기억해 둔 보유 수량 × 오늘 시세
+  const pending = !CUR_PORT && !PORT;            // 기억도 없음(처음 방문) — 빈 도넛을 먼저 그리지 않고 매매이력을 기다린다
+  const stockVal = PORT?PORT.val:null;
+  const stockTot = PORT?PORT.total:0;
   const hasCur = stockTot>0.0001;
   const TK=['TQQQ','SCHD','GLD','SGOV'];
   const cur = TK.map(k=>[k, hasCur?((stockVal&&stockVal[k]||0)/stockTot):0]);
   const el=document.getElementById('allocBars');
   // 목표 달성에 필요한 매수/매도 주수 (현재 총액 기준 리밸런싱)
   function sharesFor(k){
-    if(!CUR_PORT||!CUR||CUR_PORT.total<=0) return null;
-    const deltaVal=t[k]*CUR_PORT.total-((CUR_PORT.val&&CUR_PORT.val[k])||0);   // +면 매수, −면 매도
+    if(!PORT||!CUR||PORT.total<=0) return null;
+    const deltaVal=t[k]*PORT.total-((PORT.val&&PORT.val[k])||0);   // +면 매수, −면 매도
     const px=pxAt(CUR,k), priceKRW=(px!=null?px:0)*FXNOW;
     return priceKRW>0 ? deltaVal/priceKRW : null;
   }
   const reband=((STRAT&&STRAT.params&&+STRAT.params.rebBand)||0)/100;
-  const curWt=(CUR_PORT&&CUR_PORT.total>0)?(((CUR_PORT.val&&CUR_PORT.val.TQQQ)||0)/CUR_PORT.total):null;
+  const curWt=(PORT&&PORT.total>0)?(((PORT.val&&PORT.val.TQQQ)||0)/PORT.total):null;
   const banded = reband>0 && curWt!=null && Math.abs(curWt-t.TQQQ)<reband;   // 목표 TQQQ = w × (1 − SCHD) · 밴드 내면 매매 생략
   const shown = cur.filter(([,v])=>v>0.0001);
   const rows = TK.map(k=>{
@@ -2959,21 +2971,22 @@ function renderAllocBars(){
   //   캔버스가 새로 생겨 회전 애니메이션이 매 갱신마다 돌고, 값이 바뀐 것으로 오해한다.
   let list = (el.querySelector ? el.querySelector('.alloc-split>.arow-list') : null);
   if(!list){
-    el.innerHTML = `<div class="abar-label">현재 비중${hasCur?'':' (보유 없음)'}</div>`
+    el.innerHTML = `<div class="abar-label">현재 비중${(hasCur||pending)?'':' (보유 없음)'}</div>`
       + `<div class="alloc-split"><div class="donut-wrap"><canvas id="allocDonut" aria-label="현재 비중 도넛"></canvas>`
       + `<div class="donut-center"><div class="donut-center-sub" id="allocDcTop"></div><div class="donut-center-value" id="allocDcVal"></div><div class="donut-center-label" id="allocDcLab"></div></div></div>`
       + `<div class="arow-list">${rows}</div></div>`;
   } else {
-    const lab=el.querySelector('.abar-label'); if(lab) lab.textContent='현재 비중'+(hasCur?'':' (보유 없음)');
+    const lab=el.querySelector('.abar-label'); if(lab) lab.textContent='현재 비중'+((hasCur||pending)?'':' (보유 없음)');
     list.innerHTML=rows;
   }
-  drawAllocDonut(el, shown, t, hasCur);
+  drawAllocDonut(el, shown, t, hasCur, pending);
 }
 /* ★ v15.2 — 이중 도넛(§116). 바깥 두꺼운 링 = 지금 비중(weight 2.4), 안쪽 얇은 링 = 목표 비중(weight 1 · 반투명 .5).
    설정은 첨부 참고 앱의 도넛 그대로: cutout · 테두리 0 · hoverOffset · 회전+확대 700ms easeOutCubic · 툴팁 테마 · 가운데 글자(조각에 올리면 그 조각, 떠나면 복귀).
    가운데 기본 = 가장 큰 종목(%) 과 그 목표. 막대 행에 올리면 같은 조각이 튀어나온다. */
-function drawAllocDonut(el, shown, t, hasCur){
+function drawAllocDonut(el, shown, t, hasCur, pending){
   const cv=document.getElementById('allocDonut'); if(!cv||typeof Chart==='undefined') return;
+  if(pending && !(allocDonut && allocDonut.canvas===cv)) return;   // ★ v16.4 — 보유를 아직 모르면 빈 링으로 등장시키지 않는다(실제 보유로 첫 등장)
   const TK=['TQQQ','SCHD','GLD','SGOV'], CARD='#20262F';   // 링 사이 틈 = 카드 합성색(--e03)
   const EMPTY='rgba(255,255,255,.06)';
   const rgba=(h,a)=>{ const x=parseInt(h.slice(1),16); return 'rgba('+(x>>16&255)+','+(x>>8&255)+','+(x&255)+','+a+')'; };
@@ -3935,6 +3948,7 @@ async function renderProfit(){
   // 현재 비중(평가금액 기준) + 절대 평가액/총액 → 막대·목표달성 주수 계산에 사용
   CUR_CASH = cash>0?cash:0;
   HOLD_QTY={}; rows.forEach(r=>HOLD_QTY[r.k]=r.qty);
+  if(!DEMO){ try{ localStorage.setItem(HOLD_KEY, JSON.stringify({v:1, qty:HOLD_QTY, at:Date.now()})); }catch(e){} }   // ★ v16.4 §129 — 다음에 열 때 첫 그림부터 보유 비중을
   if(curVal>0){
     const v={QQQ:0,QLD:0,TQQQ:0,SCHD:0,GLD:0,SGOV:0}; rows.forEach(r=>v[r.k]=r.val);
     CUR_ALLOC={TQQQ:v.TQQQ/curVal,QLD:v.QLD/curVal,QQQ:v.QQQ/curVal};
