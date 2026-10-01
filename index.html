@@ -944,9 +944,11 @@ html.boot body::before,html.boot .logo::before,html.boot .section-title .dot::af
 .arow .rail b>.lq.lq2>.cap{animation-delay:calc(var(--d3,0s) + .3s)}
 .arow .rail b>.lq.lq2>.flat,.arow .rail b>.lq.lq2>.wv>i,.arow .rail b>.lq.lq2>.cap{background:var(--c,var(--accent))}
 .arow .rail b>.lq.lq2>.wv>i{animation-duration:5s}
-@keyframes lqFlow{0%{transform:translateX(-100%)}36%,70%{transform:translateX(0)}96%,100%{transform:translateX(100%)}}
-@keyframes lqCrest{0%,36%{opacity:1}46%,100%{opacity:0}}
-@keyframes lqCap{0%,36%{opacity:0}46%,100%{opacity:1}}
+@keyframes lqFlow{0%{transform:translateX(-100%)}22%,78%{transform:translateX(0)}96%,100%{transform:translateX(100%)}}   /* v16.3 — 차오름 1.85s · 머묾 4.7s · 빠짐 1.5s */
+@keyframes lqCrest{0%,22%{opacity:1}28%,100%{opacity:0}}
+@keyframes lqCap{0%,22%{opacity:0}28%,74%{opacity:1}78%,100%{opacity:0}}
+@keyframes lqCap2{0%,74%{opacity:0}78%,100%{opacity:1}}
+@keyframes lqTail{0%,74%{opacity:0}78%,100%{opacity:1}}
 @keyframes lqWave{from{transform:translateX(0)}to{transform:translateX(64px)}}
 /* ③ 공포탐욕 눈금 맥박 — height(매 프레임 레이아웃) · box-shadow 대신 scaleY(위 기준 18→21px) + 빛 층 opacity */
 .fg-tick{animation:tickIn .8s var(--ease) .2s both, tickBeatT 2.4s ease-in-out .95s infinite;box-shadow:0 0 9px rgba(255,255,255,.55);transform-origin:50% 0}
@@ -981,6 +983,33 @@ header{background:rgba(21,27,34,.95)}
 thead th{background:color-mix(in srgb, var(--e04) 99%, transparent)}
 .modal-overlay{background:rgba(8,12,15,.84)}
 .modal{background:color-mix(in srgb, var(--e24) 98%, transparent)}
+/* ══ ★ v16.3 §128 ══════════════════════════════════════════════════════════════════════
+   ① 단계 칸: v16.0 이전 그대로 — 칸 안 반짝임(sheen)은 평소에도 켜져 있어 overflow:hidden 으로 칸 안에 가둬야 한다(v16.0 이 풀어 막대 끝 너머로 지나갔다). */
+.gpip.on{overflow:hidden!important;animation:pipIn .62s var(--ease) var(--d,0s) both, pipGlow 2.6s ease-in-out var(--d,0s) infinite}
+.gpip.on::before{content:none!important;animation:none!important}
+/* ② 비중 막대: 빠질 때 = 차오를 때의 거울 — 뒤쪽 끝 80px 윗면에 물결 마루 · 나머지 윗면 평평 */
+.arow .rail b>.lq>.wv.wv2{-webkit-mask:linear-gradient(90deg,#000,transparent 80px) 0 0/100% 11px no-repeat;mask:linear-gradient(90deg,#000,transparent 80px) 0 0/100% 11px no-repeat;
+  opacity:0;animation:lqTail 8.4s ease-in-out var(--d3,0s) infinite both}
+.arow .rail b>.lq.lq2>.wv.wv2{animation-delay:calc(var(--d3,0s) + .3s)}
+.arow .rail b>.lq>.cap2{position:absolute;left:0;right:0;top:0;height:11px;will-change:opacity;opacity:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.07)),var(--c,var(--accent));
+  -webkit-mask:linear-gradient(90deg,transparent,#000 80px);mask:linear-gradient(90deg,transparent,#000 80px);
+  animation:lqCap2 8.4s ease-in-out var(--d3,0s) infinite both}
+.arow .rail b>.lq.lq2>.cap2{background:var(--c,var(--accent));animation-delay:calc(var(--d3,0s) + .3s)}
+/* 몸통(.flat)은 윗면 띠 아래만 — 윗면은 단계별 층이 맡는다: 차오름 .cap0(앞쪽 끝 페이드) → 머묾 .cap(꽉 참) → 빠짐 .cap2(뒤쪽 끝 페이드).
+   (처음엔 몸통이 윗면 왼쪽을 단색으로 덮어 뒤쪽 물결 마루가 가려졌다 — 위상 고정 캡처로 확인) */
+.arow .rail b>.lq>.flat{-webkit-mask:linear-gradient(#000,#000) 0 10px/100% calc(100% - 10px) no-repeat;mask:linear-gradient(#000,#000) 0 10px/100% calc(100% - 10px) no-repeat}
+.arow .rail b>.lq>.cap0{position:absolute;left:0;right:0;top:0;height:11px;will-change:opacity;
+  background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.07)),var(--c,var(--accent));
+  -webkit-mask:linear-gradient(90deg,#000 calc(100% - 80px),transparent);mask:linear-gradient(90deg,#000 calc(100% - 80px),transparent);
+  animation:lqCap0 8.4s ease-in-out var(--d3,0s) infinite both}
+.arow .rail b>.lq.lq2>.cap0{background:var(--c,var(--accent));animation-delay:calc(var(--d3,0s) + .3s)}
+@keyframes lqCap0{0%,22%{opacity:1}28%,100%{opacity:0}}
+html.boot .arow .rail b>.lq>.cap2,html.boot .arow .rail b>.lq>.cap0{animation-play-state:paused!important}
+@media (prefers-reduced-motion: reduce){
+  .gpip.on{animation:none!important}
+  .arow .rail b>.lq>.wv.wv2,.arow .rail b>.lq>.cap2,.arow .rail b>.lq>.cap0{animation:none!important;opacity:0}
+}
 </style>
 </head>
 <body>
@@ -2399,7 +2428,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='16.2';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
+const APP_VERSION='16.3';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -2920,7 +2949,7 @@ function renderAllocBars(){
     const wide=v>=0.16;
     return `<div class="arow" data-k="${k}" style="--d3:${(0.10+TK.indexOf(k)*0.16).toFixed(2)}s"><span class="k"><i style="background:${ALLOC_COLORS[k]}"></i>${k}</span>`
       + `<span class="rail"><b style="width:${Math.max(v*100,1.6).toFixed(1)}%;--c:${ALLOC_GRAD[k]}">`
-      + `<span class="lq"><span class="flat"></span><span class="wv"><i></i></span><span class="cap"></span></span><span class="lq lq2"><span class="flat"></span><span class="wv"><i></i></span><span class="cap"></span></span>`   // ★ v16.0 §124 — 물결을 합성 전용 층으로
+      + `<span class="lq"><span class="flat"></span><span class="cap0"></span><span class="wv"><i></i></span><span class="cap"></span><span class="wv wv2"><i></i></span><span class="cap2"></span></span><span class="lq lq2"><span class="flat"></span><span class="cap0"></span><span class="wv"><i></i></span><span class="cap"></span><span class="wv wv2"><i></i></span><span class="cap2"></span></span>`   // ★ v16.0 §124 — 물결을 합성 전용 층으로
       + (wide?`<span class="p">${Math.round(v*100)}%</span>`:'') + `</b>`
       + `<span class="mkc"><u style="left:calc((100% - 8px) * ${tg.toFixed(4)} + 4px)" title="목표 ${Math.round(tg*100)}%"></u></span>`
       + (wide?'':`<span class="out">${Math.round(v*100)}%</span>`) + `</span>`
