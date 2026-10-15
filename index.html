@@ -768,6 +768,13 @@ details.sandbox .stage-edit{background:var(--ov01)}
   /* 매매이력: 컴팩트 가로 스크롤 테이블 */
   #tradeTable{min-width:660px}
   #tradeTable td,#tradeTable th{padding:9px 8px;font-size:12px;white-space:nowrap}
+  /* 매매이력 상단 액션: 모바일에서 버튼 라벨이 줄바꿈하지 않도록 밀도 조정 */
+  #tab-trades .trade-toolbar{gap:6px!important;flex-wrap:nowrap;min-width:0}
+  #tab-trades .trade-toolbar .section-title{font-size:17px;white-space:nowrap;flex-shrink:0}
+  #tab-trades .trade-toolbar .btn{padding:7px 9px!important;font-size:11px!important;line-height:1.2;white-space:nowrap;min-height:32px;flex-shrink:0;letter-spacing:-.03em}
+  #tab-trades .trade-toolbar .hspace{min-width:0}
+  .hold-change-rail{gap:7px;padding:10px 12px}
+  .hold-change-item{padding:7px 9px;min-width:74px}
 }
 /* ════════════════════════════════════════════════════════════════
    ★ Quiet Glass 이식 — 면(카드·패널·모달)의 테두리를 **상자째** 없앤다.
@@ -1010,6 +1017,16 @@ html.boot .arow .rail b>.lq>.cap2,html.boot .arow .rail b>.lq>.cap0{animation-pl
   .gpip.on{animation:none!important}
   .arow .rail b>.lq>.wv.wv2,.arow .rail b>.lq>.cap2,.arow .rail b>.lq>.cap0{animation:none!important;opacity:0}
 }
+/* ★ v16.8 — 보유 종목 일간 등락률을 대시보드 최상단에 표시 */
+.hold-change-card{margin-bottom:12px;padding:0;overflow:hidden}
+.hold-change-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 13px 0;font-size:11px;color:var(--text2)}
+.hold-change-rail{display:flex;align-items:stretch;gap:8px;padding:10px 13px 12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.hold-change-rail::-webkit-scrollbar{display:none}
+.hold-change-item{display:flex;flex-direction:column;gap:3px;align-items:flex-start;flex:0 0 auto;min-width:82px;padding:8px 11px;border-radius:12px;background:var(--ov04)}
+.hold-change-ticker{font-size:11px;font-weight:650;color:var(--text2);letter-spacing:.02em}
+.hold-change-pct{font-variant-numeric:tabular-nums;font-size:15px;font-weight:720;letter-spacing:-.03em;white-space:nowrap}
+.hold-change-pct.up{color:var(--up,#52c99a)}.hold-change-pct.down{color:var(--down,#ff7777)}.hold-change-pct.flat{color:var(--text2)}
+.hold-change-empty{padding:9px 13px 12px;color:var(--text2);font-size:12px}
 /* ★ v16.6 §131 — 보유 표 현재가 옆 세션 배지(장중 · 프리장 · 애프터장 · 데이장 · 전일종가) */
 .lq-sess{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:99px;font-size:10px;font-weight:600;line-height:1.5;vertical-align:1px;
   background:var(--ov06);color:var(--text2);font-family:inherit;letter-spacing:0}
@@ -1038,6 +1055,10 @@ html.boot .arow .rail b>.lq>.cap2,html.boot .arow .rail b>.lq>.cap0{animation-pl
 
   <!-- ===== DASHBOARD ===== -->
   <section id="tab-dash">
+    <div class="card hold-change-card" id="holdChangeCard" aria-label="보유 종목 등락률">
+      <div class="hold-change-head"><span>보유 종목 등락률</span><span id="holdChangeTime">전일 종가 대비</span></div>
+      <div class="hold-change-rail" id="holdChangeRail"><div class="hold-change-empty">보유 종목을 불러오는 중…</div></div>
+    </div>
     <!-- 시장 지표 스트립 (§83) — 표시 전용. 래더 지시에 관여하지 않는다. -->
     <div class="card mkt-strip" id="mktCard">
       <div class="mkt-rail" id="mktRail"></div>
@@ -1164,7 +1185,7 @@ html.boot .arow .rail b>.lq>.cap2,html.boot .arow .rail b>.lq>.cap0{animation-pl
 
   <!-- ===== TRADES ===== -->
   <section id="tab-trades" class="hidden">
-    <div style="display:flex;align-items:center;gap:12px">
+    <div class="trade-toolbar" style="display:flex;align-items:center;gap:12px">
       <div class="section-title" style="margin:0"><span class="dot"></span>매매 이력</div>
       <div class="hspace" style="flex:1"></div>
       <button class="btn ghost" onclick="depositContribution()" title="설정한 1회 적립금을 입금하고 매수 팝업을 엽니다">적립금</button>
@@ -2433,7 +2454,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='16.7';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
+const APP_VERSION='16.8';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -3942,6 +3963,25 @@ async function fixRealized(id, v){
   const w=document.getElementById('realizedWrap'); if(w) w.style.display='';
   flash('실현손익을 장부 값 '+won(v)+'으로 채웠습니다 — 저장을 누르면 반영됩니다');
 }
+/* ★ v16.8 — 보유 종목의 당일 등락률. 실시간 현재가가 있으면 그 시세의 기준가, 없으면 최근 두 종가를 사용. */
+function renderHoldingsChange(rows){
+  const rail=document.getElementById('holdChangeRail'); if(!rail) return;
+  const live=liveFresh();
+  const held=(rows||[]).filter(r=>r&&r.qty>1e-9);
+  const prev=SERIES.length>=2?SERIES[SERIES.length-2]:null;
+  if(!held.length){ rail.innerHTML='<div class="hold-change-empty">보유 종목이 없습니다.</div>'; return; }
+  rail.innerHTML=held.map(r=>{
+    const q=live&&LIVEQ[r.k];
+    const price=(q&&q.price>0)?q.price:r.price;
+    const base=(q&&q.prevClose>0)?q.prevClose:(prev?pxAt(prev,r.k):null);
+    const change=(price>0&&base>0)?(price/base-1)*100:null;
+    const cls=change==null?'flat':change>0.00001?'up':change< -0.00001?'down':'flat';
+    const label=change==null?'—':(change>0?'+':'')+change.toFixed(2)+'%';
+    return `<div class="hold-change-item"><span class="hold-change-ticker">${r.k}</span><span class="hold-change-pct ${cls}">${label}</span></div>`;
+  }).join('');
+  const stamp=document.getElementById('holdChangeTime');
+  if(stamp) stamp.textContent=live?'실시간 기준가 대비 · '+lqTime():'최근 종가 기준';
+}
 /* ===================== 수익분석 ===================== */
 async function renderProfit(pre){   // ★ v16.6 — pre: 받아 둔 매매이력(현재가만 바뀐 다시 그리기는 다시 받지 않는다)
   const ts=Array.isArray(pre)?pre:await getTrades(); TRADES_CACHE=ts; if(!Array.isArray(pre)) TRADES_READY=true;   // ★ v16.7 — 이 뒤로 온 현재가는 lqApply 가 다시 그린다
@@ -3970,6 +4010,7 @@ async function renderProfit(pre){   // ★ v16.6 — pre: 받아 둔 매매이�
     const pl=val-h.cost;invested+=h.cost;curVal+=val;
     return {k,qty:h.qty,avgUSD,price:last[k],val,cost:h.cost,pl,ret:pl/h.cost};
   }).filter(Boolean);
+  renderHoldingsChange(rows);  // ★ v16.8 — 보유 종목 일간 등락률을 대시보드 최상단에 갱신
   // 현재 비중(평가금액 기준) + 절대 평가액/총액 → 막대·목표달성 주수 계산에 사용
   CUR_CASH = cash>0?cash:0;
   HOLD_QTY={}; rows.forEach(r=>HOLD_QTY[r.k]=r.qty);
