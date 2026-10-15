@@ -1029,7 +1029,7 @@ html.boot .arow .rail b>.lq>.cap2,html.boot .arow .rail b>.lq>.cap0{animation-pl
   .gpip.on{animation:none!important}
   .arow .rail b>.lq>.wv.wv2,.arow .rail b>.lq>.cap2,.arow .rail b>.lq>.cap0{animation:none!important;opacity:0}
 }
-/* v17.1 — 보유 종목 시세를 포트폴리오 앱처럼 좌측 정보·우측 가격으로 표시 */
+/* v17.2 — 보유 종목 시세를 포트폴리오 앱처럼 좌측 정보·우측 가격으로 표시 */
 .hold-change-card{margin-bottom:12px;padding:0;overflow:hidden;border:1px solid var(--border);background:linear-gradient(145deg,var(--surface2),var(--surface));}
 .hold-change-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 14px 8px;font-size:11px;color:var(--text2)}
 .hold-change-rail{display:flex;flex-direction:column;gap:0;padding:0 12px 5px;overflow-x:hidden;-webkit-overflow-scrolling:touch}
@@ -1050,7 +1050,7 @@ html.boot .arow .rail b>.lq>.cap2,html.boot .arow .rail b>.lq>.cap0{animation-pl
 </style>
 
 <style id="v17-1-global-glass-audit">
-/* v17.1: compact held-ticker rows + app-wide liquid-glass button audit */
+/* v17.2: compact held-ticker rows + app-wide liquid-glass button audit */
 .hold-change-rail{gap:0!important;padding:2px 12px 3px!important}
 .hold-change-item{padding:5px 4px!important;column-gap:8px!important;min-height:0!important}
 .hold-qleft{gap:1px!important}
@@ -1079,6 +1079,46 @@ button:focus-visible{outline:2px solid rgba(183,164,255,.8);outline-offset:2px}
 .range-pills button{box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important}
 .range-pills button:active{transform:none!important}
 @media(prefers-reduced-motion:reduce){button{transition:none!important}}
+</style>
+
+
+<style id="v17-2-neutral-controls">
+/* v17.2: mobile bottom navigation follows the portfolio app; no liquid-glass treatment */
+.mobile-tabbar{background:var(--surface)!important;border:1px solid var(--border)!important;box-shadow:0 -4px 18px rgba(0,0,0,.16)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border-radius:22px!important}
+.mobile-tabbar button,.mobile-tabbar button:hover,.mobile-tabbar button:active,.mobile-tabbar button.active{background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important;transform:none!important}
+.mobile-tabbar button.active{color:var(--text)!important}
+.mobile-tabbar button .ic{filter:none!important}
+/* Compact held ticker rows: tight, consistent vertical rhythm on phone and desktop */
+.hold-change-head{padding:8px 12px 5px!important}
+.hold-change-rail{padding:0 10px 2px!important}
+.hold-change-item{padding:2px 3px!important;line-height:1.15!important;column-gap:7px!important}
+.hold-qleft{gap:0!important}
+.hold-qtop{line-height:1.15!important}
+.hold-desc{line-height:1.15!important}
+.hold-qright{gap:0!important;line-height:1.12!important}
+.hold-price{line-height:1.12!important}
+.hold-returns{line-height:1.1!important;gap:6px!important}
+@media(max-width:560px){
+ .hold-change-head{padding:7px 10px 4px!important}
+ .hold-change-rail{padding:0 8px 2px!important}
+ .hold-change-item{padding:2px 2px!important;column-gap:5px!important}
+ .hold-price{font-size:15px!important}
+ .hold-change-pct{font-size:11.5px!important}
+ .hold-ext{font-size:9.5px!important}
+ .hold-desc{font-size:10.5px!important}
+}
+/* Neutral monochrome glass: remove accent fills/colored button surfaces across all views and modals. */
+button:not(.mobile-tabbar button){
+ background-color:rgba(255,255,255,.045)!important;
+ background-image:linear-gradient(150deg,rgba(255,255,255,.085),rgba(255,255,255,.025) 58%,rgba(255,255,255,.045))!important;
+ color:var(--text)!important;
+ border-color:rgba(255,255,255,.12)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.10),inset 0 0 0 .5px rgba(255,255,255,.025),0 3px 10px -8px rgba(0,0,0,.45)!important;
+}
+button:not(.mobile-tabbar button):hover{background-color:rgba(255,255,255,.07)!important;background-image:linear-gradient(150deg,rgba(255,255,255,.11),rgba(255,255,255,.035))!important;filter:none!important}
+button:not(.mobile-tabbar button):active{background-color:rgba(255,255,255,.055)!important;transform:scale(.985)}
+/* Segmented range controls remain flat and borderless, as requested. */
+.range-pills button,.range-pills button:hover,.range-pills button.on{background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important}
 </style>
 
 </head>
@@ -4011,7 +4051,7 @@ async function fixRealized(id, v){
   const w=document.getElementById('realizedWrap'); if(w) w.style.display='';
   flash('실현손익을 장부 값 '+won(v)+'으로 채웠습니다 — 저장을 누르면 반영됩니다');
 }
-/* ★ v17.1 — 포트폴리오형 보유 종목 시세: 종목/설명 좌측, 현재가와 정규·시간외 등락 우측 */
+/* ★ v17.2 — 포트폴리오형 보유 종목 시세: 종목/설명 좌측, 현재가와 정규·시간외 등락 우측 */
 function renderHoldingsChange(rows){
   const rail=document.getElementById('holdChangeRail'); if(!rail) return;
   const live=liveFresh(); const held=(rows||[]).filter(r=>r&&r.qty>1e-9);
