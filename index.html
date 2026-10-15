@@ -256,7 +256,11 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .mkt-exp svg{transition:transform .26s var(--ease)}
 .mkt-strip.exp .mkt-exp svg{transform:rotate(180deg)}
 @media(max-width:860px){
-  .mkt-rail{display:flex;overflow-x:auto;gap:6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .mkt-strip{padding-left:6px;padding-right:6px;gap:6px}
+  .mkt-rail{display:flex;overflow-x:auto;gap:5px;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:0 1px 2px}
+  .mkt-t{padding-left:8px;padding-right:4px}
+  .mkt-v{overflow:visible;gap:3px}
+  .mkt-v>*{flex-shrink:0}
   .mkt-rail::-webkit-scrollbar{display:none}
   .mkt-t{flex:0 0 116px}
   .mkt-strip{margin-bottom:12px}
@@ -272,7 +276,15 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
     grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:4px 6px}
   .mkt-strip.exp .mkt-t{flex:none}
 }
-@media(max-width:560px){.mkt-pick{grid-template-columns:1fr}}
+@media(max-width:560px){
+  .mkt-pick{grid-template-columns:1fr}
+  #tab-dash .card.mkt-strip{margin-left:-4px;margin-right:-4px;width:calc(100% + 8px);border-radius:14px}
+  #tab-dash .mkt-t{flex-basis:110px;padding-left:7px;padding-right:3px}
+  #tab-dash .mkt-n{font-size:9px}
+  #tab-dash .mkt-num,#tab-dash .mkt-ch{font-size:11px;letter-spacing:-.035em}
+  button,.btn,.icon-btn,.mkt-btn{border-radius:12px;transition:background .18s ease,border-color .18s ease,transform .18s ease}
+  .btn-strategy,.mkt-btn{background:var(--ov06);box-shadow:inset 0 .5px 0 rgba(255,255,255,.1)}
+}
 
 /* state hero — 시그니처: 단계 색으로 물드는 회전 림 라이트 */
 /* v13.2 히어로 — 2행 그리드. 세로로 긴 달걀은 오른쪽 열을 2행 통째로 쓰고,
@@ -774,7 +786,7 @@ details.sandbox .stage-edit{background:var(--ov01)}
   #tab-trades .trade-toolbar .btn{padding:7px 9px!important;font-size:11px!important;line-height:1.2;white-space:nowrap;min-height:32px;flex-shrink:0;letter-spacing:-.03em}
   #tab-trades .trade-toolbar .hspace{min-width:0}
   .hold-change-rail{gap:7px;padding:10px 12px}
-  .hold-change-item{padding:7px 9px;min-width:74px}
+  .hold-change-item{padding:8px 9px;flex-basis:148px;min-width:148px}.hold-price{font-size:15px}.hold-ext{font-size:9.5px}
 }
 /* ════════════════════════════════════════════════════════════════
    ★ Quiet Glass 이식 — 면(카드·패널·모달)의 테두리를 **상자째** 없앤다.
@@ -1022,7 +1034,8 @@ html.boot .arow .rail b>.lq>.cap2,html.boot .arow .rail b>.lq>.cap0{animation-pl
 .hold-change-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 13px 0;font-size:11px;color:var(--text2)}
 .hold-change-rail{display:flex;align-items:stretch;gap:8px;padding:10px 13px 12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .hold-change-rail::-webkit-scrollbar{display:none}
-.hold-change-item{display:flex;flex-direction:column;gap:3px;align-items:flex-start;flex:0 0 auto;min-width:82px;padding:8px 11px;border-radius:12px;background:var(--ov04)}
+.hold-change-item{display:flex;flex-direction:column;gap:4px;align-items:stretch;flex:0 0 154px;min-width:154px;padding:9px 11px;border-radius:14px;background:var(--ov06);box-shadow:inset 0 .5px 0 rgba(255,255,255,.08)}
+.hold-qtop{display:flex;align-items:center;justify-content:space-between;gap:5px}.hold-price{font-size:16px;font-weight:700;letter-spacing:-.025em;font-variant-numeric:tabular-nums;white-space:nowrap}.hold-session{font-size:9px;color:var(--text2);white-space:nowrap}.hold-returns{display:flex;align-items:center;justify-content:space-between;gap:7px;white-space:nowrap}.hold-ext{font-size:10px;color:var(--text2);font-variant-numeric:tabular-nums}.hold-ext.up{color:var(--up)}.hold-ext.down{color:var(--down)}
 .hold-change-ticker{font-size:11px;font-weight:650;color:var(--text2);letter-spacing:.02em}
 .hold-change-pct{font-variant-numeric:tabular-nums;font-size:15px;font-weight:720;letter-spacing:-.03em;white-space:nowrap}
 .hold-change-pct.up{color:var(--up,#52c99a)}.hold-change-pct.down{color:var(--down,#ff7777)}.hold-change-pct.flat{color:var(--text2)}
@@ -2454,7 +2467,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='16.8';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
+const APP_VERSION='16.9';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -3963,24 +3976,24 @@ async function fixRealized(id, v){
   const w=document.getElementById('realizedWrap'); if(w) w.style.display='';
   flash('실현손익을 장부 값 '+won(v)+'으로 채웠습니다 — 저장을 누르면 반영됩니다');
 }
-/* ★ v16.8 — 보유 종목의 당일 등락률. 실시간 현재가가 있으면 그 시세의 기준가, 없으면 최근 두 종가를 사용. */
+/* ★ v16.9 — 포트폴리오형 보유 종목 시세 카드: 현재가·정규장 등락·시간외 등락 */
 function renderHoldingsChange(rows){
   const rail=document.getElementById('holdChangeRail'); if(!rail) return;
-  const live=liveFresh();
-  const held=(rows||[]).filter(r=>r&&r.qty>1e-9);
-  const prev=SERIES.length>=2?SERIES[SERIES.length-2]:null;
-  if(!held.length){ rail.innerHTML='<div class="hold-change-empty">보유 종목이 없습니다.</div>'; return; }
+  const live=liveFresh(); const held=(rows||[]).filter(r=>r&&r.qty>1e-9);
+  if(!held.length){rail.innerHTML='<div class="hold-change-empty">보유 종목이 없습니다.</div>';return;}
+  const fmtPrice=v=>v>0?'$'+Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
+  const fmtPct=v=>v==null?'—':(v>0?'+':'')+v.toFixed(2)+'%';
+  const cls=v=>v==null?'flat':v>0?'up':v<0?'down':'flat';
   rail.innerHTML=held.map(r=>{
-    const q=live&&LIVEQ[r.k];
-    const price=(q&&q.price>0)?q.price:r.price;
-    const base=(q&&q.prevClose>0)?q.prevClose:(prev?pxAt(prev,r.k):null);
-    const change=(price>0&&base>0)?(price/base-1)*100:null;
-    const cls=change==null?'flat':change>0.00001?'up':change< -0.00001?'down':'flat';
-    const label=change==null?'—':(change>0?'+':'')+change.toFixed(2)+'%';
-    return `<div class="hold-change-item"><span class="hold-change-ticker">${r.k}</span><span class="hold-change-pct ${cls}">${label}</span></div>`;
+    const q=live&&LIVEQ[r.k]; const price=q&&q.price>0?q.price:r.price;
+    const regular=q&&q.regularMarketPrice>0?q.regularMarketPrice:null;
+    const prev=q&&q.regularMarketPreviousClose>0?q.regularMarketPreviousClose:(q&&q.prevClose>0?q.prevClose:null);
+    const day=(price>0&&prev>0)?(price/prev-1)*100:null;
+    const ext=(q&&regular>0&&price>0&&q.session!=='REGULAR')?(price/regular-1)*100:null;
+    const sess=q?lqLabelOf(q):'최근 종가';
+    return `<div class="hold-change-item"><div class="hold-qtop"><span class="hold-change-ticker">${r.k}</span><span class="hold-session">${sess||'시세'}</span></div><strong class="hold-price">${fmtPrice(price)}</strong><div class="hold-returns"><span class="hold-change-pct ${cls(day)}">${fmtPct(day)}</span><span class="hold-ext ${cls(ext)}">시간외 ${fmtPct(ext)}</span></div></div>`;
   }).join('');
-  const stamp=document.getElementById('holdChangeTime');
-  if(stamp) stamp.textContent=live?'실시간 기준가 대비 · '+lqTime():'최근 종가 기준';
+  const stamp=document.getElementById('holdChangeTime'); if(stamp) stamp.textContent=(live?'시세 업데이트 · ':'최근 종가 · ')+(live?lqTime():'');
 }
 /* ===================== 수익분석 ===================== */
 async function renderProfit(pre){   // ★ v16.6 — pre: 받아 둔 매매이력(현재가만 바뀐 다시 그리기는 다시 받지 않는다)
@@ -4674,7 +4687,7 @@ function lqPick(q){
   const isPrevOnly = (price===pc && price!==reg);
   // 확장 시간(프리 · 애프터)의 기준은 그날 정규장 가격, 정규장이면 전일 종가
   const prevClose = (session==='PRE'||session==='POST'||session==='POSTPOST') ? (reg||pc) : pc;
-  return {price, prevClose: prevClose||null, session, isPrevOnly};
+  return {price, prevClose: prevClose||null, session, isPrevOnly, regularMarketPrice:reg, regularMarketPreviousClose:pc, preMarketPrice:pre, postMarketPrice:post};
 }
 async function proxyPost(body, ms){
   const r = await fetch(PROXY_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body), signal:AbortSignal.timeout(ms||9000)});
