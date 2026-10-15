@@ -1121,6 +1121,38 @@ button:not(.mobile-tabbar button):active{background-color:rgba(255,255,255,.055)
 .range-pills button,.range-pills button:hover,.range-pills button.on{background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important}
 </style>
 
+
+<style id="v17-3-compact-hold-portfolio-buttons">
+/* v17.3: compact holdings rows — remove inherited/stretching space */
+#holdChangeCard{height:auto!important;min-height:0!important;align-self:start!important}
+#holdChangeCard .hold-change-rail{display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:0!important;padding:0 10px 3px!important;height:auto!important;min-height:0!important}
+#holdChangeCard .hold-change-item{flex:0 0 auto!important;height:auto!important;min-height:0!important;max-height:none!important;padding:5px 3px!important;margin:0!important;align-self:stretch!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;column-gap:8px!important;line-height:1.12!important}
+#holdChangeCard .hold-qleft{gap:0!important;min-height:0!important}
+#holdChangeCard .hold-qtop{line-height:1.15!important}
+#holdChangeCard .hold-change-ticker{font-size:14px!important;line-height:1.15!important}
+#holdChangeCard .hold-desc{font-size:11px!important;line-height:1.15!important}
+#holdChangeCard .hold-qright{gap:0!important;min-width:94px!important;line-height:1.12!important}
+#holdChangeCard .hold-price{font-size:15px!important;line-height:1.12!important}
+#holdChangeCard .hold-returns{gap:5px!important;line-height:1.1!important}
+#holdChangeCard .hold-change-pct{font-size:11.5px!important;line-height:1.1!important}
+#holdChangeCard .hold-ext{font-size:9.5px!important;line-height:1.1!important}
+#holdChangeCard .hold-change-head{padding:9px 12px 5px!important;line-height:1.2!important}
+/* Portfolio-app navigation: flat dark dock, no liquid-glass surface */
+@media(max-width:560px){
+ .mobile-tabbar{left:10px!important;right:10px!important;bottom:calc(9px + env(safe-area-inset-bottom))!important;background:#20262e!important;background-image:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border:1px solid rgba(255,255,255,.07)!important;border-radius:24px!important;box-shadow:0 -2px 16px rgba(0,0,0,.18)!important;padding:7px 6px!important}
+ .mobile-tabbar button,.mobile-tabbar button:hover,.mobile-tabbar button:active{background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;transform:none!important;color:var(--text2)!important}
+ .mobile-tabbar button.active{background:#303944!important;background-image:none!important;color:#b6c8d8!important;border-radius:18px!important;box-shadow:none!important}
+}
+/* Portfolio-style neutral controls: remove colorful fills, glass shine and glowing shadows everywhere except navigation */
+button:not(.mobile-tabbar button),button:not(.mobile-tabbar button):hover,button:not(.mobile-tabbar button):active{
+ background-color:rgba(255,255,255,.045)!important;background-image:none!important;color:var(--text)!important;
+ border-color:rgba(255,255,255,.10)!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important
+}
+button:not(.mobile-tabbar button):active{transform:scale(.985)}
+/* Range buttons stay borderless */
+.range-pills,.range-pills button,.range-pills button:hover,.range-pills button.on{background:transparent!important;background-image:none!important;border:0!important;outline:0!important;box-shadow:none!important}
+</style>
+
 </head>
 <body>
 <header>
