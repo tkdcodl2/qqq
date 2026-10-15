@@ -1029,7 +1029,7 @@ html.boot .arow .rail b>.lq>.cap2,html.boot .arow .rail b>.lq>.cap0{animation-pl
   .gpip.on{animation:none!important}
   .arow .rail b>.lq>.wv.wv2,.arow .rail b>.lq>.cap2,.arow .rail b>.lq>.cap0{animation:none!important;opacity:0}
 }
-/* v17.0 — 보유 종목 시세를 포트폴리오 앱처럼 좌측 정보·우측 가격으로 표시 */
+/* v17.1 — 보유 종목 시세를 포트폴리오 앱처럼 좌측 정보·우측 가격으로 표시 */
 .hold-change-card{margin-bottom:12px;padding:0;overflow:hidden;border:1px solid var(--border);background:linear-gradient(145deg,var(--surface2),var(--surface));}
 .hold-change-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 14px 8px;font-size:11px;color:var(--text2)}
 .hold-change-rail{display:flex;flex-direction:column;gap:0;padding:0 12px 5px;overflow-x:hidden;-webkit-overflow-scrolling:touch}
@@ -1048,6 +1048,39 @@ html.boot .arow .rail b>.lq>.cap2,html.boot .arow .rail b>.lq>.cap0{animation-pl
 .lq-sess.day{color:#9EB5C5}
 .lq-sess.prev{opacity:.7}
 </style>
+
+<style id="v17-1-global-glass-audit">
+/* v17.1: compact held-ticker rows + app-wide liquid-glass button audit */
+.hold-change-rail{gap:0!important;padding:2px 12px 3px!important}
+.hold-change-item{padding:5px 4px!important;column-gap:8px!important;min-height:0!important}
+.hold-qleft{gap:1px!important}
+.hold-change-item:last-child{border-bottom:0!important}
+@media(max-width:560px){
+  .hold-change-rail{padding:1px 9px 2px!important}
+  .hold-change-item{padding:4px 3px!important;column-gap:6px!important}
+  .hold-qleft{gap:1px!important}
+}
+/* Range pills are segmented controls: no outer outline/ring. */
+.range-pills{border:0!important;outline:0!important;box-shadow:none!important}
+.range-pills button,.range-pills button:hover,.range-pills button.on{border:0!important;outline:0!important}
+.range-pills button:focus,.range-pills button:focus-visible{outline:0!important;box-shadow:none!important}
+/* Shared liquid-glass finish for every native button, including modal and secondary screens. */
+button{
+  -webkit-backdrop-filter:blur(16px) saturate(155%);
+  backdrop-filter:blur(16px) saturate(155%);
+  border-color:rgba(255,255,255,.16);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 0 0 .5px rgba(255,255,255,.045),0 5px 14px -9px rgba(0,0,0,.62);
+  transition:background-color .22s ease,border-color .22s ease,box-shadow .22s ease,transform .22s cubic-bezier(.2,.8,.2,1),filter .22s ease;
+}
+button:hover{border-color:rgba(255,255,255,.24);filter:brightness(1.045)}
+button:active{transform:scale(.975);box-shadow:inset 0 2px 5px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.12)}
+button:focus-visible{outline:2px solid rgba(183,164,255,.8);outline-offset:2px}
+/* Keep chart segmented controls clean and flat, overriding the generic button finish. */
+.range-pills button{box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important}
+.range-pills button:active{transform:none!important}
+@media(prefers-reduced-motion:reduce){button{transition:none!important}}
+</style>
+
 </head>
 <body>
 <header>
@@ -2469,7 +2502,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='17.0';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
+const APP_VERSION='17.1';   // §109 — 메인.보조 두 자리만(보조 9 다음은 메인 +1: 15.9 → 16.0)
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -3978,7 +4011,7 @@ async function fixRealized(id, v){
   const w=document.getElementById('realizedWrap'); if(w) w.style.display='';
   flash('실현손익을 장부 값 '+won(v)+'으로 채웠습니다 — 저장을 누르면 반영됩니다');
 }
-/* ★ v17.0 — 포트폴리오형 보유 종목 시세: 종목/설명 좌측, 현재가와 정규·시간외 등락 우측 */
+/* ★ v17.1 — 포트폴리오형 보유 종목 시세: 종목/설명 좌측, 현재가와 정규·시간외 등락 우측 */
 function renderHoldingsChange(rows){
   const rail=document.getElementById('holdChangeRail'); if(!rail) return;
   const live=liveFresh(); const held=(rows||[]).filter(r=>r&&r.qty>1e-9);
