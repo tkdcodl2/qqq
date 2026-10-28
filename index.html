@@ -1191,6 +1191,7 @@ button:not(.mobile-tabbar button):active{transform:scale(.985)}
 .vr-today .vr-kv b{color:var(--text);font-family:var(--font-num);font-weight:640;font-variant-numeric:tabular-nums}
 #vrHistTable th:first-child,#vrHistTable td:first-child{text-align:left;padding-left:16px}
 #vrHistTable .icon-btn{padding:2px 8px}
+#vrHistTable tr.vr-live td{background:color-mix(in srgb, var(--accent) 7%, transparent)}
 .vr-form{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .vr-form .field{margin-bottom:0}
 .vr-form .field label .muted{font-size:10.5px}
@@ -5615,9 +5616,19 @@ function vrRender(){
     const tq=x.tradeQty!=null?` (${x.tradeQty>0?'+':''}${vrQty(x.tradeQty)}주)`:'';
     return `<tr><td>${x.index}</td><td class="mono">${x.date||'—'}</td><td class="mono">$${vrFmt(x.price)}</td><td class="mono">${vrQty(x.shares)}${dqs}</td><td class="mono">$${vrFmt(x.evalAmt)}</td><td class="mono">$${vrFmt(x.pool)}</td><td class="mono">$${vrFmt(x.V)}</td><td class="mono">$${vrFmt(x.min)}</td><td class="mono">$${vrFmt(x.max)}</td><td class="mono">${x.flow>=0?'+':''}$${vrFmt(x.flow)}</td><td class="mono ${net>0?'vr-buy':net<0?'vr-sell':''}">${net?(net>0?'+':'')+'$'+vrFmt(net):'—'}</td><td><button class="icon-btn" onclick="vrDeleteCycle(${i})" title="삭제">×</button></td></tr>`;}).reverse().join('')
     :'<tr><td colspan="12" style="text-align:center;padding:24px" class="muted">아직 저장된 VR 사이클이 없습니다.</td></tr>';
+  /* ★ 맨 위 '현재' 행 — 밴드바·현황과 같은 값(현재가 × 지금 보유 주수 · 사이클 중 매매 반영 POOL) */
+  const live=vrLivePoint(n);
+  if(live){const L=n.last,dq=live.shares-(Number(L.shares)||0),net=n.it.buy-n.it.sell;
+    const dqs=Math.abs(dq)>1e-9?` <span class="${dq>0?'vr-buy':'vr-sell'}">(${dq>0?'+':'−'}${vrQty(Math.abs(dq))})</span>`:'';
+    document.getElementById('vrRows').insertAdjacentHTML('afterbegin',`<tr class="vr-live"><td><span class="acc-badge vr">현재</span></td><td class="mono">${todayStr()}</td><td class="mono">$${vrFmt(live.price)}</td><td class="mono">${vrQty(live.shares)}${dqs}</td><td class="mono">$${vrFmt(live.evalAmt)}</td><td class="mono">$${vrFmt(live.pool)}</td><td class="mono">$${vrFmt(live.V)}</td><td class="mono">$${vrFmt(live.min)}</td><td class="mono">$${vrFmt(live.max)}</td><td class="mono">—</td><td class="mono ${net>0?'vr-buy':net<0?'vr-sell':''}">${net?(net>0?'+':'')+'$'+vrFmt(net):'—'}</td><td></td></tr>`);}
   const sh=document.getElementById('vrShares');if(sh)sh.placeholder=`자동 ${vrQty(n?n.Q:st.Q)}주`;
   vrCapitalViewSync();
-  vrDrawChart(d);
+  vrDrawChart(d,n);
+}
+/* 지금 시점 값 — 현재가(없으면 마지막 갱신 종가) × 지금 보유 주수 */
+function vrLivePoint(n){
+  if(!n)return null;const price=n.px?n.px.price:Number(n.last.price)||0;
+  return {price,shares:n.Q,evalAmt:price*n.Q,pool:n.pool,V:n.V,min:n.min,max:n.max};
 }
 function vrUseLivePrice(){const p=vrPx(vrState.settings.ticker);if(!p){flash('현재가를 불러오지 못했습니다 — 종가를 직접 입력하세요');return;}document.getElementById('vrPrice').value=p.price.toFixed(2);const dt=document.getElementById('vrDate');if(dt&&!dt.value)dt.value=todayStr();vrPreviewCalc();}
 function vrPreviewCalc(){
@@ -5695,13 +5706,16 @@ async function vrReset(){
     vrStatus(`${round+1}회차 시작 준비 완료 · 초기자금 $${vrFmt(finalTotal)} (직전 회차 최종 총자산)`);flash(`${round}회차 종료 · 최종 총자산을 ${round+1}회차 초기자금으로 승계했습니다`);
   }catch(e){console.error(e);vrStatus('회차 종료 실패: '+(e.message||e),true);}
 }
-function vrDrawChart(d){
+function vrDrawChart(d,n){
+  const live=vrLivePoint(n);
+  if(live)d=d.concat([{...live,date:'',index:'현재',isLive:true}]);
   const canvas=document.getElementById('vrChart');if(!canvas||typeof Chart==='undefined')return;
   if(vrChart){vrChart.destroy();vrChart=null;}
   const g=canvas.getContext('2d');
   const grad=g.createLinearGradient(0,0,0,280);grad.addColorStop(0,'rgba(134,196,155,.26)');grad.addColorStop(1,'rgba(134,196,155,0)');
   const gradB=g.createLinearGradient(0,0,0,280);gradB.addColorStop(0,'rgba(201,184,163,.07)');gradB.addColorStop(1,'rgba(201,184,163,.02)');
-  const labels=d.map(x=>x.date?x.date.slice(5):`사이클 ${x.index}`);
+  const dup=new Set(),seen=new Set();d.forEach(x=>{const k=x.date||'';if(seen.has(k))dup.add(k);seen.add(k);});
+  const labels=d.map(x=>x.isLive?'현재':(x.date?(dup.has(x.date)?`${x.date.slice(5)} #${x.index}`:x.date.slice(5)):`사이클 ${x.index}`));
   const ds=[
     {label:'주식 평가액',data:d.map(x=>x.evalAmt),borderColor:'#9EBEA8',backgroundColor:grad,borderWidth:2.2,pointRadius:0,pointHoverRadius:4,tension:.35,fill:'origin',order:1},
     {label:'V',data:d.map(x=>x.V),borderColor:'#E0CDAA',borderWidth:2,pointRadius:0,tension:.35,order:2},
