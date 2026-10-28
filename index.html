@@ -5736,29 +5736,29 @@ function vrDrawChart(d,n){
       c.fillStyle='#BCDEC8';c.beginPath();c.arc(last.x,last.y,3,0,Math.PI*2);c.fill();c.restore();
     }
     if(slow)return;
-    const CYC=8000,TRV=4200,ph=now%CYC;
-    if(ph<TRV&&pts.length>1&&!meta.hidden){
-      const prog=ph/TRV,env=Math.pow(Math.sin(Math.PI*prog),1.4);
-      if(env>0.01){
-        const path=()=>{let prev=null,len=0;c.beginPath();
-          for(const p of pts){if(!p||p.skip||!isFinite(p.x)||!isFinite(p.y)){prev=null;continue;}
-            if(!prev){c.moveTo(p.x,p.y);prev=p;continue;}
-            if(isFinite(prev.cp2x)&&isFinite(p.cp1x))c.bezierCurveTo(prev.cp2x,prev.cp2y,p.cp1x,p.cp1y,p.x,p.y);else c.lineTo(p.x,p.y);
-            len+=Math.hypot(p.x-prev.x,p.y-prev.y);prev=p;}
-          return len*1.03;};
-        const len=path();
-        if(len>1){
-          const HEAD='188,222,200',N=12,PEAK=0.70,bw=2.2,Lmax=Math.max(90,len*0.34),period=len+Lmax*3,cc=-Lmax/2+prog*(len+Lmax);
-          c.save();c.beginPath();c.rect(area.left,area.top,area.right-area.left,area.bottom-area.top);c.clip();
-          c.globalCompositeOperation='lighter';c.lineCap='round';c.lineJoin='round';
-          for(let k=1;k<=N;k++){const f=k/N,L=Lmax*f;c.setLineDash([L,period-L]);c.lineDashOffset=-(cc-L/2);path();
-            c.strokeStyle='rgba('+(k<=3?HEAD:GL)+','+((PEAK/N)*env).toFixed(4)+')';c.lineWidth=bw+(3+20*(1-f))*(0.55+0.45*env);
-            if(k<=3){c.shadowColor='rgba('+HEAD+','+(0.65*env).toFixed(3)+')';c.shadowBlur=14+22*env;}else{c.shadowColor='transparent';c.shadowBlur=0;}
-            c.stroke();}
-          c.restore();
-        }
-      }
-    }
+    /* 숨결 글로우 — 평가액(초록)과 V(금빛) 선을 따라 각각 흐른다. V 는 2.6초 늦게 출발 */
+    const CYC=8000,TRV=4200;let moving=false;
+    [{i:0,GL:'134,196,155',HEAD:'188,222,200',off:0,bw:2.2},{i:1,GL:'224,205,170',HEAD:'242,230,204',off:2600,bw:2}].forEach(L=>{
+      const m=chart.getDatasetMeta(L.i);if(!m||m.hidden||!m.data||m.data.length<2)return;
+      const ph=(now+CYC-L.off)%CYC;if(ph>=TRV)return;moving=true;
+      const P=m.data,prog=ph/TRV,env=Math.pow(Math.sin(Math.PI*prog),1.4);if(env<=0.01)return;
+      const path=()=>{let prev=null,len=0;c.beginPath();
+        for(const p of P){if(!p||p.skip||!isFinite(p.x)||!isFinite(p.y)){prev=null;continue;}
+          if(!prev){c.moveTo(p.x,p.y);prev=p;continue;}
+          if(isFinite(prev.cp2x)&&isFinite(p.cp1x))c.bezierCurveTo(prev.cp2x,prev.cp2y,p.cp1x,p.cp1y,p.x,p.y);else c.lineTo(p.x,p.y);
+          len+=Math.hypot(p.x-prev.x,p.y-prev.y);prev=p;}
+        return len*1.03;};
+      const len=path();if(len<=1)return;
+      const N=12,PEAK=L.i===0?0.70:0.62,Lmax=Math.max(90,len*0.34),period=len+Lmax*3,cc=-Lmax/2+prog*(len+Lmax);
+      c.save();c.beginPath();c.rect(area.left,area.top,area.right-area.left,area.bottom-area.top);c.clip();
+      c.globalCompositeOperation='lighter';c.lineCap='round';c.lineJoin='round';
+      for(let k=1;k<=N;k++){const f=k/N,Ln=Lmax*f;c.setLineDash([Ln,period-Ln]);c.lineDashOffset=-(cc-Ln/2);path();
+        c.strokeStyle='rgba('+(k<=3?L.HEAD:L.GL)+','+((PEAK/N)*env).toFixed(4)+')';c.lineWidth=L.bw+(3+20*(1-f))*(0.55+0.45*env);
+        if(k<=3){c.shadowColor='rgba('+L.HEAD+','+(0.65*env).toFixed(3)+')';c.shadowBlur=14+22*env;}else{c.shadowColor='transparent';c.shadowBlur=0;}
+        c.stroke();}
+      c.restore();
+    });
+    const ph=moving?0:TRV;
     if(chart.$pending)return;
     const tab=document.getElementById('tab-vr');if(tab&&tab.classList.contains('hidden'))return;
     chart.$pending=true;const again=()=>{chart.$pending=false;if(chart.ctx)chart.draw();};
