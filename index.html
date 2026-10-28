@@ -1240,6 +1240,30 @@ button:not(.mobile-tabbar button):active{transform:scale(.985)}
 #accSeg button.on{background:var(--accent-fill)!important;color:var(--on-accent)!important;box-shadow:var(--shadow-8)!important}
 </style>
 
+
+<style id="mobile-tabbar-pf">
+/* ★ 하단 메뉴 — 포트폴리오 앱과 같은 모양: 화면 아래 전폭 고정 · 불투명 08dp 면 · 위 헤어라인 · 선 아이콘 + 글자 · 켜진 탭 위 짧은 빛줄 */
+@media(max-width:560px){
+  .mobile-tabbar{display:flex!important;position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;z-index:9999!important;
+    background:#1D242D!important;background-image:none!important;border:0!important;border-top:1px solid rgba(255,255,255,.13)!important;border-radius:0!important;
+    padding:0 0 env(safe-area-inset-bottom,0px)!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+    justify-content:space-around;align-items:stretch;flex-direction:row;transform:translateZ(0);-webkit-transform:translateZ(0);will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+  .mobile-tabbar .mob-tab-btn,.mobile-tabbar .mob-tab-btn:hover,.mobile-tabbar .mob-tab-btn:active,.mobile-tabbar .mob-tab-btn.active{
+    flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 2px!important;min-height:52px;
+    background:none!important;background-image:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;transform:none!important;
+    color:var(--muted)!important;font-family:var(--font-text);font-size:10px;font-weight:500;letter-spacing:-.01em;white-space:nowrap;cursor:pointer;transition:color .22s var(--ease)}
+  .mobile-tabbar .mob-tab-btn svg{width:20px;height:20px;stroke-width:1.8;flex-shrink:0}
+  .mobile-tabbar .mob-tab-btn.active{color:var(--accent)!important}
+  .mobile-tabbar .mob-tab-btn::before{content:'';position:absolute;top:0;left:50%;width:0;height:2px;border-radius:0 0 3px 3px;background:var(--accent);
+    box-shadow:0 0 9px var(--glow);transform:translateX(-50%);transition:width .3s var(--ease)}
+  .mobile-tabbar .mob-tab-btn.active::before{width:28px}
+  .mobile-tabbar .mob-tab-btn.active svg{animation:mtabPop .44s cubic-bezier(.34,1.42,.64,1)}
+  .wrap{padding-bottom:calc(76px + env(safe-area-inset-bottom))!important}
+  #flash{bottom:calc(68px + env(safe-area-inset-bottom))!important}
+}
+@keyframes mtabPop{0%{transform:scale(.90)}58%{transform:scale(1.055)}100%{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.mobile-tabbar .mob-tab-btn.active svg{animation:none}}
+</style>
 </head>
 <body>
 <header>
@@ -1512,8 +1536,7 @@ button:not(.mobile-tabbar button):active{transform:scale(.985)}
 
     <div class="section-title" style="margin-top:26px"><span class="dot"></span><span class="vr-t">이번 사이클 주문가</span> <span class="muted vr-sub" id="vrLadderSub"></span>
       <span class="vr-step">주문 단위<select id="vrStep" onchange="this.dataset.user='1';vrLadderRender()"><option value="1">1주</option><option value="2">2주</option><option value="5">5주</option><option value="10">10주</option><option value="20">20주</option></select></span></div>
-    <div class="card vr-today" id="vrToday"></div>
-    <div id="vrLadder" style="margin-top:16px">
+    <div id="vrLadder">
       <div class="card vr-lcard" style="padding:0">
         <div class="vr-lt"><span class="vr-buy">매수표</span><span class="muted">종가가 주문가 이하이면 체결 (LOC 매수)</span></div>
         <div class="vr-lscroll"><table class="nowrap-table"><thead><tr><th>체결 후 보유</th><th>계산식</th><th>주문가</th><th>POOL 잔량</th><th></th></tr></thead><tbody id="vrBuyRows"></tbody></table></div>
@@ -1523,7 +1546,6 @@ button:not(.mobile-tabbar button):active{transform:scale(.985)}
         <div class="vr-lscroll"><table class="nowrap-table"><thead><tr><th>체결 후 보유</th><th>계산식</th><th>주문가</th><th>POOL 잔량</th><th></th></tr></thead><tbody id="vrSellRows"></tbody></table></div>
       </div>
     </div>
-    <p class="note" id="vrLadderNote" style="margin-top:8px"></p>
 
 
     <div class="section-title" style="margin-top:26px"><span class="dot"></span><span class="vr-t">사이클 갱신 기록</span> <span class="muted vr-sub">2주마다 새 V·밴드 계산 — 매매는 주문가 표의 매수/매도로 실제 체결분만 기록</span></div>
@@ -1550,13 +1572,14 @@ button:not(.mobile-tabbar button):active{transform:scale(.985)}
   <div class="appver">Adaptive DCA &nbsp;·&nbsp; <span id="appVer"></span></div>
 </div>
 
-<div class="mobile-tabbar" id="mtab">
-  <button class="active" data-tab="dash" onclick="switchTab('dash')"><span class="ic">◎</span>대시보드</button>
-  <button data-tab="vr" onclick="switchTab('vr')"><span class="ic">↔</span>밸류리밸런싱</button>
-  <button data-tab="trades" onclick="switchTab('trades')"><span class="ic">≣</span>매매이력</button>
-  <button data-tab="setup" onclick="switchTab('setup')"><span class="ic">⚙</span>적립설정</button>
-  <button data-tab="bt" onclick="switchTab('bt')"><span class="ic">⏱</span>백테스트</button>
-</div>
+<nav class="mobile-tabbar" id="mtab">
+  <button class="mob-tab-btn active" data-tab="dash" onclick="switchTab('dash')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>대시보드</span></button>
+  <button class="mob-tab-btn" data-tab="vr" onclick="switchTab('vr')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M5 21h14"/><path d="M6 7h12"/><path d="M6 7l-3 7a3 3 0 0 0 6 0z"/><path d="M18 7l-3 7a3 3 0 0 0 6 0z"/></svg><span>밸류리밸런싱</span></button>
+  <button class="mob-tab-btn" data-tab="trades" onclick="switchTab('trades')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg><span>매매이력</span></button>
+  <button class="mob-tab-btn" data-tab="setup" onclick="switchTab('setup')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>적립설정</span></button>
+  <button class="mob-tab-btn" data-tab="bt" onclick="switchTab('bt')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>백테스트</span></button>
+</nav>
+
 
 <!-- ===== STRATEGY MODAL ===== -->
 <div class="modal-overlay" id="settingsModal">
@@ -5542,7 +5565,7 @@ function vrLadderRender(){
   const n=vrNow(),sel=document.getElementById('vrStep');
   if(sel&&!sel.dataset.user&&n){const est=n.Q>0?n.Q:(n.px?n.min/n.px.price:0);const st=n.Q>0?vrAutoStep(est):[1,2,5,10,20].find(x=>x>=est/25)||20;sel.value=String(st);}
   const step=Math.max(1,Number(sel&&sel.value)||1);
-  document.getElementById('vrToday').innerHTML=vrTodayHtml(n);
+  const _td=document.getElementById('vrToday');if(_td)_td.innerHTML=vrTodayHtml(n);
   const {buy,sell}=vrLadder(n,step),px=n&&n.px?n.px.price:null;
   const empty=t=>`<tr><td colspan="5" class="vr-empty">${t}</td></tr>`;
   const minS=n?vrFmt0(n.min):'',maxS=n?vrFmt0(n.max):'';
@@ -5552,7 +5575,7 @@ function vrLadderRender(){
   const sub=document.getElementById('vrLadderSub');
   if(sub)sub.textContent=n?`사이클 ${n.last.index} · ${n.last.date} ~ ${n.nextDate} · V $${vrFmt(n.V)} · 보유 ${vrQty(n.Q)}주`:'';
   const note=document.getElementById('vrLadderNote');
-  if(note)note.innerHTML=n?`매일 장 마감 전에 위 주문가로 <b>LOC 주문</b>을 걸어 두세요. 주문가 = 밴드 ÷ 체결 후 보유 주수라서 그 가격에 체결돼도 평가액이 밴드를 넘지 않습니다(● = 현재가 기준 체결권). 체결되면 그 행의 <b>매수/매도</b> 버튼(1단계~그 행까지 합산 수량)으로 VR 계좌에 기록하세요 — 보유 주수·POOL이 반영돼 표가 다시 계산됩니다.`
+  if(false&&note)note.innerHTML=n?`매일 장 마감 전에 위 주문가로 <b>LOC 주문</b>을 걸어 두세요. 주문가 = 밴드 ÷ 체결 후 보유 주수라서 그 가격에 체결돼도 평가액이 밴드를 넘지 않습니다(● = 현재가 기준 체결권). 체결되면 그 행의 <b>매수/매도</b> 버튼(1단계~그 행까지 합산 수량)으로 VR 계좌에 기록하세요 — 보유 주수·POOL이 반영돼 표가 다시 계산됩니다.`
     +` 매수표는 이번 사이클 POOL 사용 한도(갱신 시 POOL의 ${vrState.settings.poolLimit}% = $${vrFmt(n.budget)}, 사용 $${vrFmt(n.used)})까지만 유효합니다.`
     +(n.it.n?` 사이클 중 매매 ${n.it.n}건 반영(매수 $${vrFmt(n.it.buy)} · 매도 $${vrFmt(n.it.sell)}).`:'')
     +` ${n.nextDate}에 사이클 갱신을 저장하면 새 V로 표가 바뀝니다.`:'';
