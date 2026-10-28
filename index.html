@@ -1196,7 +1196,20 @@ button:not(.mobile-tabbar button):active{transform:scale(.985)}
 .vr-preview .vr-fine{color:var(--muted);font-size:11px;margin-top:4px}
 #vrSummary{grid-template-columns:repeat(4,minmax(0,1fr))}
 #vrTopRow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
-#vrTopRow>.card{padding:16px 18px;display:flex;flex-direction:column;min-width:0}
+#vrTopRow>.card,#vrAllocCard{padding:16px 18px;display:flex;flex-direction:column;min-width:0}
+#vrTopRow .vr-left{display:flex;flex-direction:column;gap:16px;min-width:0}
+#vrAllocCard{flex:1;justify-content:center}
+#vrBandCard{padding:15px 18px}
+/* 밴드 바 — 대시보드 적립 게이지와 같은 언어: 밴드 구간 = 켜진 칸(빛·셔머), V = 금빛 눈금, 평가액 = 맥동하는 점 */
+.vr-btrack{flex:1;min-width:0;position:relative;height:8px;border-radius:var(--r-pill);background:var(--ov06);border:.5px solid rgba(255,255,255,.08)}
+.vr-btrack .gpip{position:absolute;top:-.5px;bottom:-.5px;height:auto}
+.vr-btrack .vr-vtick{position:absolute;top:-6px;bottom:-6px;width:2px;margin-left:-1px;border-radius:2px;background:var(--gold);box-shadow:0 0 10px color-mix(in srgb, var(--gold) 70%, transparent);z-index:2}
+.vr-btrack .vr-edot{position:absolute;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:#fff;border:2px solid var(--rc,var(--accent));z-index:3;
+  --glow:var(--rc,var(--accent));animation:livePulse 2.4s ease-in-out infinite}
+.vr-btrack .vr-blab{position:absolute;top:12px;transform:translateX(-50%);font-family:var(--font-num);font-size:9.5px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+#vrBandRow{padding-bottom:12px}
+.vr-wipe{animation:barWipe 1.1s var(--ease) both}
+@media(prefers-reduced-motion:reduce){.vr-wipe,.vr-btrack .vr-edot{animation:none}}
 #vrChartCard .vr-chart-box{flex:1;min-height:230px;position:relative}
 #vrAlloc .arow .act{min-width:64px;text-align:right}
 @media(max-width:900px){#vrTopRow{grid-template-columns:1fr}}
@@ -1475,8 +1488,14 @@ button:not(.mobile-tabbar button):active{transform:scale(.985)}
 
   <section id="tab-vr" class="hidden">
     <div id="vrTopRow">
-      <div class="card" id="vrAllocCard"><div id="vrAlloc"></div></div>
-      <div class="card" id="vrChartCard"><div class="abar-label">V · 평가액 · 밴드 추이</div><div class="vr-chart-box"><canvas id="vrChart"></canvas></div></div>
+      <div class="vr-left">
+        <div class="card card-hov state-box" id="vrBandCard">
+          <div class="state-head"><div class="state-name" id="vrBandName">—</div><div class="gauge-row" id="vrBandRow"></div></div>
+          <div class="state-sub" id="vrBandSub"></div>
+        </div>
+        <div class="card" id="vrAllocCard"><div id="vrAlloc"></div></div>
+      </div>
+      <div class="card" id="vrChartCard"><div class="abar-label">V · 평가액 · 밴드 추이</div><div class="vr-chart-box" id="vrChartWrap"><canvas id="vrChart"></canvas></div></div>
     </div>
     <div class="section-title vr-head" style="margin-top:26px"><span class="dot"></span><span class="vr-t">현황</span> <span class="muted vr-sub" id="vrHeadSub"></span>
       <button class="btn primary" onclick="openTrade(null,'vr')">VR 매매입력</button></div>
@@ -4947,7 +4966,7 @@ function switchTab(t){
   ['dash','setup','trades','bt','vr'].forEach(x=>{const el=document.getElementById('tab-'+x);if(el)el.classList.toggle('hidden',x!==t);});
   document.querySelectorAll('.tab-btn,[data-tab]').forEach(b=>{if(b.dataset.tab)b.classList.toggle('active',b.dataset.tab===t);});
   if(t==='dash' && priceChart && priceChart.resize) priceChart.resize();
-  if(t==='vr'){ vrRender(); if(!vrCloudReady) vrInitCloud(); }   // VR 클라우드 로드 및 캔버스 크기 보정
+  if(t==='vr'){ vrRender(); if(!vrCloudReady) vrInitCloud(); if(vrChart&&vrChart.draw) vrChart.draw(); }   // VR 클라우드 로드 및 캔버스 크기 보정
   if(t==='dash'){ playAssetWipe(); if(assetChart && assetChart.draw) assetChart.draw(); }   // 와이프 재생 + 맥동 루프 재개(§74)
   window.scrollTo(0,0);                                                    // 화면 전환 시 항상 최상단부터
 }
@@ -5372,6 +5391,29 @@ function vrAllocRender(o){
     options:{cutout:'58%',responsive:true,maintainAspectRatio:false,animation:{duration:500},
       plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+' '+c.label+' '+Math.round(c.raw)+'%'}}}}});
 }
+function vrBandRender(o){
+  const card=document.getElementById('vrBandCard'),row=document.getElementById('vrBandRow');if(!card||!row)return;
+  const {stock,V,min,max,n}=o,fx=Number(FXNOW)>0?Number(FXNOW):1380;
+  let name,rc;
+  if(!n){name='회차 시작 전';rc='var(--accent)';}
+  else if(stock<min){name='매수 구간';rc='var(--red-t)';}
+  else if(stock>max){name='매도 구간';rc='var(--accent)';}
+  else{name='밴드 안';rc='var(--green)';}
+  card.style.setProperty('--rc',rc);card.style.setProperty('--rt',rc);
+  document.getElementById('vrBandName').textContent=name;
+  const span=Math.max(1,max-min),lo=Math.max(0,Math.min(min-span*.45,stock-span*.08)),hi=Math.max(max+span*.45,stock+span*.08);
+  const P=v=>Math.max(0,Math.min(100,(v-lo)/(hi-lo)*100)).toFixed(2)+'%';
+  const dev=V>0?(stock/V-1)*100:0;
+  row.innerHTML=`<div class="vr-btrack">`
+    +`<div class="gpip on" style="left:${P(min)};width:calc(${P(max)} - ${P(min)});--d:.05s"></div>`
+    +`<div class="vr-vtick" style="left:${P(V)}" title="V"></div>`
+    +(n||stock>0?`<div class="vr-edot" style="left:${P(stock)}" title="주식 평가액"></div>`:'')
+    +`<span class="vr-blab" style="left:${P(min)}">최소</span><span class="vr-blab" style="left:${P(V)};color:var(--gold)">V</span><span class="vr-blab" style="left:${P(max)}">최대</span>`
+    +`</div><div class="gauge-pct">${(dev>=0?'+':'')+dev.toFixed(1)}%</div>`;
+  const W=u=>won(u*fx);
+  document.getElementById('vrBandSub').innerHTML=`평가액 <b>${W(stock)}</b> · V ${W(V)} · 밴드 ${W(min)} ~ ${W(max)}`
+    +(n&&n.buyStart?` <span class="muted">· 매수 ${'$'+vrFmt(n.buyStart)} 이하 / 매도 ${n.sellStart?'$'+vrFmt(n.sellStart):'—'} 이상</span>`:'');
+}
 /* 지금 진행 중인 사이클 */
 function vrNow(){
   const s=vrState.settings,d=vrCalc(),last=d[d.length-1];if(!last)return null;
@@ -5444,6 +5486,7 @@ function vrRender(){
   if(!document.getElementById('vrSummary'))return;
   const s=vrState.settings,n=vrNow(),d=n?n.d:vrCalc();
   const card=(label,val,sub,cls='')=>`<div class="card card-hov blue"><div class="label">${label}</div><div class="card-val"><div class="card-amt"><span class="big-num ${cls}">${val}</span></div>${sub?`<div class="sub-usd">${sub}</div>`:''}</div></div>`;
+  const fx=Number(FXNOW)>0?Number(FXNOW):1380,W=u=>won(u*fx),U=u=>(u<0?'−':'')+'$'+vrFmt(Math.abs(u));
   const px=n?n.px:vrPx(s.ticker);
   const st=n?null:vrStart();
   const V=n?n.V:st.V,min=n?n.min:V*(1-s.band/100),max=n?n.max:V*(1+s.band/100);
@@ -5451,15 +5494,17 @@ function vrRender(){
   const stock=n?(px?px.price*Q:n.last.evalAmt):(px?px.price*Q:0),total=stock+pool;
   const avgPV=d.length?d.reduce((a,x)=>a+(x.pool/Math.max(x.V,1)),0)/d.length:0;
   const inv=vrInvested(d,st),ret=inv>0?(total/inv-1):null,rc=ret==null?'':ret>=0?'up':'down';
+  const pnl=total-inv;
   document.getElementById('vrSummary').innerHTML=[
-    card('총 금액','$'+vrFmt(total),'주식 + POOL'),
-    card('총 수익률',ret==null?'—':(ret>=0?'+':'')+(ret*100).toFixed(2)+'%',inv>0?`투입 $${vrFmt(inv)} · 손익 ${total-inv>=0?'+':'−'}$${vrFmt(Math.abs(total-inv))}`:'투입금 없음',rc),
-    card('주식 평가액','$'+vrFmt(stock),total>0?`비중 ${(stock/total*100).toFixed(1)}%`:''),
-    card('POOL','$'+vrFmt(pool),n?`이번 사이클 매수 가능 $${vrFmt(n.avail)}`:'회차 시작 POOL'),
-    card('현재 V','$'+vrFmt(V),`밴드 $${vrFmt0(min)} – $${vrFmt0(max)}`),
-    card(`${vrEsc(s.ticker)} 현재가`,px?'$'+vrFmt(px.price):'—',px?(px.live?'실시간':'최근 종가'):'시세 없음'),
-    card('주식 수',vrQty(Q)+'주',n?`사이클 ${n.last.index} · ${n.last.date}~`:'회차 시작 전')
+    card('총 금액',W(total),U(total)),
+    `<div class="card card-hov blue"><div class="label">총 수익</div><div class="card-val"><div class="card-amt"><span class="big-num ${rc}">${inv>0?W(pnl):'—'}</span>${ret!=null?`<span class="card-pct ${rc}">(${(ret>=0?'+':'')+(ret*100).toFixed(2)}%)</span>`:''}</div>${inv>0?`<div class="sub-usd">${U(pnl)}</div>`:''}</div></div>`,
+    card('주식 평가액',W(stock),U(stock)),
+    card('POOL',W(pool),U(pool)),
+    card('현재 V',W(V),U(V)),
+    card(`${vrEsc(s.ticker)} 현재가`,px?W(px.price):'—',px?U(px.price):''),
+    card('주식 수',vrQty(Q)+'주','')
   ].join('');
+  vrBandRender({stock,V,min,max,n,px});
   vrAllocRender({stock,pool,total,V,Q,n,px});
   const head=document.getElementById('vrHeadSub');
   if(head)head.textContent=`${n?(vrState.cycles[0]&&vrState.cycles[0].round||Number(s.round)||1):st.round}회차 · ${s.ticker} · ${s.formula==='skill'?'실력공식':'기본공식'} G=${s.G} · POOL 한도 ${s.poolLimit}% · 계좌 ${vrAccountName||'미지정'}`;
@@ -5548,7 +5593,71 @@ async function vrReset(){
     vrStatus(`${round+1}회차 시작 준비 완료 · 초기자금 $${vrFmt(finalTotal)} (직전 회차 최종 총자산)`);flash(`${round}회차 종료 · 최종 총자산을 ${round+1}회차 초기자금으로 승계했습니다`);
   }catch(e){console.error(e);vrStatus('회차 종료 실패: '+(e.message||e),true);}
 }
-function vrDrawChart(d){const canvas=document.getElementById('vrChart');if(!canvas||typeof Chart==='undefined')return;if(vrChart){vrChart.destroy();vrChart=null;}vrChart=new Chart(canvas,{type:'line',data:{labels:d.map(x=>x.date||`사이클 ${x.index}`),datasets:[{label:'주식 평가액',data:d.map(x=>x.evalAmt),borderColor:'#7fb5e6',borderWidth:2,pointRadius:1,tension:.2},{label:'V',data:d.map(x=>x.V),borderColor:'#c9a84c',borderWidth:2,pointRadius:0,tension:.2},{label:'최소밴드',data:d.map(x=>x.min),borderColor:'#5b9bd5',borderDash:[5,4],borderWidth:1,pointRadius:0},{label:'최대밴드',data:d.map(x=>x.max),borderColor:'#e07b83',borderDash:[5,4],borderWidth:1,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#aab2c5',boxWidth:18,font:{size:10}}}},scales:{x:{ticks:{color:'#8993a8',maxTicksLimit:8},grid:{color:'rgba(150,160,180,.08)'}},y:{ticks:{color:'#8993a8',callback:v=>'$'+Number(v).toLocaleString()},grid:{color:'rgba(150,160,180,.1)'}}}}});}
+function vrDrawChart(d){
+  const canvas=document.getElementById('vrChart');if(!canvas||typeof Chart==='undefined')return;
+  if(vrChart){vrChart.destroy();vrChart=null;}
+  const g=canvas.getContext('2d');
+  const grad=g.createLinearGradient(0,0,0,280);grad.addColorStop(0,'rgba(134,196,155,.26)');grad.addColorStop(1,'rgba(134,196,155,0)');
+  const gradB=g.createLinearGradient(0,0,0,280);gradB.addColorStop(0,'rgba(169,188,207,.07)');gradB.addColorStop(1,'rgba(169,188,207,.02)');
+  const labels=d.map(x=>x.date?x.date.slice(5):`사이클 ${x.index}`);
+  const ds=[
+    {label:'주식 평가액',data:d.map(x=>x.evalAmt),borderColor:'#9EBEA8',backgroundColor:grad,borderWidth:2.2,pointRadius:0,pointHoverRadius:4,tension:.35,fill:'origin',order:1},
+    {label:'V',data:d.map(x=>x.V),borderColor:'#E0CDAA',borderWidth:2,pointRadius:0,tension:.35,order:2},
+    {label:'최대밴드',data:d.map(x=>x.max),borderColor:'rgba(169,188,207,.55)',backgroundColor:gradB,borderDash:[4,4],borderWidth:1.2,pointRadius:0,tension:.35,fill:'+1',order:3},
+    {label:'최소밴드',data:d.map(x=>x.min),borderColor:'rgba(224,137,124,.55)',borderDash:[4,4],borderWidth:1.2,pointRadius:0,tension:.35,order:4}
+  ];
+  const GL='134,196,155',slow=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  /* 대시보드 assetGlow 와 같은 언어: 현재 평가액 점선 기준선(숨 쉬듯) + 8초마다 평가액 선을 따라 흐르는 숨결 글로우 + 끝점 맥동 */
+  const vrGlow={id:'vrGlow',afterDatasetsDraw(chart){
+    const meta=chart.getDatasetMeta(0);if(!meta||!meta.data||!meta.data.length)return;
+    const pts=meta.data,area=chart.chartArea,c=chart.ctx,now=Date.now();if(!area)return;
+    const last=pts[pts.length-1];
+    if(last&&isFinite(last.y)){
+      const k=slow?0:(1-Math.cos((now%2800)/2800*2*Math.PI))/2;
+      c.save();c.setLineDash([3,5]);c.lineWidth=1;c.strokeStyle='rgba('+GL+','+(0.16+0.16*k).toFixed(3)+')';
+      c.beginPath();c.moveTo(area.left,last.y);c.lineTo(last.x,last.y);c.stroke();c.restore();
+      c.save();c.fillStyle='rgba('+GL+','+(0.18+0.22*k).toFixed(3)+')';c.beginPath();c.arc(last.x,last.y,4+5*k,0,Math.PI*2);c.fill();
+      c.fillStyle='#BCDEC8';c.beginPath();c.arc(last.x,last.y,3,0,Math.PI*2);c.fill();c.restore();
+    }
+    if(slow)return;
+    const CYC=8000,TRV=4200,ph=now%CYC;
+    if(ph<TRV&&pts.length>1&&!meta.hidden){
+      const prog=ph/TRV,env=Math.pow(Math.sin(Math.PI*prog),1.4);
+      if(env>0.01){
+        const path=()=>{let prev=null,len=0;c.beginPath();
+          for(const p of pts){if(!p||p.skip||!isFinite(p.x)||!isFinite(p.y)){prev=null;continue;}
+            if(!prev){c.moveTo(p.x,p.y);prev=p;continue;}
+            if(isFinite(prev.cp2x)&&isFinite(p.cp1x))c.bezierCurveTo(prev.cp2x,prev.cp2y,p.cp1x,p.cp1y,p.x,p.y);else c.lineTo(p.x,p.y);
+            len+=Math.hypot(p.x-prev.x,p.y-prev.y);prev=p;}
+          return len*1.03;};
+        const len=path();
+        if(len>1){
+          const HEAD='188,222,200',N=12,PEAK=0.70,bw=2.2,Lmax=Math.max(90,len*0.34),period=len+Lmax*3,cc=-Lmax/2+prog*(len+Lmax);
+          c.save();c.beginPath();c.rect(area.left,area.top,area.right-area.left,area.bottom-area.top);c.clip();
+          c.globalCompositeOperation='lighter';c.lineCap='round';c.lineJoin='round';
+          for(let k=1;k<=N;k++){const f=k/N,L=Lmax*f;c.setLineDash([L,period-L]);c.lineDashOffset=-(cc-L/2);path();
+            c.strokeStyle='rgba('+(k<=3?HEAD:GL)+','+((PEAK/N)*env).toFixed(4)+')';c.lineWidth=bw+(3+20*(1-f))*(0.55+0.45*env);
+            if(k<=3){c.shadowColor='rgba('+HEAD+','+(0.65*env).toFixed(3)+')';c.shadowBlur=14+22*env;}else{c.shadowColor='transparent';c.shadowBlur=0;}
+            c.stroke();}
+          c.restore();
+        }
+      }
+    }
+    if(chart.$pending)return;
+    const tab=document.getElementById('tab-vr');if(tab&&tab.classList.contains('hidden'))return;
+    chart.$pending=true;const again=()=>{chart.$pending=false;if(chart.ctx)chart.draw();};
+    if(ph<TRV)requestAnimationFrame(again);else setTimeout(again,80);   // 흐름은 매 프레임, 쉬는 동안은 기준선·끝점만 천천히 숨쉬기
+  }};
+  const fx=Number(FXNOW)>0?Number(FXNOW):1380;
+  vrChart=new Chart(canvas,{type:'line',data:{labels,datasets:ds},plugins:[vrGlow],
+    options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},animation:false,
+      plugins:{legend:{labels:{color:CH.tick,boxWidth:12,font:{size:11}}},
+        tooltip:{callbacks:{label:c=>c.dataset.label+': $'+vrFmt(c.parsed.y)+' ('+won(c.parsed.y*fx)+')'}}},
+      scales:{x:{ticks:{color:CH.tick,maxTicksLimit:8,font:{size:10}},grid:{color:CH.gridFaint}},
+        y:{ticks:{color:CH.tick,font:{size:10},callback:v=>'$'+(Math.abs(v)>=1e3?(v/1e3).toFixed(v>=1e4?0:1)+'k':Math.round(v))},grid:{color:CH.grid}}}}});
+  vrPlayWipe();
+}
+function vrPlayWipe(){const w=document.getElementById('vrChartWrap');if(!w)return;w.classList.remove('vr-wipe');void w.offsetWidth;w.classList.add('vr-wipe');}
 // No localStorage fallback: VR settings and history are cloud-backed only.
 
 init();
