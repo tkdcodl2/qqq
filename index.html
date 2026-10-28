@@ -3,7 +3,7 @@
 <head>
 <script data-boot>/* v15.9 §123 — 첫 대시보드 전에는 반복 애니메이션을 멈춘다(로딩 중 매 프레임 다시 그리기 방지) · 8초 안전장치 */document.documentElement.classList.add('boot');setTimeout(function(){document.documentElement.classList.remove('boot');},8000);</script>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Adaptive DCA</title>
 <meta name="theme-color" content="#181B1F">
 <meta name="color-scheme" content="dark">
@@ -1246,7 +1246,7 @@ button:not(.mobile-tabbar button):active{transform:scale(.985)}
 @media(max-width:560px){
   .mobile-tabbar{display:flex!important;position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;z-index:9999!important;
     background:#1D242D!important;background-image:none!important;border:0!important;border-top:1px solid rgba(255,255,255,.13)!important;border-radius:0!important;
-    padding:0 0 env(safe-area-inset-bottom,0px)!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+    padding:0 0 max(env(safe-area-inset-bottom,0px),10px)!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;
     justify-content:space-around;align-items:stretch;flex-direction:row;transform:translateZ(0);-webkit-transform:translateZ(0);will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden}
   .mobile-tabbar .mob-tab-btn,.mobile-tabbar .mob-tab-btn:hover,.mobile-tabbar .mob-tab-btn:active,.mobile-tabbar .mob-tab-btn.active{
     flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 2px!important;min-height:52px;
@@ -1258,8 +1258,8 @@ button:not(.mobile-tabbar button):active{transform:scale(.985)}
     box-shadow:0 0 9px var(--glow);transform:translateX(-50%);transition:width .3s var(--ease)}
   .mobile-tabbar .mob-tab-btn.active::before{width:28px}
   .mobile-tabbar .mob-tab-btn.active svg{animation:mtabPop .44s cubic-bezier(.34,1.42,.64,1)}
-  .wrap{padding-bottom:calc(76px + env(safe-area-inset-bottom))!important}
-  #flash{bottom:calc(68px + env(safe-area-inset-bottom))!important}
+  .wrap{padding-bottom:calc(76px + max(env(safe-area-inset-bottom,0px),10px))!important}
+  #flash{bottom:calc(68px + max(env(safe-area-inset-bottom,0px),10px))!important}
 }
 @keyframes mtabPop{0%{transform:scale(.90)}58%{transform:scale(1.055)}100%{transform:scale(1)}}
 @media(prefers-reduced-motion:reduce){.mobile-tabbar .mob-tab-btn.active svg{animation:none}}
