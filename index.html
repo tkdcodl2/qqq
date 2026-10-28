@@ -1170,14 +1170,17 @@ button:not(.mobile-tabbar button):active{transform:scale(.985)}
 #vrLadder .vr-lt .muted{font-size:10.5px;font-weight:500;letter-spacing:0}
 #vrLadder th:first-child,#vrLadder td:first-child{text-align:left;padding-left:16px}
 #vrLadder tr.hit td{background:color-mix(in srgb, var(--accent) 9%, transparent)}
-#vrLadder tr.hit td:first-child::after{content:" ●";font-size:9px}
+#vrLadder td .vr-hit{display:none;width:7px;height:7px;border-radius:50%;background:#fff;margin-left:6px;vertical-align:1px;box-shadow:0 0 8px rgba(255,255,255,.6)}
+#vrLadder tr.hit td .vr-hit{display:inline-block}
+#vrLadder tbody td{padding-top:7px;padding-bottom:7px}
+#vrLadder td .vr-dq{color:var(--muted);font-size:10.5px;margin-left:5px}
 #vrLadder tr.over td{opacity:.45}
 #vrLadder .vr-lscroll{max-height:420px;overflow:auto;-webkit-overflow-scrolling:touch}
 #vrLadder .vr-lscroll thead th{top:0}
 #vrLadder td .sub-usd{margin-top:1px}
 #vrLadder .vr-calc{color:var(--muted);font-size:11px}
 #vrLadder .vr-stop{color:var(--muted);font-family:var(--font-text);font-size:11px;font-weight:640}
-.vr-tbtn{font-family:var(--font-text);font-size:11px;font-weight:700;padding:4px 10px;border-radius:var(--r-pill);border:0!important;cursor:pointer;white-space:nowrap;box-shadow:none!important;background-image:none!important}
+.vr-tbtn{font-family:var(--font-text);font-size:11px;font-weight:700;padding:3px 10px;border-radius:var(--r-pill);border:0!important;cursor:pointer;white-space:nowrap;box-shadow:none!important;background-image:none!important}
 .vr-tbtn.buy{background:color-mix(in srgb, var(--up) 22%, transparent)!important;color:var(--up)!important}
 .vr-tbtn.sell{background:color-mix(in srgb, var(--down) 22%, transparent)!important;color:var(--down)!important}
 .vr-tbtn:hover{filter:brightness(1.25)}
@@ -5544,8 +5547,8 @@ function vrLadderRender(){
   const empty=t=>`<tr><td colspan="5" class="vr-empty">${t}</td></tr>`;
   const minS=n?vrFmt0(n.min):'',maxS=n?vrFmt0(n.max):'';
   const why=!n?'사이클 기록이 없습니다':'보유 주식이 없어 매도할 수 없습니다';
-  document.getElementById('vrBuyRows').innerHTML=buy.length?buy.map(r=>`<tr class="${r.over?'over':''}${px!=null&&px<=r.p&&!r.over?' hit':''}"><td>${vrQty(r.N)}주<div class="sub-usd">+${vrQty(r.cq)}주</div></td><td class="mono vr-calc">$${minS} ÷ ${vrQty(r.N)}</td><td class="mono vr-buy">$${vrFmt(r.p)}</td><td class="mono">${r.over?'<span class="vr-stop">한도 초과</span>':'$'+vrFmt(r.poolLeft)}</td><td>${r.over?'':`<button class="vr-tbtn buy" onclick="vrTradeFromLadder('buy',${r.cq},${r.p.toFixed(4)})" title="1단계~이 단계까지 합산 ${vrQty(r.cq)}주 매수 입력">매수</button>`}</td></tr>`).join(''):empty(why);
-  document.getElementById('vrSellRows').innerHTML=sell.length?sell.map(r=>`<tr class="${px!=null&&px>=r.p?'hit':''}"><td>${vrQty(r.N)}주<div class="sub-usd">−${vrQty(r.cq)}주</div></td><td class="mono vr-calc">$${maxS} ÷ ${vrQty(r.N)}</td><td class="mono vr-sell">$${vrFmt(r.p)}</td><td class="mono">$${vrFmt(r.poolLeft)}</td><td><button class="vr-tbtn sell" onclick="vrTradeFromLadder('sell',${r.cq},${r.p.toFixed(4)})" title="1단계~이 단계까지 합산 ${vrQty(r.cq)}주 매도 입력">매도</button></td></tr>`).join(''):empty(why);
+  document.getElementById('vrBuyRows').innerHTML=buy.length?buy.map(r=>`<tr class="${r.over?'over':''}${px!=null&&px<=r.p&&!r.over?' hit':''}"><td>${vrQty(r.N)}주<span class="vr-dq">+${vrQty(r.cq)}</span><i class="vr-hit"></i></td><td class="mono vr-calc">$${minS} ÷ ${vrQty(r.N)}</td><td class="mono vr-buy">$${vrFmt(r.p)}</td><td class="mono">${r.over?'<span class="vr-stop">한도 초과</span>':'$'+vrFmt(r.poolLeft)}</td><td>${r.over?'':`<button class="vr-tbtn buy" onclick="vrTradeFromLadder('buy',${r.cq},${r.p.toFixed(4)})" title="1단계~이 단계까지 합산 ${vrQty(r.cq)}주 매수 입력">매수</button>`}</td></tr>`).join(''):empty(why);
+  document.getElementById('vrSellRows').innerHTML=sell.length?sell.map(r=>`<tr class="${px!=null&&px>=r.p?'hit':''}"><td>${vrQty(r.N)}주<span class="vr-dq">−${vrQty(r.cq)}</span><i class="vr-hit"></i></td><td class="mono vr-calc">$${maxS} ÷ ${vrQty(r.N)}</td><td class="mono vr-sell">$${vrFmt(r.p)}</td><td class="mono">$${vrFmt(r.poolLeft)}</td><td><button class="vr-tbtn sell" onclick="vrTradeFromLadder('sell',${r.cq},${r.p.toFixed(4)})" title="1단계~이 단계까지 합산 ${vrQty(r.cq)}주 매도 입력">매도</button></td></tr>`).join(''):empty(why);
   const sub=document.getElementById('vrLadderSub');
   if(sub)sub.textContent=n?`사이클 ${n.last.index} · ${n.last.date} ~ ${n.nextDate} · V $${vrFmt(n.V)} · 보유 ${vrQty(n.Q)}주`:'';
   const note=document.getElementById('vrLadderNote');
