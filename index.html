@@ -1771,7 +1771,7 @@ grant select, insert, update, delete on public.vr_strategy_settings, public.vr_s
       <div class="field" id="divWrap" style="display:none"><label>배당금 <span class="ccy-seg" id="divCcySeg"><button type="button" id="divCcyUSD" class="on" onclick="setDivCcy('USD')">$ 달러</button><button type="button" id="divCcyKRW" onclick="setDivCcy('KRW')">₩ 원화</button></span></label><input id="f_div_amt" type="text" inputmode="decimal" placeholder="예: 123.45" oninput="onDivAmtInput()"></div>
       <div class="field"><label>환율 (원/$)</label><input id="f_fx" type="text" inputmode="decimal" value="1,380" oninput="fmtDec('f_fx');fxTouched();calcAmount()"><div class="sub-usd" id="fxHint"></div></div>
     </div>
-    <div class="field"><label id="amtLabel">거래금액 (원, 자동계산)</label><input id="f_amount" type="text" inputmode="numeric" readonly oninput="fmtField('f_amount')"><div class="sub-usd" id="amtSub"></div></div>
+    <div class="field"><label id="amtLabel">거래금액 (원, 자동계산)</label><input id="f_amount" type="text" inputmode="decimal" readonly oninput="onAmtInput()"><div class="sub-usd" id="amtSub"></div></div>
     <div class="field" id="realizedWrap" style="display:none"><label>실현손익 (원, 자동계산·수정가능)</label><input id="f_realized" type="text" inputmode="numeric" value="0" oninput="fmtField('f_realized')"></div>
     <div style="display:flex;gap:10px;margin-top:6px">
       <button class="btn primary" style="flex:1" onclick="submitTrade()">저장</button>
@@ -3837,10 +3837,41 @@ function divAmounts(){
   if(DIV_CCY==='KRW'){ const krw=Math.round(v); return {usd:fx>0?krw/fx:0, krw, fx}; }
   return {usd:v, krw:Math.round(v*fx), fx};
 }
+/* VR 계좌: 거래금액은 달러로 입력·표시(원화는 환율로 환산해 저장). 매수·매도에서 금액을 넣으면 수량을 계산한다 */
+function vrUsdMode(){ return TRADE_ACC==='vr'; }
+function onAmtInput(){
+  if(!vrUsdMode()){ fmtField('f_amount'); return; }
+  fmtDec('f_amount');
+  const ty=document.getElementById('f_type').value;
+  if(ty==='buy'||ty==='sell'){ const p=numv('f_price'); if(p>0) document.getElementById('f_qty').value=+(numv('f_amount')/p).toFixed(4); calcRealizedAuto(); }
+  vrAmtSub();
+}
+function vrAmtSub(){
+  const sub=document.getElementById('amtSub'); if(!sub) return;
+  const usd=numv('f_amount'), fx=numv('f_fx');
+  sub.textContent=(usd>0&&fx>0)?usdTxt(usd)+' × '+fx.toLocaleString('ko-KR',{maximumFractionDigits:2})+'원 = '+Math.round(usd*fx).toLocaleString('ko-KR')+'원':'';
+}
 function onTypeChange(){
   const ty=document.getElementById('f_type').value;
   const cash=(ty==='deposit'||ty==='withdrawal');
   const div=(ty==='div');
+  if(vrUsdMode()){   // VR: 달러 금액 입력
+    document.getElementById('secRow1').style.display=(cash||div)?'none':'';
+    document.getElementById('secRow2').style.display='';
+    document.getElementById('priceWrap').style.display=(cash||div)?'none':'';
+    document.getElementById('divWrap').style.display=div?'':'none';
+    document.getElementById('realizedWrap').style.display=ty==='sell'?'block':'none';
+    const amt=document.getElementById('f_amount'); amt.readOnly=div;
+    document.getElementById('amtLabel').textContent=cash?'금액 ($)':(div?'배당금 (원, 환율 적용 자동계산)':'거래금액 ($ · 입력하면 수량 자동)');
+    if(div) applyDivCcyUI();
+    const showPct=(ty==='buy'||ty==='sell');
+    const qp=document.getElementById('qtyPcts'); if(qp)qp.style.display=showPct?'flex':'none';
+    const hint=document.getElementById('qtyPctHint'); if(hint)hint.textContent=showPct?(ty==='buy'?'· VR 매수 한도 기준':'· VR 보유수량 기준'):'';
+    applyFxForDate(false);
+    if(cash) vrAmtSub(); else calcAmount();
+    if(ty==='sell')calcRealizedAuto();
+    return;
+  }
   document.getElementById('secRow1').style.display=(cash||div)?'none':'';   // 배당은 종목·수량 불필요
   document.getElementById('secRow2').style.display=cash?'none':'';
   document.getElementById('priceWrap').style.display=div?'none':'';
@@ -3866,11 +3897,12 @@ const usdTxt=n=>'$'+(+n).toLocaleString('en-US',{minimumFractionDigits:2,maximum
 function calcAmount(){
   const ty=document.getElementById('f_type').value;
   const sub=document.getElementById('amtSub');
-  if(ty==='deposit'||ty==='withdrawal'){ if(sub) sub.textContent=''; return; }
+  if(ty==='deposit'||ty==='withdrawal'){ if(vrUsdMode()) vrAmtSub(); else if(sub) sub.textContent=''; return; }
   const fx=numv('f_fx');
   let usd, krw;
   if(ty==='div'){ const a=divAmounts(); usd=a.usd; krw=a.krw; }        // 배당: 달러 또는 원화로 입력
   else { usd=numv('f_qty')*numv('f_price'); krw=Math.round(usd*fx); }
+  if(vrUsdMode() && ty!=='div'){ document.getElementById('f_amount').value=usd?Number(usd.toFixed(2)).toLocaleString('en-US'):''; vrAmtSub(); calcRealizedAuto(); return; }
   document.getElementById('f_amount').value=krw.toLocaleString('ko-KR');
   if(sub) sub.textContent = (usd>0&&fx>0)
     ? (ty==='div'&&DIV_CCY==='KRW'
@@ -3901,7 +3933,7 @@ function calcRealizedAuto(){
   const id=document.getElementById('tradeId').value;
   const avg=tradeAvgCost(tk,d,id);
   if(avg==null)return;
-  const q=numv('f_qty'), amt=numv('f_amount')||Math.round(q*numv('f_price')*numv('f_fx'));
+  const q=numv('f_qty'), amt=vrUsdMode()?Math.round(numv('f_amount')*numv('f_fx')):(numv('f_amount')||Math.round(q*numv('f_price')*numv('f_fx')));
   const realized=Math.round(amt - avg*q);
   document.getElementById('f_realized').value=realized.toLocaleString('ko-KR');
 }
@@ -4066,12 +4098,13 @@ async function submitTrade(){
   const ty=document.getElementById('f_type').value;
   const cash=(ty==='deposit'||ty==='withdrawal');
   const div=(ty==='div');
-  const amount=numv('f_amount');
+  const usdIn=vrUsdMode()&&!div, fxIn=numv('f_fx');
+  const amount=usdIn?Math.round(numv('f_amount')*fxIn):numv('f_amount');   // VR: 달러 입력 → 원화 환산
   const divA=div?divAmounts():null;
   /* 배당: 종목 없이 달러 또는 원화로 입력 → 입력일 환율로 달러·원화를 함께 기록.
      price에 달러 금액, fx에 적용 환율, amount_krw에 원화를 저장(스키마 변경 없음). */
   const t = cash
-    ? {date:document.getElementById('f_date').value,ticker:'CASH',type:ty,qty:0,price:0,fx:1,amount_krw:amount,realized:0,account:'기본'}
+    ? {date:document.getElementById('f_date').value,ticker:'CASH',type:ty,qty:0,price:0,fx:usdIn&&fxIn>0?fxIn:1,amount_krw:amount,realized:0,account:'기본'}
     : div
     ? {date:document.getElementById('f_date').value,ticker:(document.getElementById('tradeTkrOrig').value||'CASH'),type:'div',
        qty:0,price:+divA.usd.toFixed(4),fx:divA.fx,amount_krw:divA.krw,realized:0,account:'기본'}
@@ -4086,6 +4119,7 @@ async function submitTrade(){
   }
   if(id)t.id=isNaN(+id)?id:+id;
   if(!t.date){flash('날짜를 입력하세요');return;}
+  if(usdIn&&!(fxIn>0)){flash('환율을 확인하세요');return;}
   if(cash){if(!amount){flash('금액을 입력하세요');return;}}
   else if(div){
     if(!(divA.krw>0)){flash(DIV_CCY==='USD'?'배당금($)을 입력하세요':'배당금(원)을 입력하세요');return;}
@@ -4132,6 +4166,12 @@ async function editTrade(id,acc){
       : Math.round(+t.amount_krw||0).toLocaleString('ko-KR');
     document.getElementById('f_fx').value=Number(fxv.toFixed(2)).toLocaleString('en-US');
     applyDivCcyUI();
+  }
+  if(acc==='vr' && (t.type==='deposit'||t.type==='withdrawal')){
+    const fxv=(+t.fx>100)?+t.fx:FXNOW;
+    document.getElementById('f_fx').value=Number(fxv.toFixed(2)).toLocaleString('en-US');
+    document.getElementById('f_amount').value=Number(((+t.amount_krw||0)/fxv).toFixed(2)).toLocaleString('en-US');
+    FX_MODE='record';
   }
   onTypeChange();
 }
@@ -5397,7 +5437,7 @@ function vrAllocRender(o){
   const s=vrState.settings,tk=s.ticker,tot=o.total>0?o.total:0;
   const cur={[tk]:tot?o.stock/tot:0,CASH:tot?o.pool/tot:0};
   const tS=tot?Math.max(0,Math.min(1,o.V/tot)):0,tgt={[tk]:tS,CASH:1-tS};
-  const col={[tk]:ALLOC_COLORS[tk]||ALLOC_COLORS.TQQQ,CASH:ALLOC_COLORS.CASH};
+  const col={[tk]:ALLOC_COLORS[tk]||ALLOC_COLORS.TQQQ,CASH:'#99B49B'};   // VR 현금 = 녹색 계열
   const n=o.n,px=o.px;let act='<b class="muted">—</b>';
   if(n&&px){const nb=Math.floor(n.min/px.price-n.Q+1e-9),ns=Math.floor(n.Q-n.max/px.price+1e-9);
     act=nb>=1?`<b class="up">+${Math.min(nb,Math.floor(n.avail/px.price+1e-9))}주</b>`:ns>=1?`<b class="down">−${ns}주</b>`:'<b class="muted">유지</b>';}
@@ -5430,7 +5470,7 @@ function vrBandRender(o){
   if(!n){name='회차 시작 전';rc='var(--accent)';}
   else if(stock<min){name='매수 구간';rc='var(--green)';}
   else if(stock>max){name='매도 구간';rc='var(--red-t)';}
-  else{name='밴드 안';rc='var(--accent)';}
+  else{name='밴드 안';rc='var(--gold)';}
   card.style.setProperty('--rc',rc);card.style.setProperty('--rt',rc);
   document.getElementById('vrBandName').textContent=name;
   const span=Math.max(1,max-min),lo=Math.max(0,Math.min(min-span*.45,stock-span*.08)),hi=Math.max(max+span*.45,stock+span*.08);
@@ -5532,7 +5572,7 @@ function vrRender(){
     card('총 금액',W(total),U(total)),
     card('주식 평가액',W(stock),U(stock)),
     card('POOL',W(pool),U(pool)),
-    card(`${vrEsc(s.ticker)} 현재가`,px?W(px.price):'—',px?U(px.price):''),
+    card(`${vrEsc(s.ticker)} 현재가`,px?'$'+vrFmt(px.price):'—',''),
     card('주식 수',vrQty(Q)+'주',''),
     card('현재 V',W(V),U(V)),
     `<div class="card card-hov blue"><div class="label">총 수익률</div><div class="card-val"><div class="card-amt"><span class="big-num ${rc}">${inv>0?W(pnl):'—'}</span>${ret!=null?`<span class="card-pct ${rc}">(${(ret>=0?'+':'')+(ret*100).toFixed(2)}%)</span>`:''}</div>${inv>0?`<div class="sub-usd">${U(pnl)}</div>`:''}</div></div>`
