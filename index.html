@@ -1154,26 +1154,51 @@ button:not(.mobile-tabbar button):active{transform:scale(.985)}
 </style>
 
 <style id="vr-module-style">
+/* 설정 모달(전략 설정) 안의 VR 입력칸 */
 .vr-field{display:flex;flex-direction:column;gap:5px;color:var(--text2);font-size:11px;font-weight:600;min-width:0}
 .vr-field input,.vr-field select{width:100%;min-width:0;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:9px;padding:10px 11px;font:inherit;font-size:13px;outline:none}
 .vr-field input:focus,.vr-field select:focus{border-color:var(--accent)}
-#vrSummary .summary-item{min-width:0}
-.vr-signal{font-weight:700}.vr-buy{color:var(--e24,#e58b91)}.vr-sell{color:var(--accent2,#80b9ec)}.vr-neutral{color:var(--text2)}
-#tab-vr .nowrap-table{min-width:900px}#tab-vr .nowrap-table td,#tab-vr .nowrap-table th{padding:8px 10px}
-@media(max-width:560px){#tab-vr .card{padding:14px}#tab-vr .summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-
-#tab-vr .vr-hero-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
-#tab-vr .card{position:relative;overflow:hidden;animation:vrRise .55s cubic-bezier(.2,.8,.2,1) both}
-#tab-vr .card:before{content:"";position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,transparent,var(--accent),#b89cff,transparent);opacity:.9;transform:translateX(-100%);animation:vrShimmer 5s ease-in-out infinite;pointer-events:none}
-#tab-vr .section-title{letter-spacing:.025em}
-#tab-vr #vrChart{filter:drop-shadow(0 0 9px rgba(125,160,255,.12))}
-#tab-vr #vrSummary .summary-item{border:1px solid rgba(130,150,210,.22);background:linear-gradient(135deg,var(--surface),rgba(120,140,220,.055));box-shadow:0 8px 26px rgba(0,0,0,.09);transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
-#tab-vr #vrSummary .summary-item:hover{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 12px 30px rgba(100,130,230,.14)}
-#tab-vr .vr-hero-actions .btn{box-shadow:0 0 0 1px rgba(140,160,255,.18),0 8px 24px rgba(90,110,220,.16)}
-#settingsModal .vr-settings-panel{animation:vrRise .35s ease both}
-@keyframes vrRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-@keyframes vrShimmer{0%,70%,100%{transform:translateX(-100%)}85%{transform:translateX(100%)}}
-@media(prefers-reduced-motion:reduce){#tab-vr .card,#settingsModal .vr-settings-panel,#tab-vr .card:before{animation:none!important;transition:none!important}}
+/* VR 화면 — 대시보드와 같은 틀(섹션 제목은 카드 밖, 요약 카드 · 표 카드) */
+.vr-buy{color:var(--red-t)}.vr-sell{color:var(--accent)}.vr-neutral{color:var(--text2)}
+#tab-vr .vr-sub{font-family:var(--font-num);font-size:11px;letter-spacing:0;font-weight:500}
+#tab-vr .vr-head .btn{margin-left:auto;padding:7px 14px;font-size:13px;letter-spacing:0}
+#tab-vr .vr-step{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-family:var(--font-text);font-size:11px;font-weight:500;color:var(--text2);letter-spacing:0}
+#tab-vr .vr-step select{width:auto;padding:5px 28px 5px 10px;font-size:12px;border-radius:var(--r-pill);background-position:calc(100% - 14px) center,calc(100% - 9px) center}
+#vrLadder{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+#vrLadder .vr-lt{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:14px 16px 6px;font-family:var(--font-text);font-weight:640;font-size:14px;letter-spacing:-.01em}
+#vrLadder .vr-lt .muted{font-size:10.5px;font-weight:500;letter-spacing:0}
+#vrLadder th:first-child,#vrLadder td:first-child{text-align:left;padding-left:16px}
+#vrLadder tr.hit td{background:color-mix(in srgb, var(--accent) 9%, transparent)}
+#vrLadder tr.hit td:first-child::after{content:" ●";font-size:9px}
+#vrLadder tr.over td{opacity:.4}
+#vrLadder td.vr-empty{text-align:center;padding:22px;color:var(--text2);font-family:var(--font-text)}
+.vr-today{display:flex;align-items:center;gap:10px 18px;flex-wrap:wrap;padding:14px 16px;font-size:13px;line-height:1.5}
+.vr-today .vr-sig{font-family:var(--font-text);font-weight:640;font-size:14px;letter-spacing:-.01em}
+.vr-today .vr-kv{display:inline-flex;gap:6px;align-items:baseline;color:var(--text2);font-size:12px}
+.vr-today .vr-kv b{color:var(--text);font-family:var(--font-num);font-weight:640;font-variant-numeric:tabular-nums}
+#vrHistTable th:first-child,#vrHistTable td:first-child{text-align:left;padding-left:16px}
+#vrHistTable .icon-btn{padding:2px 8px}
+.vr-form{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.vr-form .field{margin-bottom:0}
+.vr-form .field label .muted{font-size:10.5px}
+.vr-preview{margin-top:14px;padding:12px 14px;border-radius:var(--r-s);background:var(--ov06);font-size:12.5px;line-height:1.7;color:var(--text-2)}
+.vr-preview b{color:var(--text);font-family:var(--font-num);font-weight:640;font-variant-numeric:tabular-nums}
+.vr-preview .vr-sig{font-family:var(--font-text);font-weight:640;font-size:13.5px}
+.vr-preview .vr-fine{color:var(--muted);font-size:11px;margin-top:4px}
+#vrSummary{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:560px){#vrSummary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:900px){#vrLadder{grid-template-columns:1fr}.vr-form{grid-template-columns:repeat(2,minmax(0,1fr))}}
+#tab-vr .vr-t{white-space:nowrap}
+@media(max-width:700px){#tab-vr .section-title{flex-wrap:wrap;row-gap:4px}#tab-vr .vr-sub{order:5;flex-basis:100%;padding-left:16px;line-height:1.45}}
+@media(max-width:560px){#tab-vr .vr-head .btn{padding:7px 10px!important;font-size:11.5px!important}.vr-today{padding:12px 14px}}
+/* 매매입력 모달 — 계좌 선택 */
+.acc-seg{display:flex;gap:4px;padding:3px;border-radius:var(--r-pill);background:var(--ov06)}
+.acc-seg button{flex:1;font-family:var(--font-text);font-weight:640;font-size:13px;letter-spacing:-.01em;color:var(--text2);background:none;border:none;border-radius:var(--r-pill);padding:9px 10px;cursor:pointer;transition:.28s var(--ease);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acc-seg button:hover:not(:disabled){color:var(--text);background:var(--st-hover)}
+.acc-seg button.on{background:var(--accent-fill);color:var(--on-accent)}
+.acc-seg button:disabled{opacity:.4;cursor:not-allowed}
+#accSeg button{background:none!important;background-image:none!important;border:0!important;box-shadow:none!important;transform:none!important}
+#accSeg button.on{background:var(--accent-fill)!important;color:var(--on-accent)!important;box-shadow:var(--shadow-8)!important}
 </style>
 
 </head>
@@ -1433,29 +1458,48 @@ button:not(.mobile-tabbar button):active{transform:scale(.985)}
   </section>
 
   <section id="tab-vr" class="hidden">
-    <div class="card" style="margin-bottom:14px">
-      <div class="section-title"><span class="dot"></span>V · 평가액 · 밴드 추이</div>
-      <div style="height:280px;margin-top:12px"><canvas id="vrChart"></canvas></div>
-    </div>
-    <div class="card">
-      <div class="section-title"><span class="dot"></span>사이클 이력</div>
-      <div style="overflow:auto;margin-top:10px"><table class="nowrap-table"><thead><tr><th>사이클</th><th>날짜</th><th>종가</th><th>주수</th><th>평가액</th><th>POOL</th><th>V</th><th>최소밴드</th><th>최대밴드</th><th>적립/인출</th><th>매매금액</th><th></th></tr></thead><tbody id="vrRows"></tbody></table></div>
-    </div>
-    <div class="summary-grid" id="vrSummary" style="margin-bottom:14px"></div>
-    <div class="card" style="margin-bottom:14px">
-      <div class="section-title"><span class="dot"></span>새 VR 사이클 기록</div>
-      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-top:12px">
-        <label class="vr-field">사이클 날짜<input id="vrDate" type="date"></label>
-        <label class="vr-field">종가 ($)<input id="vrPrice" type="number" min="0" step="0.01" placeholder="예: 65.20"></label>
-        <label class="vr-field">매매 후 보유 주수<input id="vrShares" type="number" min="0" step="0.0001" placeholder="실제 보유 주수"></label>
-        <label class="vr-field">이번 사이클 적립/인출 ($)<input id="vrFlow" type="number" step="0.01" placeholder="설정값 사용"></label>
-        <label class="vr-field">이번 사이클 매매금액 ($)<input id="vrTrade" type="number" step="0.01" placeholder="자동 권장값"><span class="muted" style="font-size:10px">양수=매수, 음수=매도</span></label>
+    <div class="section-title vr-head"><span class="dot"></span><span class="vr-t">현황</span> <span class="muted vr-sub" id="vrHeadSub"></span>
+      <button class="btn primary" onclick="openTrade(null,'vr')">VR 매매입력</button></div>
+    <div class="summary-grid" id="vrSummary"></div>
+
+    <div class="section-title" style="margin-top:26px"><span class="dot"></span><span class="vr-t">이번 사이클 주문가</span> <span class="muted vr-sub" id="vrLadderSub"></span>
+      <span class="vr-step">주문 단위<select id="vrStep" onchange="this.dataset.user='1';vrLadderRender()"><option value="1">1주</option><option value="2">2주</option><option value="5">5주</option><option value="10">10주</option><option value="20">20주</option></select></span></div>
+    <div class="card vr-today" id="vrToday"></div>
+    <div id="vrLadder" style="margin-top:16px">
+      <div class="card" style="padding:0;overflow-x:auto">
+        <div class="vr-lt"><span class="vr-buy">매수표</span><span class="muted">종가가 주문가 이하이면 체결 (LOC 매수)</span></div>
+        <table class="nowrap-table"><thead><tr><th>단계</th><th>주문가</th><th>수량</th><th>누적 수량</th><th>누적 매수금</th></tr></thead><tbody id="vrBuyRows"></tbody></table>
       </div>
-      <div id="vrPreview" class="note" style="margin-top:10px;padding:10px;background:var(--surface2);border-radius:8px">종가와 보유 주수를 입력하면 밴드 및 권장 매매액을 계산합니다.</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn primary" onclick="vrPreviewCalc()">매수·매도 판단</button><button class="btn primary" onclick="vrAddCycle()">사이클 저장</button></div>
+      <div class="card" style="padding:0;overflow-x:auto">
+        <div class="vr-lt"><span class="vr-sell">매도표</span><span class="muted">종가가 주문가 이상이면 체결 (LOC 매도)</span></div>
+        <table class="nowrap-table"><thead><tr><th>단계</th><th>주문가</th><th>수량</th><th>누적 수량</th><th>누적 매도금</th></tr></thead><tbody id="vrSellRows"></tbody></table>
+      </div>
+    </div>
+    <p class="note" id="vrLadderNote" style="margin-top:8px"></p>
+
+    <div class="section-title" style="margin-top:26px"><span class="dot"></span>V · 평가액 · 밴드 추이</div>
+    <div class="card"><div style="height:300px"><canvas id="vrChart"></canvas></div></div>
+
+    <div class="section-title" style="margin-top:26px"><span class="dot"></span>사이클 이력</div>
+    <div class="card" style="padding:0;overflow-x:auto">
+      <table class="nowrap-table" id="vrHistTable"><thead><tr><th>사이클</th><th>날짜</th><th>종가</th><th>보유 주수</th><th>평가액</th><th>POOL</th><th>V</th><th>최소밴드</th><th>최대밴드</th><th>적립/인출</th><th>사이클 중 매매</th><th>갱신 매매</th><th></th></tr></thead><tbody id="vrRows"></tbody></table>
     </div>
 
-
+    <div class="section-title" style="margin-top:26px"><span class="dot"></span><span class="vr-t">사이클 갱신 기록</span> <span class="muted vr-sub">2주마다 새 V 계산 · 밴드 밖이면 리밸런싱</span></div>
+    <div class="card">
+      <div class="vr-form">
+        <div class="field"><label>갱신 날짜</label><input id="vrDate" type="date"></div>
+        <div class="field"><label>종가 ($)</label><input id="vrPrice" type="number" min="0" step="0.01" placeholder="예: 65.20" oninput="vrPreviewCalc()"></div>
+        <div class="field"><label>현재 보유 주수 <span class="muted">(갱신 매매 전)</span></label><input id="vrShares" type="number" min="0" step="0.0001" placeholder="자동" oninput="vrPreviewCalc()"></div>
+        <div class="field"><label>적립/인출 ($)</label><input id="vrFlow" type="number" step="0.01" placeholder="설정값 사용" oninput="vrPreviewCalc()"></div>
+        <div class="field"><label>갱신 매매 수량 (주) <span class="muted">+매수 / −매도</span></label><input id="vrTradeQty" type="number" step="1" placeholder="자동 권장값" data-autofill="1" oninput="this.dataset.autofill='0';vrPreviewCalc()"></div>
+      </div>
+      <div id="vrPreview" class="vr-preview">종가를 입력하면 새 V·밴드와 권장 매매를 계산합니다.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+        <button class="btn ghost" onclick="vrUseLivePrice()">현재가 불러오기</button>
+        <button class="btn primary" onclick="vrAddCycle()">사이클 저장</button>
+      </div>
+    </div>
   </section>
 
   <div class="appver">Adaptive DCA &nbsp;·&nbsp; <span id="appVer"></span></div>
@@ -1667,6 +1711,9 @@ grant select, insert, update, delete on public.vr_strategy_settings, public.vr_s
     <h2 id="tradeModalTitle">매매 입력</h2>
     <input type="hidden" id="tradeId">
     <input type="hidden" id="tradeTkrOrig">
+    <div class="field" id="accWrap" style="margin:14px 0 4px"><label>계좌</label>
+      <div class="acc-seg" id="accSeg"><button type="button" id="accBtnDca" onclick="setTradeAcc('dca')">DCA</button><button type="button" id="accBtnVr" onclick="setTradeAcc('vr')">VR</button></div>
+      <div class="sub-usd" id="accHint" style="margin-top:6px"></div></div>
     <div class="row2" style="margin-top:14px">
       <div class="field"><label>날짜</label><input id="f_date" type="date" onchange="onDateChange()"></div>
       <div class="field"><label>구분</label><select id="f_type" onchange="onTypeChange()">
@@ -1823,7 +1870,10 @@ function pfRealtime(){
   try{
     _pfRt = pf.channel('adca-trades').on('postgres_changes', {event:'*', schema:'public', table:'trades'}, () => {
       clearTimeout(_pfRtT);
-      _pfRtT = setTimeout(async () => { tradesDirty(); try{ await renderTrades(); await renderProfit(); await syncAutoMonthly(); await renderMonthly(); }catch(e){ console.warn(e); } }, 800);
+      _pfRtT = setTimeout(async () => {
+        if(PF_MODE){ tradesDirty(); try{ await renderTrades(); await renderProfit(); await syncAutoMonthly(); await renderMonthly(); }catch(e){ console.warn(e); } }
+        if(vrAccountId){ try{ await vrLoadTrades(); vrRender(); }catch(e){ console.warn('[VR] 실시간 갱신 실패', e); } }   // VR 계좌 매매 → 주문가 다시 계산
+      }, 800);
     }).subscribe();
   }catch(e){ console.warn('[pf] 실시간 구독 실패', e); }
 }
@@ -3759,7 +3809,7 @@ function onTypeChange(){
   if(div) applyDivCcyUI();
   const showPct=(ty==='buy'||ty==='sell');
   const qp=document.getElementById('qtyPcts'); if(qp)qp.style.display=showPct?'flex':'none';
-  const hint=document.getElementById('qtyPctHint'); if(hint)hint.textContent=showPct?(ty==='buy'?'· 가용현금 기준':'· 보유수량 기준'):'';
+  const hint=document.getElementById('qtyPctHint'); if(hint)hint.textContent=showPct?(ty==='buy'?(TRADE_ACC==='vr'?'· VR 매수 한도 기준':'· 가용현금 기준'):(TRADE_ACC==='vr'?'· VR 보유수량 기준':'· 보유수량 기준')):'';
   if(!cash){ applyFxForDate(false); calcAmount(); }
   else { const s=document.getElementById('amtSub'); if(s) s.textContent=''; }
   if(ty==='sell')calcRealizedAuto();
@@ -3807,7 +3857,7 @@ function calcRealizedAuto(){
   const tk=document.getElementById('f_ticker').value;
   const d=document.getElementById('f_date').value||todayStr();
   const id=document.getElementById('tradeId').value;
-  const avg=avgCostKRW(tk,d,id);
+  const avg=tradeAvgCost(tk,d,id);
   if(avg==null)return;
   const q=numv('f_qty'), amt=numv('f_amount')||Math.round(q*numv('f_price')*numv('f_fx'));
   const realized=Math.round(amt - avg*q);
@@ -3912,7 +3962,46 @@ async function recordDividend(){
       else flash('배당금이 0.1주 가격보다 작아 수량은 비워 두었습니다 — 다음 적립금과 합쳐 매수하세요'); }
   } finally { if(btn) btn.disabled=false; }
 }
-function openTrade(id){
+/* 매매입력 계좌: DCA(포트폴리오 DCA 계좌 · 매매이력 화면) / VR(포트폴리오 VR 계좌 · 밸류리밸런싱 화면) */
+let TRADE_ACC='dca';
+function vrAccReady(){ return !!(pf && vrAccountId); }
+function tradeAvgCost(tk,d,id){ return TRADE_ACC==='vr' ? vrAvgCostKRW(tk,d) : avgCostKRW(tk,d,id); }
+function tradeAccUI(){
+  const wrap=document.getElementById('accWrap'); if(!wrap) return;
+  const editing=!!document.getElementById('tradeId').value;
+  if(TRADE_ACC==='vr' && (editing || !vrAccReady())) TRADE_ACC='dca';
+  wrap.style.display=editing?'none':'';
+  const bD=document.getElementById('accBtnDca'), bV=document.getElementById('accBtnVr');
+  bD.textContent='DCA · '+(PF_MODE?PF_ACC:'이 앱 DB');
+  bV.textContent='VR · '+(vrAccountName||'미지정');
+  bV.disabled=!vrAccReady();
+  bD.classList.toggle('on',TRADE_ACC==='dca'); bV.classList.toggle('on',TRADE_ACC==='vr');
+  document.getElementById('accHint').innerHTML = TRADE_ACC==='vr'
+    ? 'VR 계좌에 기록 — 밸류리밸런싱의 보유 주수·POOL·주문가에 반영됩니다(DCA 매매이력에는 표시되지 않음).'
+    : (PF_MODE?'DCA 계좌에 기록 — 매매이력·대시보드에 반영됩니다.':'DCA 계좌가 지정되지 않아 이 앱의 기존 DB에 기록합니다.')
+      + (vrAccReady()?'':' <span class="muted">VR 계좌는 포트폴리오 → 계좌 관리 → VR 버튼으로 지정합니다.</span>');
+  if(!editing) document.getElementById('tradeModalTitle').textContent = TRADE_ACC==='vr'?'VR 매매 입력':'매매 입력';
+}
+function tradeApplyAccTicker(){
+  const sel=document.getElementById('f_ticker');
+  [...sel.options].filter(o=>o.dataset.vr).forEach(o=>o.remove());
+  let tk;
+  if(TRADE_ACC==='vr'){
+    tk=vrState.settings.ticker;
+    if(![...sel.options].some(o=>o.value===tk)){ const o=document.createElement('option'); o.value=o.textContent=tk; o.dataset.vr='1'; sel.appendChild(o); }
+  } else { try{ tk=regBuy(CUR.regime); }catch(e){ tk=sel.options[0]&&sel.options[0].value; } }
+  if(tk) sel.value=tk;
+  const px=pxNow(sel.value); if(px!=null&&px>0) document.getElementById('f_price').value=(+px).toFixed(2);
+  document.getElementById('f_qty').value='';
+}
+function setTradeAcc(a){
+  if(a==='vr' && !vrAccReady()){ flash('포트폴리오 → 계좌 관리에서 VR 계좌를 먼저 지정하세요'); return; }
+  if(TRADE_ACC===a) return;
+  TRADE_ACC=a; tradeAccUI(); tradeApplyAccTicker(); onTypeChange(); calcAmount();
+}
+function openTrade(id, acc){
+  TRADE_ACC = (!id && acc==='vr') ? 'vr' : 'dca';
+  if(TRADE_ACC==='vr' && !vrAccReady()){ flash('VR 계좌가 지정되지 않았습니다 — 포트폴리오 → 계좌 관리 → VR 버튼'); TRADE_ACC='dca'; }
   document.getElementById('tradeId').value=id||'';
   document.getElementById('tradeModalTitle').textContent=id?'매매 수정':'매매 입력';
   FX_MODE = id ? 'record' : 'auto';                 // 수정 시엔 저장된 환율 유지
@@ -3927,6 +4016,8 @@ function openTrade(id){
     applyFxForDate(true);                               // 날짜(오늘) 환율 자동 적용
     document.getElementById('f_amount').value='';document.getElementById('f_realized').value=0;
   }
+  tradeAccUI();
+  if(!id) tradeApplyAccTicker();
   onTypeChange();calcAmount();
   document.getElementById('tradeModal').classList.add('open');
 }
@@ -3950,7 +4041,7 @@ async function submitTrade(){
        amount_krw:amount,
        realized:ty==='sell'?numv('f_realized'):0,account:'기본'};
   if(ty==='sell' && !t.realized){
-    const avg=avgCostKRW(t.ticker,t.date,id);
+    const avg=tradeAvgCost(t.ticker,t.date,id);
     if(avg!=null) t.realized=Math.round(t.amount_krw - avg*t.qty);
   }
   if(id)t.id=isNaN(+id)?id:+id;
@@ -3961,6 +4052,14 @@ async function submitTrade(){
     if(!(divA.fx>0)){flash('환율을 확인하세요');return;}
   }
   else if(!t.qty){flash('날짜와 수량을 입력하세요');return;}
+  if(TRADE_ACC==='vr' && !id){   // VR 계좌로 기록 — DCA 매매이력·대시보드에는 들어가지 않는다
+    try{ await vrSaveTrade(t); }catch(e){ console.error(e); flash('VR 매매 저장 실패: '+((e&&e.message)||e)); return; }
+    closeModal('tradeModal');
+    try{ await vrLoadTrades(); }catch(e){ console.warn(e); }
+    vrRender();
+    flash('VR 계좌('+vrAccountName+')에 기록 — 주문가를 다시 계산했습니다');
+    return;
+  }
   await saveTrade(t);
   closeModal('tradeModal');
   await renderTrades();await renderProfit();await syncAutoMonthly();await renderMonthly();
@@ -4121,11 +4220,11 @@ function qtyPct(pct){
   if(!(price>0)||!(fx>0)){ flash('단가·환율을 먼저 확인하세요'); return; }
   let qty=0;
   if(ty==='buy'){
-    const cash=CUR_CASH||0;
+    const cash=TRADE_ACC==='vr'?vrAvailKRW(fx):(CUR_CASH||0);   // VR: 이번 사이클 남은 POOL 매수 한도
     if(cash<=0){ flash('가용 현금이 없습니다'); return; }
     qty=Math.floor(cash*pct/(price*fx)*1e4)/1e4;   // 현금 초과 방지(소수 4자리 내림)
   } else {
-    const held=HOLD_QTY[tk]||0;
+    const held=TRADE_ACC==='vr'?vrHeldQty():(HOLD_QTY[tk]||0);
     if(held<=0){ flash(tk+' 보유수량이 없습니다'); return; }
     qty=pct>=1?held:Math.floor(held*pct*1e4)/1e4;
   }
@@ -5090,7 +5189,7 @@ async function vrInitCloud(){
     if(vrAccountId&&!vrAccounts.some(a=>String(a.id)===vrAccountId)){vrAccountId=null;vrAccountName='';}
     if(!vrAccountId&&vrAccountName){const a=vrAccounts.find(x=>x.name===vrAccountName);if(a)vrAccountId=String(a.id);}
     if(select){select.innerHTML='<option value="">계좌 선택</option>'+vrAccounts.map(a=>`<option value="${vrEsc(String(a.id))}">${vrEsc(a.name)}</option>`).join('');select.value=vrAccountId||'';}
-    vrCloudReady=true;vrSyncInputs();vrRender();
+    vrCloudReady=true;vrSyncInputs();try{await vrLoadTrades();}catch(e){console.warn('[VR trades]',e);}vrRender();if(typeof pfRealtime==='function')pfRealtime();
     if(migratedLegacy){await vrSaveCloud();try{localStorage.removeItem(VR_LEGACY_KEY);}catch(e){} }
     vrStatus(`Supabase 동기화 연결됨 · 설정 ${setting?'불러옴':(migratedLegacy?'기존 로컬 데이터 이전':'신규')} · VR 사이클 ${vrState.cycles.length}건 · 계좌 ${vrAccountName||'미지정'}`);
   }catch(e){console.error('[VR cloud load]',e);vrCloudReady=false;vrStatus('VR Supabase 조회 실패: '+(e.message||e)+' · SQL 설정 및 권한을 확인하세요.',true);if(select)select.innerHTML='<option value="">Supabase 설정 필요</option>';}
@@ -5114,23 +5213,224 @@ async function vrSaveAccount(){
   if(existing){const {error}=await pf.from('ticker_prices').update({displayname:JSON.stringify(marker)}).eq('ticker',VR_ACCOUNT_MARKER);if(error)throw error;}
   else {const {error}=await pf.from('ticker_prices').insert({ticker:VR_ACCOUNT_MARKER,displayname:JSON.stringify(marker)});if(error)throw error;}
   vrAccountId=String(a.id);vrAccountName=a.name;
+  try{await vrLoadTrades();}catch(e){console.warn('[VR trades]',e);}
 }
 async function vrSaveSettings(){try{vrState.settings=vrReadSettings();await vrSaveAccount();await vrSaveCloud();vrRender();vrStatus(`Supabase 동기화 완료 · VR 계좌: ${vrAccountName}`);flash('VR 설정·계좌를 Supabase에 저장했습니다');}catch(e){console.error(e);vrStatus('저장 실패: '+(e.message||e),true);flash('VR 저장 실패 — Supabase 설정을 확인하세요');}}
-function vrNextV(base,flow){const s=vrState.settings;if(!base||!base.index)return s.initialV;const pool=Number(base.pool)||0;const E=(Number(base.evalAmt)||0)+pool;const adjust=s.formula==='basic'?0:(E-Number(base.V))/(2*Math.sqrt(Math.max(1,Number(s.G)||1)));return Number(base.V)+pool/Math.max(1,Number(s.G)||1)+adjust+flow;}
-function vrCalc(){const s=vrState.settings,out=[];for(let i=0;i<vrState.cycles.length;i++){const c=vrState.cycles[i],prev=out[i-1],flow=Number(c.flow)||0;const V=i===0?Number(c.V??s.initialV):vrNextV(prev,flow);const poolBefore=(i===0?s.initialPool:prev.pool)+flow;const trade=Number(c.trade)||0;const pool=poolBefore-trade;const evalAmt=Number(c.price)*Number(c.shares);const total=pool+evalAmt;out.push({...c,index:i+1,V,poolBefore,pool,evalAmt,total,min:V*(1-s.band/100),max:V*(1+s.band/100),flow,trade});}return out;}
+/* ── VR 계산 (vr.txt) ─────────────────────────────────────────────────────────
+   기본공식  V₂ = V₁ + Pool/G + 적립
+   실력공식  V₂ = V₁ + Pool/G + (E − V₁)/(2√G) + 적립   (E = 갱신 시점의 주식 평가액 + POOL)
+   밴드 = V × (1 ± band%). 사이클(2주) 동안 매일: 주식 평가액이 하한 아래면 POOL 로 매수, 상한 위면 매도.
+   ⇒ 보유 Q주일 때 k번째 1주 매수 주문가 = 하한 / (Q + k − 1), k번째 1주 매도 주문가 = 상한 / (Q − k + 1)
+   매수는 사이클당 POOL 사용 한도(갱신 시 POOL × 한도%) 안에서만. */
+function vrG(){return Math.max(1,Number(vrState.settings.G)||1);}
+function vrFormulaV(V1,pool,E,flow){const s=vrState.settings,G=vrG();const adj=s.formula==='basic'?0:(E-V1)/(2*Math.sqrt(G));return V1+pool/G+adj+flow;}
+/* E 가 저장되지 않은 예전 기록: 직전 기록의 평가액·POOL 로 계산하던 이전 방식 그대로(과거 V 가 바뀌지 않게) */
+function vrNextV(base,flow){const s=vrState.settings;if(!base||!base.index)return s.initialV;const pool=Number(base.pool)||0;const E=(Number(base.evalAmt)||0)+pool;return vrFormulaV(Number(base.V),pool,E,flow);}
+function vrCalc(){
+  const s=vrState.settings,out=[];
+  for(let i=0;i<vrState.cycles.length;i++){
+    const c=vrState.cycles[i],prev=out[i-1],flow=Number(c.flow)||0;
+    const iBuy=Number(c.intraBuy)||0,iSell=Number(c.intraSell)||0;           // 직전 사이클 동안의 일일 매매(VR 계좌)
+    const poolEnd=(i===0?(Number(s.initialPool)||0):prev.pool)-iBuy+iSell;    // 갱신 직전 POOL(적립 전)
+    const hasE=c.E!=null&&Number.isFinite(Number(c.E));
+    const V=i===0?Number(c.V??s.initialV):(hasE?vrFormulaV(prev.V,poolEnd,Number(c.E),flow):vrNextV(prev,flow));
+    const poolBefore=poolEnd+flow,trade=Number(c.trade)||0,pool=poolBefore-trade;
+    const evalAmt=Number(c.price)*Number(c.shares),total=pool+evalAmt;
+    out.push({...c,index:i+1,V,poolEnd,poolBefore,pool,evalAmt,total,min:V*(1-s.band/100),max:V*(1+s.band/100),flow,trade,intraBuy:iBuy,intraSell:iSell});
+  }
+  return out;
+}
 function vrCurrentBase(){const d=vrCalc(),s=vrState.settings;if(!d.length)return {V:s.initialV,pool:s.initialPool,shares:0,price:0,evalAmt:0,total:s.initialPool,min:s.initialV*(1-s.band/100),max:s.initialV*(1+s.band/100),index:0};return d[d.length-1];}
-function vrPreviewCalc(){vrState.settings=vrReadSettings();const base=vrCurrentBase(),price=Number(document.getElementById('vrPrice').value),shares=Number(document.getElementById('vrShares').value),flowInput=document.getElementById('vrFlow').value;const flow=flowInput===''?((vrState.settings.mode==='contribution')?vrState.settings.contribution:(vrState.settings.mode==='withdrawal'?-Math.abs(vrState.settings.contribution):0)):Number(flowInput);if(!(price>0)||!(shares>=0)){document.getElementById('vrPreview').textContent='종가와 매매 후 보유 주수를 입력하세요.';return null;}const V=base.index?vrNextV(base,flow):vrState.settings.initialV;const poolBefore=(base.index?base.pool:vrState.settings.initialPool)+flow;const evalAmt=price*shares;const min=V*(1-vrState.settings.band/100),max=V*(1+vrState.settings.band/100);let signal='밴드 안 · 매매 없음',recommended=0,cls='vr-neutral';if(evalAmt<min){const desired=Math.max(0,min-evalAmt);const limit=Math.max(0,poolBefore*vrState.settings.poolLimit/100);recommended=Math.min(desired,limit,Math.max(0,poolBefore));signal=`매수 구간 · 하단까지 약 $${vrFmt(desired)} 필요`;cls='vr-buy';}else if(evalAmt>max){recommended=-(evalAmt-max);signal=`매도 구간 · 상단 초과분 약 $${vrFmt(-recommended)} 매도`;cls='vr-sell';}const tradeInput=document.getElementById('vrTrade');if(tradeInput.value===''||tradeInput.dataset.autofill==='1'){tradeInput.value=Number(recommended.toFixed(2));tradeInput.dataset.autofill='1';}const actualTrade=Number(tradeInput.value)||0;const projectedPool=poolBefore-actualTrade;document.getElementById('vrPreview').innerHTML=`<div class="vr-signal ${cls}">${signal}</div><div style="margin-top:6px">공식 <b>${vrState.settings.formula==='skill'?'실력공식':'기본공식'}</b> · 다음 V <b>$${vrFmt(V)}</b> · 밴드 <b>$${vrFmt(min)} ~ $${vrFmt(max)}</b></div><div>주식 평가액 Eₛ <b>$${vrFmt(evalAmt)}</b> · 총 평가액(주식+POOL) <b>$${vrFmt(evalAmt+poolBefore)}</b> · 적립/인출 후 POOL <b>$${vrFmt(poolBefore)}</b></div><div>권장 매매금액 <b>$${vrFmt(recommended)}</b> (양수=매수, 음수=매도) · 입력 매매 반영 후 예상 POOL <b>$${vrFmt(projectedPool)}</b></div><div style="margin-top:5px;color:var(--text2);font-size:10px">실력공식의 E는 직전 사이클 총 평가액(주식+POOL)입니다. 밴드 매매 신호는 매수·매도로 직접 조정할 수 있는 주식 평가액을 기준으로 계산하며, 매수는 POOL 사용한도 ${vrState.settings.poolLimit}%를 적용합니다.</div>`;return {date:document.getElementById('vrDate').value||todayStr(),price,shares,flow,trade:actualTrade,V,formula:vrState.settings.formula};}
+
+/* VR 계좌 매매내역(포트폴리오 DB) — 사이클 중 일일 매매를 보유 주수·POOL 에 반영 */
+let vrTrades=[];
+function vrYmd(d){return String(d||'').replace(/-/g,'').slice(0,8);}
+async function vrLoadTrades(){
+  if(!pf||!vrAccountId){vrTrades=[];return vrTrades;}
+  let rows=[];
+  for(let p=0;p<20;p++){
+    const {data,error}=await pf.from('trades').select('id,trade_date,ticker,trade_type,qty,price,fx,amount,realized').eq('account_id',vrAccountId)
+      .order('trade_date',{ascending:true}).order('id',{ascending:true}).range(p*1000,p*1000+999);
+    if(error){console.warn('[VR] trades 조회 실패',error);break;}
+    rows=rows.concat(data||[]);if(!data||data.length<1000)break;
+  }
+  vrTrades=rows;return rows;
+}
+function vrTkTrades(tk){tk=String(tk||vrState.settings.ticker||'').toUpperCase();return vrTrades.filter(r=>String(r.ticker||'').toUpperCase()===tk&&(r.trade_type==='매수'||r.trade_type==='매도'));}
+function vrIntra(last){
+  const res={qty:0,buy:0,sell:0,n:0};if(!last)return res;
+  const excl=new Set(vrState.cycles.map(c=>c&&c.portfolioTradeId).filter(x=>x!=null).map(String));   // 갱신 매매(사이클 저장 시 기록)는 제외
+  const ld=vrYmd(last.date),mark=last.tradeIdMark;
+  vrTkTrades().forEach(r=>{
+    if(excl.has(String(r.id)))return;
+    const d=vrYmd(r.trade_date);
+    if(!(d>ld||(d===ld&&mark!=null&&Number(r.id)>Number(mark))))return;
+    const q=Number(r.qty)||0,usd=q*(Number(r.price)||0);
+    if(r.trade_type==='매수'){res.qty+=q;res.buy+=usd;}else{res.qty-=q;res.sell+=usd;}
+    res.n++;
+  });
+  return res;
+}
+function vrAvgCostKRW(tk,asOf){
+  let qty=0,cost=0;const lim=vrYmd(asOf||todayStr());
+  vrTkTrades(tk).filter(r=>vrYmd(r.trade_date)<=lim).forEach(r=>{const q=Number(r.qty)||0;
+    if(r.trade_type==='매수'){qty+=q;cost+=Number(r.amount)||0;}else{const avg=qty>0?cost/qty:0;cost-=avg*q;qty-=q;}});
+  return qty>0?cost/qty:null;
+}
+function vrPx(tk){
+  try{const p=typeof pxNow==='function'?pxNow(tk):null;if(!(p>0))return null;
+    const live=typeof liveFresh==='function'&&liveFresh()&&LIVEQ[tk]&&LIVEQ[tk].price>0;return {price:+p,live:!!live};}catch(e){return null;}
+}
+function vrAddDays(ds,n){const t=new Date(String(ds)+'T00:00:00');if(isNaN(t))return '';t.setDate(t.getDate()+n);return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
+/* 지금 진행 중인 사이클 */
+function vrNow(){
+  const s=vrState.settings,d=vrCalc(),last=d[d.length-1];if(!last)return null;
+  const it=vrIntra(last),Q=Math.max(0,(Number(last.shares)||0)+it.qty),pool=last.pool-it.buy+it.sell;
+  const budget=Math.max(0,last.poolBefore)*s.poolLimit/100,used=Math.max(0,last.trade)+it.buy;
+  const avail=Math.max(0,Math.min(pool,budget-used));
+  return {d,last,it,Q,pool,budget,used,avail,V:last.V,min:last.min,max:last.max,
+    buyStart:Q>0?last.min/Q:null,sellStart:Q>0?last.max/Q:null,px:vrPx(s.ticker),nextDate:vrAddDays(last.date,14)};
+}
+function vrAvailKRW(fx){const n=vrNow();return n?n.avail*(fx||FXNOW):0;}
+function vrHeldQty(){const n=vrNow();if(n)return n.Q;return vrTkTrades().reduce((a,r)=>a+(r.trade_type==='매수'?1:-1)*(Number(r.qty)||0),0);}
+function vrLadder(n,step){
+  const buy=[],sell=[];if(!n||!(n.Q>0))return {buy,sell};
+  let cq=0,cost=0;
+  for(let k=1;k<=10;k++){const p=n.min/(n.Q+cq);cost+=step*p;cq+=step;const over=cost>n.avail+1e-9;buy.push({k,p,q:step,cq,amt:cost,over});if(over)break;}
+  cq=0;let amt=0;
+  for(let k=1;k<=10;k++){const rem=n.Q-cq;if(rem<=1e-9)break;const q=Math.min(step,rem);const p=n.max/rem;amt+=q*p;cq+=q;sell.push({k,p,q,cq,amt});}
+  return {buy,sell};
+}
+function vrFmt(n){return Number.isFinite(Number(n))?Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';}
+function vrFmt0(n){return Number.isFinite(Number(n))?Number(n).toLocaleString('en-US',{maximumFractionDigits:0}):'—';}
+function vrQty(n){return Number(n).toLocaleString('en-US',{maximumFractionDigits:4});}
+function vrDday(ds){const t=new Date(ds+'T00:00:00'),now=new Date(todayStr()+'T00:00:00');if(isNaN(t))return '';const k=Math.round((t-now)/864e5);return k>0?`D-${k}`:k===0?'D-day':`${-k}일 지남`;}
+
+function vrTodayHtml(n){
+  const s=vrState.settings;
+  if(!n)return `<div class="vr-sig vr-neutral">아직 사이클 기록이 없습니다</div><div class="note" style="flex-basis:100%">아래 <b>사이클 갱신 기록</b>에서 첫 사이클(초기 V $${vrFmt(s.initialV)} · 초기 POOL $${vrFmt(s.initialPool)})을 저장하면 매일의 매수·매도 주문가가 계산됩니다.</div>`;
+  if(!(n.Q>0))return `<div class="vr-sig vr-neutral">보유 주식이 없어 주문가를 계산할 수 없습니다</div><div class="note" style="flex-basis:100%">밴드 $${vrFmt(n.min)} – $${vrFmt(n.max)} · 첫 매수를 VR 계좌로 기록하거나 사이클 갱신을 저장하세요.</div>`;
+  const px=n.px;let sig,cls='vr-neutral';
+  if(!px){sig='현재가를 불러오지 못했습니다 — 아래 주문가로 LOC 주문';}
+  else{const stock=px.price*n.Q;
+    if(stock<n.min){const need=Math.ceil(n.min/px.price-n.Q-1e-9),can=Math.floor(n.avail/px.price+1e-9),q=Math.min(need,can);cls='vr-buy';
+      sig=q>0?`매수 구간 · 종가가 지금 가격이면 약 ${q}주 매수 ($${vrFmt(q*px.price)})${can<need?' · POOL 한도로 제한':''}`:'매수 구간 · 이번 사이클 POOL 한도를 모두 사용';}
+    else if(stock>n.max){const q=Math.min(Math.floor(n.Q),Math.ceil(n.Q-n.max/px.price-1e-9));cls='vr-sell';sig=`매도 구간 · 종가가 지금 가격이면 약 ${q}주 매도 ($${vrFmt(q*px.price)})`;}
+    else sig='밴드 안 · 오늘은 대기 (아래 주문가에 닿으면 체결)';}
+  const kv=(k,v)=>`<span class="vr-kv">${k} <b>${v}</b></span>`;
+  return `<div class="vr-sig ${cls}">${sig}</div>`
+    +(px?kv(`${vrEsc(s.ticker)} ${px.live?'현재가':'종가'}`,'$'+vrFmt(px.price)):'')
+    +(px?kv('주식 평가액','$'+vrFmt(px.price*n.Q)):'')
+    +kv('밴드','$'+vrFmt(n.min)+' – $'+vrFmt(n.max))
+    +kv('남은 매수 한도','$'+vrFmt(n.avail))
+    +kv('다음 갱신',`${n.nextDate} (${vrDday(n.nextDate)})`);
+}
+function vrAutoStep(Q){return Q<100?1:Q<250?2:Q<600?5:Q<1500?10:20;}
+function vrLadderRender(){
+  const n=vrNow(),sel=document.getElementById('vrStep');
+  if(sel&&!sel.dataset.user&&n)sel.value=String(vrAutoStep(n.Q));
+  const step=Math.max(1,Number(sel&&sel.value)||1);
+  document.getElementById('vrToday').innerHTML=vrTodayHtml(n);
+  const {buy,sell}=vrLadder(n,step),px=n&&n.px?n.px.price:null;
+  const empty=t=>`<tr><td colspan="5" class="vr-empty">${t}</td></tr>`;
+  const why=!n?'사이클 기록이 없습니다':'보유 주식이 없습니다';
+  document.getElementById('vrBuyRows').innerHTML=buy.length?buy.map(r=>`<tr class="${r.over?'over':''}${px!=null&&px<=r.p&&!r.over?' hit':''}"><td>${r.k}</td><td class="mono vr-buy">$${vrFmt(r.p)}</td><td class="mono">${vrQty(r.q)}주</td><td class="mono">${vrQty(r.cq)}주</td><td class="mono">$${vrFmt(r.amt)}${r.over?'<div class="sub-usd">POOL 한도 초과</div>':''}</td></tr>`).join(''):empty(why);
+  document.getElementById('vrSellRows').innerHTML=sell.length?sell.map(r=>`<tr class="${px!=null&&px>=r.p?'hit':''}"><td>${r.k}</td><td class="mono vr-sell">$${vrFmt(r.p)}</td><td class="mono">${vrQty(r.q)}주</td><td class="mono">${vrQty(r.cq)}주</td><td class="mono">$${vrFmt(r.amt)}</td></tr>`).join(''):empty(why);
+  const sub=document.getElementById('vrLadderSub');
+  if(sub)sub.textContent=n?`사이클 ${n.last.index} · ${n.last.date} ~ ${n.nextDate} · V $${vrFmt(n.V)} · 보유 ${vrQty(n.Q)}주`:'';
+  const note=document.getElementById('vrLadderNote');
+  if(note)note.innerHTML=n?`매일 장 마감 전에 위 주문가로 <b>LOC 주문</b>을 걸어 두세요. 각 단계는 앞 단계까지 체결된 뒤의 보유 주수로 계산합니다(● = 현재가 기준 체결권). 체결되면 <b>VR 매매입력</b>으로 VR 계좌에 기록하면 보유 주수·POOL이 반영돼 표가 다시 계산됩니다.`
+    +` 매수표는 이번 사이클 POOL 사용 한도(갱신 시 POOL의 ${vrState.settings.poolLimit}% = $${vrFmt(n.budget)}, 사용 $${vrFmt(n.used)})까지만 유효합니다.`
+    +(n.it.n?` 사이클 중 매매 ${n.it.n}건 반영(매수 $${vrFmt(n.it.buy)} · 매도 $${vrFmt(n.it.sell)}).`:'')
+    +` ${n.nextDate}에 사이클 갱신을 저장하면 새 V로 표가 바뀝니다.`:'';
+}
+function vrRender(){
+  if(!document.getElementById('vrSummary'))return;
+  const s=vrState.settings,n=vrNow(),d=n?n.d:vrCalc();
+  const card=(label,val,sub,cls='')=>`<div class="card card-hov blue"><div class="label">${label}</div><div class="card-val"><div class="card-amt"><span class="big-num ${cls}">${val}</span></div>${sub?`<div class="sub-usd">${sub}</div>`:''}</div></div>`;
+  const px=n?n.px:vrPx(s.ticker);
+  const V=n?n.V:s.initialV,min=n?n.min:V*(1-s.band/100),max=n?n.max:V*(1+s.band/100);
+  const pool=n?n.pool:Number(s.initialPool)||0,Q=n?n.Q:0;
+  const stock=n?(px?px.price*Q:n.last.evalAmt):0,total=stock+pool;
+  const avgPV=d.length?d.reduce((a,x)=>a+(x.pool/Math.max(x.V,1)),0)/d.length:0;
+  document.getElementById('vrSummary').innerHTML=[
+    card(`${vrEsc(s.ticker)} ${px&&px.live?'현재가':'종가'}`,px?'$'+vrFmt(px.price):'—',px?(px.live?'실시간':'최근 종가'):'시세 없음'),
+    card('주식 평가액','$'+vrFmt(stock),`${vrQty(Q)}주 보유`),
+    card('POOL','$'+vrFmt(pool),n?`이번 사이클 매수 가능 $${vrFmt(n.avail)}`:'초기 POOL'),
+    card('현재 V','$'+vrFmt(V),n?`사이클 ${n.last.index} · ${n.last.date}~`:'초기 V'),
+    card(`밴드 ±${s.band}%`,`$${vrFmt0(min)} – $${vrFmt0(max)}`,`하한 $${vrFmt(min)} · 상한 $${vrFmt(max)}`),
+    card('매수 시작가',n&&n.buyStart?'$'+vrFmt(n.buyStart):'—','종가가 이 가격 이하면 매수','vr-buy'),
+    card('매도 시작가',n&&n.sellStart?'$'+vrFmt(n.sellStart):'—','종가가 이 가격 이상이면 매도','vr-sell'),
+    card('총 자산','$'+vrFmt(total),`P/V ${(pool/Math.max(V,1)).toFixed(3)} · 평균 ${avgPV.toFixed(3)}`)
+  ].join('');
+  const head=document.getElementById('vrHeadSub');
+  if(head)head.textContent=`${s.ticker} · ${s.formula==='skill'?'실력공식':'기본공식'} G=${s.G} · POOL 한도 ${s.poolLimit}% · 계좌 ${vrAccountName||'미지정'}`;
+  vrLadderRender();
+  document.getElementById('vrRows').innerHTML=d.length?d.map((x,i)=>{
+    const net=(x.intraBuy||0)-(x.intraSell||0);
+    const tq=x.tradeQty!=null?` (${x.tradeQty>0?'+':''}${vrQty(x.tradeQty)}주)`:'';
+    return `<tr><td>${x.index}</td><td class="mono">${x.date||'—'}</td><td class="mono">$${vrFmt(x.price)}</td><td class="mono">${vrQty(x.shares)}</td><td class="mono">$${vrFmt(x.evalAmt)}</td><td class="mono">$${vrFmt(x.pool)}</td><td class="mono">$${vrFmt(x.V)}</td><td class="mono">$${vrFmt(x.min)}</td><td class="mono">$${vrFmt(x.max)}</td><td class="mono">${x.flow>=0?'+':''}$${vrFmt(x.flow)}</td><td class="mono ${net>0?'vr-buy':net<0?'vr-sell':''}">${net?(net>0?'+':'')+'$'+vrFmt(net):'—'}</td><td class="mono ${x.trade>0?'vr-buy':x.trade<0?'vr-sell':''}">${x.trade>=0?'+':''}$${vrFmt(x.trade)}${tq}</td><td><button class="icon-btn" onclick="vrDeleteCycle(${i})" title="삭제">×</button></td></tr>`;}).join('')
+    :'<tr><td colspan="13" style="text-align:center;padding:24px" class="muted">아직 저장된 VR 사이클이 없습니다.</td></tr>';
+  const sh=document.getElementById('vrShares');if(sh)sh.placeholder=`자동 ${vrQty(n?n.Q:vrHeldQty())}주`;
+  vrDrawChart(d);
+}
+function vrUseLivePrice(){const p=vrPx(vrState.settings.ticker);if(!p){flash('현재가를 불러오지 못했습니다 — 종가를 직접 입력하세요');return;}document.getElementById('vrPrice').value=p.price.toFixed(2);const dt=document.getElementById('vrDate');if(dt&&!dt.value)dt.value=todayStr();vrPreviewCalc();}
+function vrPreviewCalc(){
+  vrState.settings=vrReadSettings();const s=vrState.settings,n=vrNow(),out=document.getElementById('vrPreview');
+  const price=Number(document.getElementById('vrPrice').value),shIn=document.getElementById('vrShares').value,flowIn=document.getElementById('vrFlow').value;
+  const flow=flowIn===''?(s.mode==='contribution'?s.contribution:(s.mode==='withdrawal'?-Math.abs(s.contribution):0)):Number(flowIn);
+  const Q=shIn===''?(n?n.Q:Math.max(0,vrHeldQty())):Math.max(0,Number(shIn));
+  if(!(price>0)){out.textContent='종가를 입력하면 새 V·밴드와 권장 매매를 계산합니다.';return null;}
+  const first=!n,poolEnd=first?(Number(s.initialPool)||0):n.pool,E=price*Q+poolEnd,G=vrG();
+  const V=first?Number(s.initialV):vrFormulaV(n.V,poolEnd,E,flow);
+  const poolBefore=poolEnd+flow,stock=price*Q,min=V*(1-s.band/100),max=V*(1+s.band/100);
+  const limit=Math.max(0,Math.min(poolBefore,poolBefore*s.poolLimit/100));
+  let rec=0,signal='밴드 안 · 갱신 매매 없음',cls='vr-neutral';
+  if(stock<min){const need=Math.ceil(min/price-Q-1e-9),can=Math.floor(limit/price+1e-9);rec=Math.max(0,Math.min(need,can));cls='vr-buy';signal=`매수 · 하한까지 ${need}주 필요`+(can<need?` → POOL 한도로 ${rec}주`:'');}
+  else if(stock>max){rec=-Math.min(Math.floor(Q),Math.ceil(Q-max/price-1e-9));cls='vr-sell';signal=`매도 · 상한 초과분 ${-rec}주`;}
+  const tin=document.getElementById('vrTradeQty');
+  if(tin.value===''||tin.dataset.autofill==='1'){tin.value=String(rec);tin.dataset.autofill='1';}
+  const tq=Number(tin.value)||0,trade=tq*price,after=Q+tq;
+  const brk=first?`초기 V`:`V₁ $${vrFmt(n.V)} + POOL/G $${vrFmt(poolEnd/G)}${s.formula==='basic'?'':` + (E−V₁)/(2√G) $${vrFmt((E-n.V)/(2*Math.sqrt(G)))}`} ${flow>=0?'+':'−'} 적립 $${vrFmt(Math.abs(flow))}`;
+  out.innerHTML=`<div class="vr-sig ${cls}">${signal}</div>`
+    +`<div>새 V <b>$${vrFmt(V)}</b> <span class="muted">(${brk})</span> · 밴드 <b>$${vrFmt(min)} ~ $${vrFmt(max)}</b></div>`
+    +`<div>주식 평가액 <b>$${vrFmt(stock)}</b> (${vrQty(Q)}주 × $${vrFmt(price)}) · E(주식+POOL) <b>$${vrFmt(E)}</b> · 적립 후 POOL <b>$${vrFmt(poolBefore)}</b> · 매수 한도 <b>$${vrFmt(limit)}</b></div>`
+    +`<div>갱신 매매 <b>${tq>0?'+':''}${vrQty(tq)}주 ($${vrFmt(trade)})</b> → 보유 <b>${vrQty(after)}주</b> · POOL <b>$${vrFmt(poolBefore-trade)}</b></div>`
+    +`<div class="vr-fine">${first?'첫 사이클은 설정의 초기 V·초기 POOL로 시작합니다.':`POOL·보유 주수에는 사이클 중 VR 계좌 매매 ${n.it.n}건이 반영돼 있습니다.`} 저장하면 갱신 매매가 VR 계좌 매매내역으로 기록됩니다.</div>`;
+  return {date:document.getElementById('vrDate').value||todayStr(),price,sharesBefore:Q,shares:after,flow,trade,tradeQty:tq,V,E:first?null:E,poolEnd,
+    intraBuy:first?0:n.it.buy,intraSell:first?0:n.it.sell,formula:s.formula};
+}
 async function vrPostPortfolioTrade(c){
   if(!c.trade)return null;if(!pf||!vrAccountId)throw new Error('VR 계좌가 지정되지 않아 포트폴리오 매매내역을 기록할 수 없습니다.');
-  const side=c.trade>0?'매수':'매도',qty=+(Math.abs(c.trade)/c.price).toFixed(6),fx=(Number(FXNOW)>0?Number(FXNOW):1380),amount=Math.round(Math.abs(c.trade)*fx);
-  const row={trade_date:String(c.date||todayStr()).replace(/-/g,'').slice(0,8),account_id:vrAccountId,ticker:vrState.settings.ticker,trade_type:side,qty,price:+c.price,fx,amount,realized:0};
+  const side=c.trade>0?'매수':'매도',qty=+(c.tradeQty!=null?Math.abs(c.tradeQty):Math.abs(c.trade)/c.price).toFixed(6),fx=(Number(FXNOW)>0?Number(FXNOW):1380),amount=Math.round(qty*c.price*fx);
+  let realized=0;if(side==='매도'){const avg=vrAvgCostKRW(vrState.settings.ticker,c.date);if(avg!=null)realized=Math.round(amount-avg*qty);}
+  const row={trade_date:vrYmd(c.date||todayStr()),account_id:vrAccountId,ticker:vrState.settings.ticker,trade_type:side,qty,price:+c.price,fx,amount,realized};
   const {data,error}=await pf.from('trades').insert(row).select('id').single();if(error)throw error;return data?.id??null;
 }
-async function vrAddCycle(){const calc=vrPreviewCalc();if(!calc)return;if(!vrCloudReady){vrStatus('VR 데이터베이스가 연결되지 않았습니다. SQL 설정 후 다시 시도하세요.',true);return;}if(!vrAccountId){vrStatus('먼저 VR 계좌를 선택하고 [설정·계좌 저장]을 누르세요.',true);return;}try{const base=vrCurrentBase();if(vrState.cycles.length===0)calc.V=vrState.settings.initialV;calc.portfolioAccountId=vrAccountId;calc.portfolioTradeId=await vrPostPortfolioTrade(calc);vrState.cycles.push(calc);await vrSaveCloud();vrState.settings=vrReadSettings();document.getElementById('vrPrice').value='';document.getElementById('vrShares').value='';document.getElementById('vrFlow').value='';document.getElementById('vrTrade').value='';document.getElementById('vrTrade').dataset.autofill='1';vrRender();vrStatus(`Supabase 저장 완료 · ${vrAccountName} 계좌 매매내역 연동`);flash('VR 사이클과 포트폴리오 매매내역 저장 완료');}catch(e){console.error(e);vrStatus('사이클 저장 실패: '+(e.message||e),true);flash('VR 저장 실패');}}
+async function vrAddCycle(){
+  if(!vrCloudReady){vrStatus('VR 데이터베이스가 연결되지 않았습니다. SQL 설정 후 다시 시도하세요.',true);flash('VR 데이터베이스 미연결 — 전략 설정의 VR 안내를 확인하세요');return;}
+  if(!vrAccountId){vrStatus('먼저 VR 계좌를 지정하세요.',true);flash('VR 계좌 미지정 — 포트폴리오 → 계좌 관리 → VR 버튼으로 지정하세요');return;}
+  try{await vrLoadTrades();}catch(e){console.warn(e);}
+  const calc=vrPreviewCalc();if(!calc){flash('종가를 입력하세요');return;}
+  try{
+    const ids=vrTrades.map(r=>Number(r.id)).filter(Number.isFinite);calc.tradeIdMark=ids.length?Math.max(...ids):null;calc.savedAt=new Date().toISOString();
+    calc.portfolioAccountId=vrAccountId;calc.portfolioTradeId=await vrPostPortfolioTrade(calc);
+    vrState.cycles.push(calc);await vrSaveCloud();
+    ['vrPrice','vrShares','vrFlow','vrTradeQty'].forEach(id=>{document.getElementById(id).value='';});document.getElementById('vrTradeQty').dataset.autofill='1';
+    await vrLoadTrades();vrRender();
+    document.getElementById('vrPreview').textContent='종가를 입력하면 새 V·밴드와 권장 매매를 계산합니다.';
+    vrStatus(`Supabase 저장 완료 · ${vrAccountName} 계좌 매매내역 연동`);flash('VR 사이클 저장 — 새 V로 주문가를 갱신했습니다');
+  }catch(e){console.error(e);vrStatus('사이클 저장 실패: '+(e.message||e),true);flash('VR 저장 실패: '+(e.message||e));}
+}
+/* VR 매매입력(매매입력 모달에서 계좌 = VR) */
+async function vrSaveTrade(t){
+  if(!pf||!vrAccountId)throw new Error('VR 계좌가 지정되지 않았습니다');
+  const row=dcaToPf(t);row.account_id=vrAccountId;
+  if(!row.trade_type)throw new Error('알 수 없는 구분 '+t.type);
+  const {error}=await pf.from('trades').insert(row);if(error)throw error;
+}
 async function vrDeleteCycle(i){if(!confirm('선택한 VR 사이클 기록만 삭제할까요? 포트폴리오 앱의 과거 매매내역은 삭제하지 않고 보존합니다.'))return;try{vrState.cycles.splice(i,1);await vrSaveCloud();vrRender();flash('VR 사이클 기록 삭제 · 포트폴리오 매매내역 보존');}catch(e){console.error(e);vrStatus('삭제 실패: '+(e.message||e),true);}}
 async function vrReset(){const d=vrCalc(),last=d[d.length-1],finalTotal=last?Number(last.total)||0:null;const promptText=last?`현재 회차를 종료하고 새 회차를 시작할까요?\n\n최종 총자산: $${vrFmt(finalTotal)}\n새 회차 초기 V(원금): $${vrFmt(finalTotal)}\n새 회차 초기 POOL: $0.00\n\nVR 사이클 기록만 새 회차용으로 비우며, 포트폴리오 앱의 과거 매매내역은 모두 보존됩니다.`:'VR 사이클 기록을 비울까요? 포트폴리오 앱의 과거 매매내역은 보존됩니다.';if(!confirm(promptText))return;try{if(last){vrState.settings.initialV=finalTotal;vrState.settings.initialPool=0;document.getElementById('vrInitialV').value=String(finalTotal);document.getElementById('vrInitialPool').value='0';}vrState.cycles=[];await vrSaveCloud();vrSyncInputs();vrRender();vrStatus(last?`새 회차 시작 준비 완료 · 초기 V $${vrFmt(finalTotal)} · 과거 포트폴리오 매매내역 보존`:'VR 사이클 기록 정리 완료 · 포트폴리오 매매내역 보존');flash(last?'회차 종료 완료 · 최종 총자산을 새 원금으로 승계했습니다':'VR 기록 정리 완료 · 매매내역 보존');}catch(e){console.error(e);vrStatus('회차 종료 실패: '+(e.message||e),true);}}
-function vrFmt(n){return Number.isFinite(Number(n))?Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';}
-function vrRender(){if(!document.getElementById('vrSummary'))return;const d=vrCalc(),last=d[d.length-1],base=last||vrCurrentBase();const currentEval=last?last.evalAmt:0,total=last?last.total:vrState.settings.initialPool;const bandText=last?`$${vrFmt(last.min)} – $${vrFmt(last.max)}`:`$${vrFmt(base.min)} – $${vrFmt(base.max)}`;const avgPV=d.length?d.reduce((a,x)=>a+(x.pool/Math.max(x.V,1)),0)/d.length:0;const cards=[['주식 평가액','$'+vrFmt(currentEval)],['POOL','$'+vrFmt(last?last.pool:vrState.settings.initialPool)],['현재 V','$'+vrFmt(last?last.V:vrState.settings.initialV)],['최소–최대 밴드',bandText],['총 자산','$'+vrFmt(total)],['평균 P/V',avgPV.toFixed(3)],['공식',vrState.settings.formula==='skill'?'실력공식':'기본공식'],['연동 계좌',vrAccountName||'미지정']];document.getElementById('vrSummary').innerHTML=cards.map(([k,v])=>`<div class="card summary-item" style="padding:14px"><div class="muted" style="font-size:11px">${k}</div><div style="font-size:clamp(17px,3vw,23px);font-weight:700;margin-top:5px;overflow-wrap:anywhere">${vrEsc(v)}</div></div>`).join('');document.getElementById('vrRows').innerHTML=d.length?d.map((x,i)=>`<tr><td>${x.index}</td><td>${x.date||'—'}</td><td>$${vrFmt(x.price)}</td><td>${Number(x.shares).toLocaleString('en-US',{maximumFractionDigits:4})}</td><td>$${vrFmt(x.evalAmt)}</td><td>$${vrFmt(x.pool)}</td><td>$${vrFmt(x.V)}</td><td>$${vrFmt(x.min)}</td><td>$${vrFmt(x.max)}</td><td>${x.flow>=0?'+':''}$${vrFmt(x.flow)}</td><td class="${x.trade>0?'vr-buy':x.trade<0?'vr-sell':''}">${x.trade>=0?'+':''}$${vrFmt(x.trade)}</td><td><button class="icon-btn" onclick="vrDeleteCycle(${i})" title="삭제">×</button></td></tr>`).join(''):'<tr><td colspan="12" style="text-align:center;padding:22px;color:var(--text2)">아직 저장된 VR 사이클이 없습니다.</td></tr>';vrDrawChart(d);}
 function vrDrawChart(d){const canvas=document.getElementById('vrChart');if(!canvas||typeof Chart==='undefined')return;if(vrChart){vrChart.destroy();vrChart=null;}vrChart=new Chart(canvas,{type:'line',data:{labels:d.map(x=>x.date||`사이클 ${x.index}`),datasets:[{label:'주식 평가액',data:d.map(x=>x.evalAmt),borderColor:'#7fb5e6',borderWidth:2,pointRadius:1,tension:.2},{label:'V',data:d.map(x=>x.V),borderColor:'#c9a84c',borderWidth:2,pointRadius:0,tension:.2},{label:'최소밴드',data:d.map(x=>x.min),borderColor:'#5b9bd5',borderDash:[5,4],borderWidth:1,pointRadius:0},{label:'최대밴드',data:d.map(x=>x.max),borderColor:'#e07b83',borderDash:[5,4],borderWidth:1,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#aab2c5',boxWidth:18,font:{size:10}}}},scales:{x:{ticks:{color:'#8993a8',maxTicksLimit:8},grid:{color:'rgba(150,160,180,.08)'}},y:{ticks:{color:'#8993a8',callback:v=>'$'+Number(v).toLocaleString()},grid:{color:'rgba(150,160,180,.1)'}}}}});}
 // No localStorage fallback: VR settings and history are cloud-backed only.
 
