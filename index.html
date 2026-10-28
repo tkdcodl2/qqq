@@ -61,7 +61,7 @@
   /* ── 의미색 (지정 사양) ────────────────────────────────────────────
      낮은 채도의 뮤트 팔레트. 앞선 버전(밝은 파스텔 톤)보다 채도를 더 낮추고
      명도를 중간대로 모아 어두운 면 위에서 색이 튀지 않게 한다. */
-  --accent:#A9BCCF;  --accent-d:#8399AE;  --accent2:#8BA0B4;
+  --accent:#C9B8A3;  --accent-d:#A8957F;  --accent2:#B39F8B;
   --green:#86C49B;   --gold:#E0CDAA;      --violet:#B19CAC;   --orange:#CFA997;
   /* 하락은 두 값으로 나눠 쓴다:
        --red   #c9604f  넓은 조각·막대·채운 면 (§82: 달걀 과열 국면과 동일한 다홍)
@@ -74,15 +74,15 @@
   --up:#86C49B;      --down:#E0897C;
   --logo-end:#5E9077;
   /* 차트 10슬롯 (지정 사양) */
-  --slot1:#86C49B; --slot2:#A9BCCF; --slot3:#E0CDAA; --slot4:#B19CAC; --slot5:#AB7165;
-  --slot6:#8BA0B4; --slot7:#94756D; --slot8:#608371; --slot9:#7E7990; --slot10:#778062;
+  --slot1:#86C49B; --slot2:#C9B8A3; --slot3:#E0CDAA; --slot4:#B19CAC; --slot5:#AB7165;
+  --slot6:#B39F8B; --slot7:#94756D; --slot8:#608371; --slot9:#7E7990; --slot10:#778062;
   /* 순위 램프 (지정 사양) — 순위 표시 UI가 생기면 이 네 값을 보간해 쓴다 */
   --rank-1:#86C49B; --rank-hi:#A3B2A0; --rank-lo:#BD999A; --rank-last:#CA9496;
   --accent-t:var(--accent); --violet-t:var(--violet);
   --green-t:var(--green);   --gold-t:var(--gold); --orange-t:var(--orange);
   /* 채운 강조면 위 글자 = 지정 사양의 --on-primary */
   --on-accent:#0F1318;
-  --accent-fill:linear-gradient(180deg,#9DB0C3,#8399AE);
+  --accent-fill:linear-gradient(180deg,#D2C1AC,#A8957F);
   --red-fill:linear-gradient(180deg,#C77F74,#B26A61);
   /* ── 텍스트 4단 (지정 사양: 87 / 72 / 60 / 38%) ─────────────────────
      .72는 '읽는 문장'용 단계다. 설명 문단·보조 수치가 여기 들어간다.
@@ -91,7 +91,7 @@
   --text2:rgba(255,255,255,.60); --muted:rgba(255,255,255,.38);
   /* --muted(38%)는 M2에서 "비활성" 단계다. 읽혀야 하는 라벨·표 머리글·빈 상태 문구에는
      쓰지 않고 --text2(60%)를 쓴다 — 10px 대문자 라벨을 38%로 두면 3.0:1까지 떨어진다. */
-  --glow:rgba(169,188,207,.32);
+  --glow:rgba(201,184,163,.32);
   /* M2: 고도는 어두운 그림자로 표현한다. 컬러 글로우를 그림자 대신 쓰면 고도가 아니라
      발광으로 읽히므로, 아래 그림자는 전부 검정 계열로 유지한다. */
   --shadow-card:0 2px 4px -1px rgba(0,0,0,.42), 0 12px 28px -14px rgba(0,0,0,.55), 0 34px 68px -38px rgba(0,0,0,.6);
@@ -112,8 +112,8 @@ body{min-height:100vh;position:relative;overflow-x:hidden;letter-spacing:-.01em}
 body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
   background:
     /* ★ Quiet Glass — 청회 한 색조의 오브 + 하락색을 아주 옅게 한 겹 */
-    radial-gradient(1200px 760px at 16% -8%, rgba(111,138,168,.07), transparent 64%),
-    radial-gradient(1100px 720px at 92% 108%, rgba(63,84,104,.08), transparent 64%),
+    radial-gradient(1200px 760px at 16% -8%, rgba(150,135,118,.07), transparent 64%),
+    radial-gradient(1100px 720px at 92% 108%, rgba(84,74,63,.08), transparent 64%),
     radial-gradient(900px 600px at 86% 12%, rgba(224,137,124,.025), transparent 62%);
   animation:auroraDrift 30s ease-in-out infinite alternate}
 /* 가장자리를 눌러 카드가 떠 보이게 하는 비네팅 (그리드 오버레이 제거) */
@@ -132,10 +132,10 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .logo{font-family:var(--font-text);font-weight:700;font-size:21px;letter-spacing:-.035em;color:var(--text);display:flex;align-items:center;gap:10px}
 /* 로고 마크: 애플 인텔리전스 계열 그라디언트 스퀘어클 */
 .logo::before{content:"";width:13px;height:13px;border-radius:4.5px;
-  background:conic-gradient(from 210deg,#B1BBC5,#6A757F,#728C7E,#8D98A3,#B1BBC5);
-  box-shadow:0 0 14px rgba(169,188,207,.42), inset 0 .5px 0 rgba(255,255,255,.5);animation:pulseDot 4s ease-in-out infinite}
+  background:conic-gradient(from 210deg,#C6BBAE,#6A757F,#728C7E,#A39889,#C6BBAE);
+  box-shadow:0 0 14px rgba(201,184,163,.42), inset 0 .5px 0 rgba(255,255,255,.5);animation:pulseDot 4s ease-in-out infinite}
 @keyframes pulseDot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.86);opacity:.78}}
-.logo span{background:linear-gradient(100deg,#8BA0B4,#A9BCCF 42%,var(--logo-end));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:var(--accent)}
+.logo span{background:linear-gradient(100deg,#B39F8B,#C9B8A3 42%,var(--logo-end));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:var(--accent)}
 .logo small{display:none}
 .hspace{flex:1}
 .mode-pill{font-size:11px;font-weight:590;padding:5px 11px;border-radius:var(--r-pill);border:.5px solid var(--border);color:var(--text2);background:var(--surface2)}
@@ -314,7 +314,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
   background:conic-gradient(from 0deg,
     transparent 0 54%,
     color-mix(in srgb, var(--rc,var(--accent)) 92%, #fff) 68%,
-    #8BA0B4 76%, #B19CAC 82%, #AB7165 86%, transparent 92%);
+    #B39F8B 76%, #B19CAC 82%, #AB7165 86%, transparent 92%);
   -webkit-mask-image:radial-gradient(closest-side, transparent 56%, #000 80%);
   mask-image:radial-gradient(closest-side, transparent 56%, #000 80%);
   filter:blur(13px);opacity:.64;animation:heroPulse 12s linear infinite}
@@ -371,7 +371,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .reco-weights .dotc{width:11px;height:11px;border-radius:50%}
 .reco-ticker{font-family:var(--font-text);font-weight:700;font-size:21px;letter-spacing:-.03em;line-height:1}
 .pill{display:inline-block;font-size:11.5px;font-weight:640;padding:5px 13px;border-radius:var(--r-pill);border:.5px solid var(--border);font-family:var(--font-text);letter-spacing:-.01em}
-.pill.buy{color:var(--accent);border-color:rgba(169,188,207,.4);background:rgba(169,188,207,.16)}
+.pill.buy{color:var(--accent);border-color:rgba(201,184,163,.4);background:rgba(201,184,163,.16)}
 
 /* indicator grid */
 .ind-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
@@ -500,7 +500,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
 .fg-num{font-family:var(--font-num);font-weight:700;font-size:30px;line-height:1;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
 .fg-lab{font-family:var(--font-text);font-size:12.5px;font-weight:640;letter-spacing:-.02em;margin-top:5px}
 .fg-bar{position:relative;height:9px;border-radius:var(--r-pill);margin-top:12px;
-  background:linear-gradient(90deg,#608674,#99B49B 26%,#91A4B7 50%,#D3B58A 74%,#AB7165);
+  background:linear-gradient(90deg,#608674,#99B49B 26%,#A9A08F 50%,#D3B58A 74%,#AB7165);
   box-shadow:inset 0 1px 3px rgba(0,0,0,.34), inset 0 -.5px 0 rgba(255,255,255,.12)}
 .fg-tick{position:absolute;top:-4.5px;width:3px;height:18px;border-radius:2px;background:#fff;
   box-shadow:0 0 9px rgba(255,255,255,.65);transform:translateX(-50%);transition:left 1.1s var(--ease)}
@@ -618,8 +618,8 @@ tbody tr:hover{background:rgba(255,255,255,.045)}
 .qt-btns{display:flex;gap:6px;justify-content:flex-end}
 .mini-trade{font-family:var(--font-text);font-weight:640;font-size:11px;padding:5.5px 13px;border-radius:var(--r-pill);border:.5px solid var(--border);cursor:pointer;transition:.24s var(--ease);white-space:nowrap;letter-spacing:-.01em}
 .mini-trade:active{transform:scale(.96)}
-.mini-trade.buy{color:var(--accent);background:rgba(169,188,207,.16);border-color:rgba(169,188,207,.36)}
-.mini-trade.buy:hover{background:rgba(169,188,207,.28)}
+.mini-trade.buy{color:var(--accent);background:rgba(201,184,163,.16);border-color:rgba(201,184,163,.36)}
+.mini-trade.buy:hover{background:rgba(201,184,163,.28)}
 .mini-trade.sell{color:var(--red-t);background:rgba(171,113,101,.15);border-color:rgba(171,113,101,.36)}
 .mini-trade.sell:hover{background:rgba(171,113,101,.28)}
 .qt-info{background:var(--surface2);border:.5px solid var(--border);border-radius:var(--r-s);padding:14px 16px;margin:16px 0 4px;font-size:13px}
@@ -659,7 +659,7 @@ input:focus,select:focus{outline:none;background:var(--st-hover);border-color:va
 input:focus-visible,select:focus-visible{outline:none}
 select{color-scheme:dark;background-image:linear-gradient(45deg,transparent 50%,var(--text2) 50%),linear-gradient(135deg,var(--text2) 50%,transparent 50%);background-position:calc(100% - 17px) center,calc(100% - 12px) center;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:34px}
 select option{background-color:var(--e03);color:var(--text);font-family:var(--font-text);font-size:14px}
-select option:checked{background:#A9BCCF;color:#0F1318;font-weight:640}
+select option:checked{background:#C9B8A3;color:#0F1318;font-weight:640}
 select option:disabled{color:var(--muted)}
 input[type="checkbox"],input[type="radio"]{width:17px;height:17px;flex:0 0 auto;accent-color:var(--accent);cursor:pointer;vertical-align:-2px}
 input[type="date"]{-webkit-appearance:none;appearance:none;min-width:0;max-width:100%;overflow:hidden;text-align:center}
@@ -1045,7 +1045,7 @@ html.boot .arow .rail b>.lq>.cap2,html.boot .arow .rail b>.lq>.cap0{animation-pl
 /* ★ v16.6 §131 — 보유 표 현재가 옆 세션 배지(장중 · 프리장 · 애프터장 · 데이장 · 전일종가) */
 .lq-sess{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:99px;font-size:10px;font-weight:600;line-height:1.5;vertical-align:1px;
   background:var(--ov06);color:var(--text2);font-family:inherit;letter-spacing:0}
-.lq-sess.day{color:#9EB5C5}
+.lq-sess.day{color:#B9A3B5}
 .lq-sess.prev{opacity:.7}
 </style>
 
@@ -1074,7 +1074,7 @@ button{
 }
 button:hover{border-color:rgba(255,255,255,.24);filter:brightness(1.045)}
 button:active{transform:scale(.975);box-shadow:inset 0 2px 5px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.12)}
-button:focus-visible{outline:2px solid rgba(183,164,255,.8);outline-offset:2px}
+button:focus-visible{outline:2px solid rgba(201,184,163,.8);outline-offset:2px}
 /* Keep chart segmented controls clean and flat, overriding the generic button finish. */
 .range-pills button{box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important}
 .range-pills button:active{transform:none!important}
@@ -1210,7 +1210,7 @@ button:not(.mobile-tabbar button):active{transform:scale(.985)}
 .vr-btrack .vr-vtick{position:absolute;top:-6px;bottom:-6px;width:2px;margin-left:-1px;border-radius:2px;background:var(--gold);box-shadow:0 0 10px color-mix(in srgb, var(--gold) 70%, transparent);z-index:2}
 .vr-btrack .vr-edot{position:absolute;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;background:#fff;border:2px solid var(--rc,var(--accent));z-index:3;
   --glow:var(--rc,var(--accent));animation:livePulse 2.4s ease-in-out infinite}
-.vr-btrack .vr-blab{position:absolute;top:12px;transform:translateX(-50%);font-family:var(--font-num);font-size:9.5px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.vr-btrack .vr-blab{position:absolute;top:12px;transform:translateX(-50%);text-align:center;font-family:var(--font-num);font-size:9.5px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
 #vrBandRow{padding:22px 0 26px;flex:1 1 auto}
 .vr-btrack .vr-blab b{display:block;color:var(--text-2);font-weight:600;font-size:10px}
 .vr-btrack .vr-blab.top{top:auto;bottom:13px;color:var(--rc,var(--accent))}
@@ -1218,7 +1218,7 @@ button:not(.mobile-tabbar button):active{transform:scale(.985)}
 .vr-wipe{animation:barWipe 1.1s var(--ease) both}
 @media(prefers-reduced-motion:reduce){.vr-wipe,.vr-btrack .vr-edot{animation:none}}
 #vrChartCard .vr-chart-box{flex:1;min-height:230px;position:relative}
-#vrAlloc .arow .act{min-width:64px;text-align:right}
+@media(max-width:560px){#vrAlloc .alloc-split .arow-list{grid-template-columns:auto minmax(0,1fr)}}
 @media(max-width:900px){#vrTopRow{grid-template-columns:1fr}}
 @media(max-width:560px){#vrSummary{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:900px){#vrLadder{grid-template-columns:1fr}.vr-form{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -1630,15 +1630,15 @@ grant select, insert, update, delete on public.vr_strategy_settings, public.vr_s
         <tr><td class="tkr" style="color:#CBA27B">과열</td><td>주간 RSI(14) ≥ <b>70</b> <b>또는</b> 성숙 천장(200일선 위 <b>360거래일(≈1.4년)</b> & 전고점 <b>98%</b> 이내)</td><td class="mono">매주 래더 <b>−30%p</b>: TQQQ → GLD·SGOV (7:3)</td></tr>
         <tr><td class="tkr" style="color:#E0897C">광기</td><td>200일선 이격 <b>+28%</b> & 고점권(−3% 이내)</td><td class="mono">즉시 TQQQ 전량 → GLD·SGOV. 해제: 고점 −3% 회복 / 추세 회복(200일선 +1% & 50일선 동반) → 매주 +10%p</td></tr>
         <tr><td class="tkr" style="color:#AB98B3">급락</td><td>50일 고점 대비 <b>−16% ~ −30%</b></td><td class="mono">TQQQ 상한 = (30 + 낙폭%) ÷ 14 — −30% 에서 0%</td></tr>
-        <tr><td class="tkr" style="color:#A9BCCF">이탈</td><td>200일선 아래 <b>16거래일(≈3주) 연속</b></td><td class="mono">TQQQ 전량 → GLD·SGOV</td></tr>
-        <tr><td class="tkr" style="color:#A9BCCF">복귀</td><td>신호가 모두 꺼짐. 이탈 뒤엔 ①200일선 <b>+1%</b> 재돌파(50일선 동반) <b>또는</b> ②저점 <b>+22%</b>(얕은 급락 +15%) 추력 & 50일선 위</td><td class="mono">매주 +10%p, 추력 복귀는 <b>+35%p</b> (100%까지)</td></tr>
+        <tr><td class="tkr" style="color:#C9B8A3">이탈</td><td>200일선 아래 <b>16거래일(≈3주) 연속</b></td><td class="mono">TQQQ 전량 → GLD·SGOV</td></tr>
+        <tr><td class="tkr" style="color:#C9B8A3">복귀</td><td>신호가 모두 꺼짐. 이탈 뒤엔 ①200일선 <b>+1%</b> 재돌파(50일선 동반) <b>또는</b> ②저점 <b>+22%</b>(얕은 급락 +15%) 추력 & 50일선 위</td><td class="mono">매주 +10%p, 추력 복귀는 <b>+35%p</b> (100%까지)</td></tr>
         <tr><td class="tkr" style="color:#B19CAC">변동성 상한</td><td>최근 <b>10거래일</b> 실현변동성</td><td class="mono">래더 ≤ 70% ÷ (3 × 변동성) — 출렁이면 자동 축소</td></tr>
-        <tr><td class="tkr" style="color:#91A4B7">SCHD 바닥</td><td>항상</td><td class="mono">10% 미만이면 적립금·리밸런싱 때 채움 · 넘치면 그대로(팔지 않음)</td></tr>
+        <tr><td class="tkr" style="color:#A9A08F">SCHD 바닥</td><td>항상</td><td class="mono">10% 미만이면 적립금·리밸런싱 때 채움 · 넘치면 그대로(팔지 않음)</td></tr>
       </tbody>
     </table></div>
     <p class="note" style="margin:8px 0 0"><b>실행.</b> 매주 대시보드의 비중 막대를 봅니다. 흰 눈금(목표)이 지난주와 달라졌으면 오른쪽 주수만큼 매매합니다 — TQQQ ↔ GLD·SGOV, SCHD 는 사기만. 적립금·배당금은 '매수 1순위(가장 부족한 종목)'에 넣습니다. 목표가 바뀌는 건 평균 연 24회(약 2주에 한 번)입니다.</p>
 
-    <div class="section-title" style="font-size:16px;margin-top:18px"><span class="dot"></span>시뮬레이션 결과 — 앱 엔진 (실데이터+합성 일봉 · $100,000 + 매월 $1,000 · 수수료 0.1% · <b style="color:#A9BCCF">세후</b>: 양도세 22%·연 250만 비과세 · 배당세 15.4%)</div>
+    <div class="section-title" style="font-size:16px;margin-top:18px"><span class="dot"></span>시뮬레이션 결과 — 앱 엔진 (실데이터+합성 일봉 · $100,000 + 매월 $1,000 · 수수료 0.1% · <b style="color:#C9B8A3">세후</b>: 양도세 22%·연 250만 비과세 · 배당세 15.4%)</div>
     <div class="tbl-scroll"><table style="min-width:420px">
       <thead><tr><th>구간</th><th>세후 IRR / MDD</th><th>세후 최종</th></tr></thead>
       <tbody>
@@ -2303,10 +2303,10 @@ const REG_SUB={
   6:'200일선 아래 16거래일 연속 = 추세 붕괴 확정. TQQQ 전량을 GLD·SGOV로. 복귀는 ①200일선 +1% 재돌파(50일선 동반) 또는 ②이탈 후 저점 추력(얕은급락 +15%·일반 +22%) & 50일선 위(이후 매주 35%p 가속) — 둘 중 빠른 쪽. SCHD 는 그대로(배당 계속).'
 };
 const REG_COLOR={2:'green',1:'green',3:'gold',4:'red',5:'red',6:'blue'};
-const REG_LINE={2:'#BDCAA9',1:'#83A57E',3:'#CBA27B',4:'#AB7165',5:'#AB98B3',6:'#91A4B7'};   // 선·면(비텍스트) — §71 시안A: 적립=연두·복귀=녹색·과열=주황
+const REG_LINE={2:'#BDCAA9',1:'#83A57E',3:'#CBA27B',4:'#AB7165',5:'#AB98B3',6:'#A9A08F'};   // 선·면(비텍스트) — §71 시안A: 적립=연두·복귀=녹색·과열=주황
 // 광기(#c9604f)는 넓은 조각용 톤이라 글자로 쓰면 카드면에서 3.6:1까지 떨어진다.
 // 지정 사양의 '하락(숫자)' 톤으로 갈아끼운 맵을 따로 둔다.
-const REG_TEXT={2:'#BDCAA9',1:'#83A57E',3:'#CBA27B',4:'#E0897C',5:'#AB98B3',6:'#91A4B7'};   // 4=광기: 조각용 #c9604f는 글자로 쓰면 3.6:1 → '밝은 다홍 글자' 역할은 --red-t #E57D6C 하나로 통일
+const REG_TEXT={2:'#BDCAA9',1:'#83A57E',3:'#CBA27B',4:'#E0897C',5:'#AB98B3',6:'#A9A08F'};   // 4=광기: 조각용 #c9604f는 글자로 쓰면 3.6:1 → '밝은 다홍 글자' 역할은 --red-t #E57D6C 하나로 통일
 
 /* ===================== 코스톨라니 달걀 (v15.1 — 순서대로 한 칸씩) =====================
    원전(André Kostolany)의 달걀은 상승 3국면(A1 바닥 · A2 동행 · A3 과열) + 하락 3국면(B1 전환 · B2 동행 · B3 과장)이
@@ -2337,10 +2337,10 @@ const KOSTO_PH=[
   {k:'B1',ph:'하락 · 전환 국면',act:'적극매도',c:'#C59075',
    h:'천장이 확인된 자리 — 남은 물량을 정리한다',
    d:'천장을 지나 추세가 실제로 꺾인 구간. 아직 "일시 조정"이라는 말이 돌지만, 되돌림에 기대지 않고 정리할 자리.'},
-  {k:'B2',ph:'하락 · 동행 국면',act:'현금유지',c:'#9EB5C5',
+  {k:'B2',ph:'하락 · 동행 국면',act:'현금유지',c:'#B9A3B5',
    h:'방어자산으로 기다린다 — 바닥 잡으려 들지 않는다',
    d:'낙폭이 본격적으로 커지는 구간. 현금·방어자산을 들고 기다린다.'},
-  {k:'B3',ph:'하락 · 과장 국면',act:'분할매수',c:'#788DAA',
+  {k:'B3',ph:'하락 · 과장 국면',act:'분할매수',c:'#9C8270',
    h:'가장 견디기 어려운 자리 — 나눠서 사 모으는 구간',
    d:'투매가 나오며 거래량이 다시 폭증하는 구간. 가장 견디기 어렵지만 코스톨라니가 다시 사라고 한 자리.'}
 ];
@@ -2477,10 +2477,10 @@ const FG_AX=[
   ['추세 강도','50일선이 200일선보다 얼마나 위에 있는가']
 ];
 const fgLab=v=>v<25?'극도의 공포':v<45?'공포':v<=55?'중립':v<=75?'탐욕':'극도의 탐욕';
-const fgCol =v=>v<25?'#608674':v<45?'#99B49B':v<=55?'#91A4B7':v<=75?'#D3B58A':'#AB7165';   // 면·막대용
+const fgCol =v=>v<25?'#608674':v<45?'#99B49B':v<=55?'#A9A08F':v<=75?'#D3B58A':'#AB7165';   // 면·막대용
 /* 글자용은 따로 둔다(§82). 양 극단(극공포 #3F8C6B 3.58:1 · 극탐욕 #c9604f 3.64:1)은
    11px 축 숫자로 쓰면 소형 텍스트 기준 4.5:1에 못 미친다. 같은 색조를 밝게 올린 톤을 쓴다. */
-const fgColT=v=>v<25?'#85B19D':v<45?'#99B49B':v<=55?'#91A4B7':v<=75?'#D3B58A':'#E0897C';   // 글자용
+const fgColT=v=>v<25?'#85B19D':v<45?'#99B49B':v<=55?'#A9A08F':v<=75?'#D3B58A':'#E0897C';   // 글자용
 function computeFG(out){
   const n=out.length, q=out.map(r=>+r.qqq), W=252;
   const g=out.map(r=>{const v=(r&&r.gold!=null)?+r.gold:NaN; return isNaN(v)?NaN:v;});
@@ -2555,7 +2555,7 @@ function openFG(){
 
 // ★ 달걀 글자색 — 국면 색(면·선용)을 글자로도 쓰는데, 어두운 국면(A3·B3)은 카드 위 4.5:1 미달이었다.
 //   명도만 올린 글자용 값을 따로 둔다(색상각·채도는 그대로 — 같은 색으로 읽힌다). 선·면은 원래 값.
-const EGG_TEXT={'#819F7C':'#819F7C','#BBC6A6':'#BBC6A6','#AB7165':'#B97E71','#C59075':'#C59075','#9EB5C5':'#9EB5C5','#788DAA':'#798EAB'};
+const EGG_TEXT={'#819F7C':'#819F7C','#BBC6A6':'#BBC6A6','#AB7165':'#B97E71','#C59075':'#C59075','#B9A3B5':'#B9A3B5','#9C8270':'#9D8371'};
 const eggT=c=>EGG_TEXT[c]||c;
 /* ★ v15.0.7 — 달걀 필터 영역은 '%'(경로 상자 기준)가 아니라 **도화지 좌표**로 잡는다.
    % 는 선 굵기를 뺀 경로의 기하 상자 기준이라, 거의 세로인 A2·B2 호(폭 12.4)에선 영역이 좌우 12 밖에 안 나가
@@ -2772,8 +2772,8 @@ function runCountUp(){
 }
 const usdSub = krw => `<div class="sub-usd">$${(krw/FXNOW).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
 const pct = n => (n>=0?'+':'')+ (n*100).toFixed(1)+'%';
-const ALLOC_COLORS={TQQQ:'#C59075',QLD:'#BD957F',QQQ:'#A796B6',SCHD:'#BBC6A6',GLD:'#D3BF86',SGOV:'#9EB5C5',CASH:'#94A5B6'};   // ★ v15.5 §119 — 달걀 국면 색과 같은 색: TQQQ = B1 · SCHD = A2 · SGOV = B2 · GLD 는 달걀에 노랑이 없어 v15.4 그대로. 달걀 색을 바꾸면 여기와 CSS .donut-wrap 의 --h1~3 · --sk1~2 도 같이(ui_render_check 가 확인). 바꾸면 CSS .donut-wrap 의 --h1~3 · --sk1~2 도 같이.   // 차트 10슬롯 + 중립 슬레이트. GLD=금 톤(#EBCB8B, §41 gold — 레짐3 선색과 공유하나 차트 종류가 달라 충돌 없음)
-const ALLOC_GRAD={TQQQ:'#C59075',QLD:'#BD957F',QQQ:'#A796B6',SCHD:'#BBC6A6',GLD:'#D3BF86',SGOV:'#9EB5C5',CASH:'#94A5B6'};
+const ALLOC_COLORS={TQQQ:'#C59075',QLD:'#BD957F',QQQ:'#A796B6',SCHD:'#BBC6A6',GLD:'#D3BF86',SGOV:'#B9A3B5',CASH:'#B5A898'};   // ★ v15.5 §119 — 달걀 국면 색과 같은 색: TQQQ = B1 · SCHD = A2 · SGOV = B2 · GLD 는 달걀에 노랑이 없어 v15.4 그대로. 달걀 색을 바꾸면 여기와 CSS .donut-wrap 의 --h1~3 · --sk1~2 도 같이(ui_render_check 가 확인). 바꾸면 CSS .donut-wrap 의 --h1~3 · --sk1~2 도 같이.   // 차트 10슬롯 + 중립 슬레이트. GLD=금 톤(#EBCB8B, §41 gold — 레짐3 선색과 공유하나 차트 종류가 달라 충돌 없음)
+const ALLOC_GRAD={TQQQ:'#C59075',QLD:'#BD957F',QQQ:'#A796B6',SCHD:'#BBC6A6',GLD:'#D3BF86',SGOV:'#B9A3B5',CASH:'#B5A898'};
 const ALLOC_DISP={TQQQ:'TQQQ',QLD:'QLD',QQQ:'QQQ',SCHD:'SCHD',GLD:'GLD',SGOV:'SGOV',CASH:'현금'};
 const SCHD_FALLBACK=32.3;                                  // 시세 미수집 시 임시 단가($)
 const schdPx=row=>(row&&row.schd!=null&&!isNaN(+row.schd))?+row.schd:SCHD_FALLBACK;
@@ -3434,7 +3434,7 @@ function buildRegimeChart(ctx,s,lite){
       return it?{x:it.element.x,y:it.element.y}:evtPos;
     };
   }
-  const lastCol = REG_LINE[(s[n-1]||{}).regime] || '#A9BCCF';
+  const lastCol = REG_LINE[(s[n-1]||{}).regime] || '#C9B8A3';
   const hexRgba=(hex,a)=>{const m=hex.replace('#','');const r=parseInt(m.slice(0,2),16),g=parseInt(m.slice(2,4),16),b=parseInt(m.slice(4,6),16);return `rgba(${r},${g},${b},${a})`;};
   const REDUCE = lite || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);   // lite: 펄스 루프 없음
   const PULSE_LIGHT = mob;     // 모바일: 펄스는 보이되 글로우 패스를 1회로 줄여 부담 완화
@@ -3504,7 +3504,7 @@ function buildRegimeChart(ctx,s,lite){
       const grad=c.createRadialGradient(pt.x,pt.y,1,pt.x,pt.y,13);
       grad.addColorStop(0, hexRgba(lastCol,.8)); grad.addColorStop(.45, hexRgba(lastCol,.32)); grad.addColorStop(1, hexRgba(lastCol,0));
       c.fillStyle=grad; c.beginPath(); c.arc(pt.x,pt.y,13,0,Math.PI*2); c.fill();
-      c.fillStyle='#C3CFDC'; c.beginPath(); c.arc(pt.x,pt.y,3,0,Math.PI*2); c.fill();
+      c.fillStyle='#DDD0BF'; c.beginPath(); c.arc(pt.x,pt.y,3,0,Math.PI*2); c.fill();
       c.lineWidth=2; c.strokeStyle=lastCol; c.beginPath(); c.arc(pt.x,pt.y,3,0,Math.PI*2); c.stroke();
       c.restore();
     }
@@ -3529,15 +3529,15 @@ function buildRegimeChart(ctx,s,lite){
      pointHoverRadius:lite?3:(c=>{const o=s[c.dataIndex]||{};return (o.thrust||o.regime===4)?6:3;}),
      pointStyle:ptStyle,
      pointBackgroundColor:ptBg,
-     pointHoverBackgroundColor:'#C3CFDC',pointHoverBorderColor:'#C3CFDC',pointHoverBorderWidth:2,
+     pointHoverBackgroundColor:'#DDD0BF',pointHoverBorderColor:'#DDD0BF',pointHoverBorderWidth:2,
      pointBorderColor:ptBd,
      pointBorderWidth:2},
     {label:'200일선',data:s.map(o=>o.sma200),borderColor:'#E0CDAA',borderWidth:1.4,tension:0,pointRadius:0,pointHoverRadius:0,pointHitRadius:0,borderDash:[5,4]},
-    {label:'50일선',data:s.map(o=>o.sma50),borderColor:'#8BA0B4',borderWidth:1,tension:0,pointRadius:0,pointHoverRadius:0,pointHitRadius:0}
+    {label:'50일선',data:s.map(o=>o.sma50),borderColor:'#B39F8B',borderWidth:1,tension:0,pointRadius:0,pointHoverRadius:0,pointHitRadius:0}
   ]},plugins:[glowPlugin],options:{responsive:true,maintainAspectRatio:false,normalized:true,animation:lite?false:undefined,interaction:{intersect:false,mode:'index'},
     plugins:{legend:{labels:{color:CH.tick,boxWidth:12,font:{size:11}}},
       zoom:{
-        zoom:{drag:{enabled:true,backgroundColor:'rgba(169,188,207,.18)',borderColor:'rgba(169,188,207,.65)',borderWidth:1,threshold:8},pinch:{enabled:true},wheel:{enabled:true,speed:.08},mode:'x'},
+        zoom:{drag:{enabled:true,backgroundColor:'rgba(201,184,163,.18)',borderColor:'rgba(201,184,163,.65)',borderWidth:1,threshold:8},pinch:{enabled:true},wheel:{enabled:true,speed:.08},mode:'x'},
         pan:{enabled:false},
         limits:{x:{minRange:10}}
       },
@@ -3552,7 +3552,7 @@ function renderAssetChart(data, quiet){   // ★ v16.2 — quiet: 값만 바뀐 
   const ctx=document.getElementById('assetChart'); if(!ctx) return;
   if(assetChart)assetChart.destroy();
   if(!data.length){ const c=ctx.getContext('2d'); c.clearRect(0,0,ctx.width,ctx.height);
-    c.fillStyle='#8BA0B4'; c.font="13px -apple-system, 'SF Pro Text', Pretendard, sans-serif"; c.textAlign='center';
+    c.fillStyle='#B39F8B'; c.font="13px -apple-system, 'SF Pro Text', Pretendard, sans-serif"; c.textAlign='center';
     c.fillText('월별 데이터를 추가하면 추이가 표시됩니다.', ctx.width/2, ctx.height/2); return; }
   const labels=data.map(d=>monthLabel(d.ym));
   const principal=data.map(d=>+d.principal);
@@ -3565,12 +3565,12 @@ function renderAssetChart(data, quiet){   // ★ v16.2 — quiet: 값만 바뀐 
   /* ★ Quiet Glass — 평가금액은 손익 초록(그래프의 유일한 유채색) · 원금은 램프 · 배당은 한 색 페이드 */
   grad.addColorStop(0,'rgba(134,196,155,.26)'); grad.addColorStop(1,'rgba(134,196,155,0)');
   const gradP=g.createLinearGradient(0,0,0,300);            // 원금도 색을 넣어 눈에 띄게 (점선 → 실선+옅은 채움)
-  gradP.addColorStop(0,'rgba(131,153,174,.12)'); gradP.addColorStop(1,'rgba(131,153,174,0)');
+  gradP.addColorStop(0,'rgba(168,149,127,.12)'); gradP.addColorStop(1,'rgba(168,149,127,0)');
   const gradD=g.createLinearGradient(0,0,0,300);            // 배당 막대 — 아래로 사라진다
-  gradD.addColorStop(0,'rgba(169,188,207,.45)'); gradD.addColorStop(1,'rgba(169,188,207,.03)');
+  gradD.addColorStop(0,'rgba(201,184,163,.45)'); gradD.addColorStop(1,'rgba(201,184,163,.03)');
   const ds=[
     {label:'평가금액',data:evalAmt,borderColor:'#9EBEA8',backgroundColor:grad,borderWidth:2.2,pointRadius:0,tension:.35,fill:true,order:1,yAxisID:'y'},
-    {label:'원금',data:principal,borderColor:'#8D98A3',backgroundColor:gradP,borderWidth:2.2,pointRadius:0,tension:.35,fill:true,order:2,yAxisID:'y'}
+    {label:'원금',data:principal,borderColor:'#A39889',backgroundColor:gradP,borderWidth:2.2,pointRadius:0,tension:.35,fill:true,order:2,yAxisID:'y'}
   ];
   if(hasDiv) ds.push({type:'bar',label:'배당',data:divs,backgroundColor:gradD,borderColor:'transparent',borderWidth:0,
     borderRadius:5,borderSkipped:false,maxBarThickness:26,order:3,yAxisID:'yDiv'});
@@ -3592,7 +3592,7 @@ function renderAssetChart(data, quiet){   // ★ v16.2 — quiet: 값만 바뀐 
   /* 월별 자산 추이의 상시 효과(§76 재작성).
      · 광점은 **평가금액 선 위의 정확한 점**을 따라간다. 폴리라인 꼭짓점에 스냅하지 않고
        두 점 사이를 선형 보간하므로, 달 수가 적어도 뚝뚝 끊기지 않는다.
-     · 색은 흰색이 아니라 평가금액 선 색(#85a5c5)이다. 초반에 원금을 따라가는 것처럼 보였던 것은
+     · 색은 흰색이 아니라 평가금액 선 색(#B39F8B)이다. 초반에 원금을 따라가는 것처럼 보였던 것은
        두 선이 실제로 겹쳐 있기 때문인데, 선 색을 맞추면 어느 쪽인지 바로 읽힌다.
      · 끝점 고정 광점은 제거했다. 남긴 것은 현재 평가금액 **기준선**(점선)뿐이다. */
   const GL='134,196,155';                                   // 평가금액 선 #86C49B (Quiet Glass)
@@ -4912,7 +4912,7 @@ function drawBtAsset(){
   const days = decimate(R.days, IS_MOBILE()?400:900);   // 장기 일봉을 그대로 그리면 느려짐 — 끝점 보존하며 점 수 제한
   const g=ac.getContext('2d'); const grad=g.createLinearGradient(0,0,0,300);
   grad.addColorStop(0,'rgba(134,196,155,.26)'); grad.addColorStop(1,'rgba(134,196,155,0)');   /* Quiet Glass */
-  const bmDs=R.bms.map(nm=>({label:nm+' 동일적립',data:days.map(x=>x.bm[nm]),borderColor:(ALLOC_COLORS[nm]||'#8BA0B4')+'cc',borderWidth:1.4,pointRadius:0,pointHoverRadius:0,pointHitRadius:0,tension:0,fill:false}));
+  const bmDs=R.bms.map(nm=>({label:nm+' 동일적립',data:days.map(x=>x.bm[nm]),borderColor:(ALLOC_COLORS[nm]||'#B39F8B')+'cc',borderWidth:1.4,pointRadius:0,pointHoverRadius:0,pointHitRadius:0,tension:0,fill:false}));
   const usdTick=v=>v>=1e9?'$'+(v/1e9).toFixed(v/1e9>=10?0:1)+'B':v>=1e6?'$'+(v/1e6).toFixed(v/1e6>=10?0:1)+'M':v>=1e3?'$'+Math.round(v/1e3)+'K':'$'+Math.round(v);
   const logCb=v=>{ if(v<=0)return ''; const f=Math.pow(10,Math.floor(Math.log10(v)+1e-9)); const m=Math.round(v/f); return (m===1||m===2||m===5)?usdTick(v):''; };
   const yAxis = LOG_SCALE
@@ -4921,7 +4921,7 @@ function drawBtAsset(){
   btAssetC=new Chart(ac,{type:'line',data:{labels:days.map(x=>x.date),datasets:[
     {label:'평가금액',data:days.map(x=>x.val),borderColor:'#9EBEA8',backgroundColor:grad,borderWidth:2,pointRadius:0,pointHoverRadius:3,pointHitRadius:0,tension:0,fill:!LOG_SCALE},
     ...bmDs,
-    {label:'투자원금',data:days.map(x=>x.invested),borderColor:'#8D98A3',borderWidth:1.6,pointRadius:0,pointHoverRadius:0,pointHitRadius:0,tension:0,fill:false,borderDash:[5,4]}
+    {label:'투자원금',data:days.map(x=>x.invested),borderColor:'#A39889',borderWidth:1.6,pointRadius:0,pointHoverRadius:0,pointHitRadius:0,tension:0,fill:false,borderDash:[5,4]}
   ]},options:{responsive:true,maintainAspectRatio:false,normalized:true,animation:false,interaction:{intersect:false,mode:'index'},
     plugins:{legend:{labels:{color:CH.tick,boxWidth:12,font:{size:11}}},
       tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmtUSD(c.parsed.y)}}},
@@ -4973,7 +4973,8 @@ function switchTab(t){
   ['dash','setup','trades','bt','vr'].forEach(x=>{const el=document.getElementById('tab-'+x);if(el)el.classList.toggle('hidden',x!==t);});
   document.querySelectorAll('.tab-btn,[data-tab]').forEach(b=>{if(b.dataset.tab)b.classList.toggle('active',b.dataset.tab===t);});
   if(t==='dash' && priceChart && priceChart.resize) priceChart.resize();
-  if(t==='vr'){ vrRender(); if(!vrCloudReady) vrInitCloud(); if(vrChart&&vrChart.draw) vrChart.draw(); }   // VR 클라우드 로드 및 캔버스 크기 보정
+  if(t==='vr'){ vrRender(); if(!vrCloudReady) vrInitCloud(); else if(vrAccountId) vrLoadTrades().then(()=>vrRender()).catch(e=>console.warn(e)); }
+  if(t==='trades' && vrAccountId) vrLoadTrades().catch(e=>console.warn(e));   // VR 계좌 매매도 최신으로   // VR 클라우드 로드 및 캔버스 크기 보정
   if(t==='dash'){ playAssetWipe(); if(assetChart && assetChart.draw) assetChart.draw(); }   // 와이프 재생 + 맥동 루프 재개(§74)
   window.scrollTo(0,0);                                                    // 화면 전환 시 항상 최상단부터
 }
@@ -5194,7 +5195,8 @@ function watchResume(){
     if(document.hidden){ PX_HIDDEN_AT=Date.now(); return; }
     let did=false;
     if(PX_HIDDEN_AT && Date.now()-PX_HIDDEN_AT>=PX_RESUME_GAP){ did=autoRefreshPrices('resume'); if(typeof fetchMkt==='function') fetchMkt(true); }
-    if(!did && !(LIVEQ_AT && Date.now()-LIVEQ_AT < LQ_POLL_MS)) lqRefresh();   // ★ v16.7 — 잠깐 다녀와도 현재가가 1분 넘게 묵었으면 바로(60초 갱신은 숨김 동안 쉰다)
+    if(!did && !(LIVEQ_AT && Date.now()-LIVEQ_AT < LQ_POLL_MS)) lqRefresh();
+    if(typeof vrAccountId!=='undefined' && vrAccountId) vrLoadTrades().then(()=>vrRender()).catch(e=>console.warn(e));   // 포트폴리오 앱에서 바뀐 VR 매매   // ★ v16.7 — 잠깐 다녀와도 현재가가 1분 넘게 묵었으면 바로(60초 갱신은 숨김 동안 쉰다)
     PX_HIDDEN_AT=0;
   });
 }
@@ -5274,17 +5276,48 @@ function vrG(){return Math.max(1,Number(vrState.settings.G)||1);}
 function vrFormulaV(V1,pool,E,flow){const s=vrState.settings,G=vrG();const adj=s.formula==='basic'?0:(E-V1)/(2*Math.sqrt(G));return V1+pool/G+adj+flow;}
 /* E 가 저장되지 않은 예전 기록: 직전 기록의 평가액·POOL 로 계산하던 이전 방식 그대로(과거 V 가 바뀌지 않게) */
 function vrNextV(base,flow){const s=vrState.settings;if(!base||!base.index)return s.initialV;const pool=Number(base.pool)||0;const E=(Number(base.evalAmt)||0)+pool;return vrFormulaV(Number(base.V),pool,E,flow);}
+/* 사이클 경계 b = (날짜, 저장 시점 마지막 매매 id). 매매 r 이 경계 뒤인가 */
+function vrAfter(r,c){if(!c)return true;const d=vrYmd(r.trade_date),cd=vrYmd(c.date);return d>cd||(d===cd&&c.tradeIdMark!=null&&Number(r.id)>Number(c.tradeIdMark));}
+function vrExclIds(){return new Set(vrState.cycles.map(c=>c&&c.portfolioTradeId).filter(x=>x!=null).map(String));}
+/* 경계 c 까지(포함)의 VR 계좌 누계 — 주수(종목) · 매수/매도 금액 · 입출금. ownId = 그 사이클 저장 때 함께 기록된 예전 갱신 매매 */
+function vrUpTo(c,ownId){
+  const tk=String(vrState.settings.ticker||'').toUpperCase(),f={qty:0,buy:0,sell:0,dep:0,out:0};
+  vrTrades.forEach(r=>{if(vrAfter(r,c)&&String(r.id)!==String(ownId))return;const ty=r.trade_type;
+    if(ty==='입금')f.dep+=vrUsdOf(r);else if(ty==='출금')f.out+=vrUsdOf(r);
+    else if((ty==='매수'||ty==='매도')&&String(r.ticker||'').toUpperCase()===tk){const q=Number(r.qty)||0,u=q*(Number(r.price)||0);if(ty==='매수'){f.qty+=q;f.buy+=u;}else{f.qty-=q;f.sell+=u;}}});
+  f.net=f.dep-f.out;return f;
+}
+/* 두 경계 사이(a 뒤 ~ b 까지)의 일일 매매 — 갱신 매매는 제외 */
+function vrSpan(a,b,excl){
+  const res={qty:0,buy:0,sell:0,n:0};
+  vrTkTrades().forEach(r=>{if(excl.has(String(r.id)))return;if(!vrAfter(r,a))return;if(b&&vrAfter(r,b))return;
+    const q=Number(r.qty)||0,u=q*(Number(r.price)||0);if(r.trade_type==='매수'){res.qty+=q;res.buy+=u;}else{res.qty-=q;res.sell+=u;}res.n++;});
+  return res;
+}
 function vrCalc(){
-  const s=vrState.settings,out=[];
-  for(let i=0;i<vrState.cycles.length;i++){
-    const c=vrState.cycles[i],prev=out[i-1],flow=Number(c.flow)||0;
-    const iBuy=Number(c.intraBuy)||0,iSell=Number(c.intraSell)||0;           // 직전 사이클 동안의 일일 매매(VR 계좌)
-    const poolEnd=(i===0?(c.poolStart!=null?Number(c.poolStart):(Number(s.initialPool)||0)):prev.pool)-iBuy+iSell;    // 갱신 직전 POOL(적립 전)
+  const s=vrState.settings,out=[],cy=vrState.cycles,live=vrTrades.length>0,excl=vrExclIds();
+  for(let i=0;i<cy.length;i++){
+    const c=cy[i],prev=out[i-1],flow=Number(c.flow)||0,liveC=live&&!!c.savedAt;
+    /* 예전 버전의 갱신 매매: 매매내역에서 지워졌으면 0 */
+    let trade=Number(c.trade)||0;
+    if(trade&&c.portfolioTradeId!=null&&live&&!vrTrades.some(r=>String(r.id)===String(c.portfolioTradeId)))trade=0;
+    /* 직전 사이클 동안의 일일 매매 — 매매내역에서 다시 계산(삭제·수정이 바로 반영) */
+    let iBuy=Number(c.intraBuy)||0,iSell=Number(c.intraSell)||0;
+    if(i>0&&liveC){const sp=vrSpan(cy[i-1],c,excl);iBuy=sp.buy;iSell=sp.sell;}
+    /* 1회차 첫 사이클: 초기자금 = 그때까지의 입금 − 출금, 시작 POOL = 초기자금 − 산 대금 + 판 대금 */
+    let start=c.poolStart!=null?Number(c.poolStart):(Number(s.initialPool)||0),capital=c.capital;
+    if(i===0&&liveC&&(Number(c.round)||1)===1&&String(c.capitalSrc||'').indexOf('VR 계좌')===0){const f=vrUpTo(c,c.portfolioTradeId);capital=f.net;start=f.net-f.buy+f.sell;if(c.portfolioTradeId!=null&&trade){start+=trade;}}
+    /* 보유 주수 = 저장값 + (저장 이후 경계 이전 매매의 변화) */
+    let shares=Number(c.shares)||0;
+    if(liveC){const qm=c.qtyMark!=null?Number(c.qtyMark):shares;shares=Math.max(0,shares+(vrUpTo(c,c.portfolioTradeId).qty-qm));}
+    const poolEnd=(i===0?start:prev.pool)-iBuy+iSell;
     const hasE=c.E!=null&&Number.isFinite(Number(c.E));
-    const V=i===0?Number(c.V??s.initialV):(hasE?vrFormulaV(prev.V,poolEnd,Number(c.E),flow):vrNextV(prev,flow));
-    const poolBefore=poolEnd+flow,trade=Number(c.trade)||0,pool=poolBefore-trade;
-    const evalAmt=Number(c.price)*Number(c.shares),total=pool+evalAmt;
-    out.push({...c,index:i+1,V,poolEnd,poolBefore,pool,evalAmt,total,min:V*(1-s.band/100),max:V*(1+s.band/100),flow,trade,intraBuy:iBuy,intraSell:iSell});
+    let E=hasE?Number(c.E):null;
+    if(hasE&&liveC){const sb=shares-(trade?Number(c.tradeQty)||0:0);E=Number(c.price)*sb+poolEnd;}
+    const V=i===0?Number(c.V??s.initialV):(hasE?vrFormulaV(prev.V,poolEnd,E,flow):vrNextV(prev,flow));
+    const poolBefore=poolEnd+flow,pool=poolBefore-trade;
+    const evalAmt=Number(c.price)*shares,total=pool+evalAmt;
+    out.push({...c,index:i+1,shares,capital,V,E,poolEnd,poolBefore,pool,evalAmt,total,min:V*(1-s.band/100),max:V*(1+s.band/100),flow,trade,intraBuy:iBuy,intraSell:iSell});
   }
   return out;
 }
@@ -5309,17 +5342,7 @@ async function vrLoadTrades(){
 function vrTkTrades(tk){tk=String(tk||vrState.settings.ticker||'').toUpperCase();return vrTrades.filter(r=>String(r.ticker||'').toUpperCase()===tk&&(r.trade_type==='매수'||r.trade_type==='매도'));}
 function vrIntra(last){
   const res={qty:0,buy:0,sell:0,n:0};if(!last)return res;
-  const excl=new Set(vrState.cycles.map(c=>c&&c.portfolioTradeId).filter(x=>x!=null).map(String));   // 갱신 매매(사이클 저장 시 기록)는 제외
-  const ld=vrYmd(last.date),mark=last.tradeIdMark;
-  vrTkTrades().forEach(r=>{
-    if(excl.has(String(r.id)))return;
-    const d=vrYmd(r.trade_date);
-    if(!(d>ld||(d===ld&&mark!=null&&Number(r.id)>Number(mark))))return;
-    const q=Number(r.qty)||0,usd=q*(Number(r.price)||0);
-    if(r.trade_type==='매수'){res.qty+=q;res.buy+=usd;}else{res.qty-=q;res.sell+=usd;}
-    res.n++;
-  });
-  return res;
+  return vrSpan(last,null,vrExclIds());
 }
 function vrAvgCostKRW(tk,asOf){
   let qty=0,cost=0;const lim=vrYmd(asOf||todayStr());
@@ -5361,7 +5384,7 @@ function vrCapitalViewSync(){
 }
 /* 투입 원금 = 회차 초기자금 + 사이클마다 적립(−인출) */
 function vrInvested(d,st){
-  const c0=vrState.cycles[0];let base;
+  const c0=(d&&d[0])||vrState.cycles[0];let base;
   if(c0&&c0.capital!=null)base=Number(c0.capital)||0;
   else if(c0)base=(Number(vrState.settings.initialV)||0)+(Number(vrState.settings.initialPool)||0);
   else base=st?st.capital:0;
@@ -5378,15 +5401,16 @@ function vrAllocRender(o){
   const n=o.n,px=o.px;let act='<b class="muted">—</b>';
   if(n&&px){const nb=Math.floor(n.min/px.price-n.Q+1e-9),ns=Math.floor(n.Q-n.max/px.price+1e-9);
     act=nb>=1?`<b class="up">+${Math.min(nb,Math.floor(n.avail/px.price+1e-9))}주</b>`:ns>=1?`<b class="down">−${ns}주</b>`:'<b class="muted">유지</b>';}
-  const row=(k,lab,a)=>{const v=cur[k],wide=v>=0.16;
-    return `<div class="arow" data-k="${k}"><span class="k"><i style="background:${col[k]}"></i>${lab}</span>`
-     +`<span class="rail"><b style="width:${Math.max(v*100,1.6).toFixed(1)}%;--c:${col[k]}"><span class="lq"><span class="flat"></span><span class="cap0"></span><span class="wv"><i></i></span><span class="cap"></span><span class="wv wv2"><i></i></span><span class="cap2"></span></span>`
+  const LQ='<span class="lq"><span class="flat"></span><span class="cap0"></span><span class="wv"><i></i></span><span class="cap"></span><span class="wv wv2"><i></i></span><span class="cap2"></span></span><span class="lq lq2"><span class="flat"></span><span class="cap0"></span><span class="wv"><i></i></span><span class="cap"></span><span class="wv wv2"><i></i></span><span class="cap2"></span></span>';
+  const row=(k,lab,a,ix)=>{const v=cur[k],wide=v>=0.16;
+    return `<div class="arow" data-k="${k}" style="--d3:${(0.10+ix*0.16).toFixed(2)}s"><span class="k"><i style="background:${col[k]}"></i>${lab}</span>`
+     +`<span class="rail"><b style="width:${Math.max(v*100,1.6).toFixed(1)}%;--c:${col[k]}">${LQ}`
      +(wide?`<span class="p">${Math.round(v*100)}%</span>`:'')+`</b><span class="mkc"><u style="left:calc((100% - 8px) * ${tgt[k].toFixed(4)} + 4px)" title="목표 ${Math.round(tgt[k]*100)}%"></u></span>`
-     +(wide?'':`<span class="out">${Math.round(v*100)}%</span>`)+`</span><span class="act">${a}</span></div>`;};
+     +(wide?'':`<span class="out">${Math.round(v*100)}%</span>`)+`</span></div>`;};
   el.innerHTML=`<div class="abar-label">현재 비중${tot?'':' (자산 없음)'} <span class="muted" style="text-transform:none;letter-spacing:0">· 표시선 = 목표(V)</span></div>`
     +`<div class="alloc-split"><div class="donut-wrap"><canvas id="vrDonutCv" aria-label="VR 현재 비중 도넛"></canvas>`
     +`<div class="donut-center"><div class="donut-center-sub">${vrEsc(tk)}</div><div class="donut-center-value">${tot?Math.round(cur[tk]*100)+'%':'—'}</div><div class="donut-center-label">목표 ${Math.round(tS*100)}%</div></div></div>`
-    +`<div class="arow-list">${row(tk,vrEsc(tk),act)}${row('CASH','현금',`<b class="muted">$${vrFmt0(o.pool)}</b>`)}</div></div>`;
+    +`<div class="arow-list">${row(tk,vrEsc(tk),'',0)}${row('CASH','현금','',1)}</div></div>`;
   const cv=document.getElementById('vrDonutCv');if(!cv||typeof Chart==='undefined')return;
   if(vrDonut){try{vrDonut.destroy();}catch(e){}vrDonut=null;}
   const rgba=(h,a)=>{const x=parseInt(h.slice(1),16);return 'rgba('+(x>>16&255)+','+(x>>8&255)+','+(x&255)+','+a+')';};
@@ -5397,6 +5421,7 @@ function vrAllocRender(o){
       {label:'목표',data:keys.map(k=>tgt[k]*100),backgroundColor:keys.map(k=>rgba(col[k],.5)),borderWidth:1.5,borderColor:'#20262F',weight:1}]},
     options:{cutout:'58%',responsive:true,maintainAspectRatio:false,animation:{duration:500},
       plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+' '+c.label+' '+Math.round(c.raw)+'%'}}}}});
+  if(typeof mountAllocSpark==='function') mountAllocSpark(el);   // 대시보드와 같은 숨결(고리 빛 · 도는 광점)
 }
 function vrBandRender(o){
   const card=document.getElementById('vrBandCard'),row=document.getElementById('vrBandRow');if(!card||!row)return;
@@ -5410,7 +5435,7 @@ function vrBandRender(o){
   document.getElementById('vrBandName').textContent=name;
   const span=Math.max(1,max-min),lo=Math.max(0,Math.min(min-span*.45,stock-span*.08)),hi=Math.max(max+span*.45,stock+span*.08);
   const P=v=>Math.max(0,Math.min(100,(v-lo)/(hi-lo)*100)).toFixed(2)+'%';
-  const T=v=>{const q=(v-lo)/(hi-lo)*100;return q<10?'translateX(-6px)':q>90?'translateX(calc(-100% + 6px))':'translateX(-50%)';};
+  const T=v=>{const q=(v-lo)/(hi-lo)*100;return q<10?'translateX(-6px);text-align:left':q>90?'translateX(calc(-100% + 6px));text-align:right':'translateX(-50%)';};
   const dev=V>0?(stock/V-1)*100:0;
   row.innerHTML=`<div class="vr-btrack">`
     +`<div class="gpip on" style="left:${P(min)};width:calc(${P(max)} - ${P(min)});--d:.05s"></div>`
@@ -5566,6 +5591,7 @@ async function vrAddCycle(){
   const calc=vrPreviewCalc();if(!calc){flash('종가를 입력하세요');return;}
   try{
     const ids=vrTrades.map(r=>Number(r.id)).filter(Number.isFinite);calc.tradeIdMark=ids.length?Math.max(...ids):null;calc.savedAt=new Date().toISOString();
+    calc.qtyMark=vrTkTrades().reduce((a,r)=>a+(r.trade_type==='매수'?1:-1)*(Number(r.qty)||0),0);   // 이후 매매 삭제·수정을 주수에 반영하는 기준
     calc.portfolioAccountId=vrAccountId;calc.portfolioTradeId=null;   // 갱신 매매 없음 — 실제 매매만 VR 계좌에
     vrState.cycles.push(calc);await vrSaveCloud();
     ['vrPrice','vrShares','vrFlow'].forEach(id=>{document.getElementById(id).value='';});
@@ -5608,12 +5634,12 @@ function vrDrawChart(d){
   if(vrChart){vrChart.destroy();vrChart=null;}
   const g=canvas.getContext('2d');
   const grad=g.createLinearGradient(0,0,0,280);grad.addColorStop(0,'rgba(134,196,155,.26)');grad.addColorStop(1,'rgba(134,196,155,0)');
-  const gradB=g.createLinearGradient(0,0,0,280);gradB.addColorStop(0,'rgba(169,188,207,.07)');gradB.addColorStop(1,'rgba(169,188,207,.02)');
+  const gradB=g.createLinearGradient(0,0,0,280);gradB.addColorStop(0,'rgba(201,184,163,.07)');gradB.addColorStop(1,'rgba(201,184,163,.02)');
   const labels=d.map(x=>x.date?x.date.slice(5):`사이클 ${x.index}`);
   const ds=[
     {label:'주식 평가액',data:d.map(x=>x.evalAmt),borderColor:'#9EBEA8',backgroundColor:grad,borderWidth:2.2,pointRadius:0,pointHoverRadius:4,tension:.35,fill:'origin',order:1},
     {label:'V',data:d.map(x=>x.V),borderColor:'#E0CDAA',borderWidth:2,pointRadius:0,tension:.35,order:2},
-    {label:'최대밴드',data:d.map(x=>x.max),borderColor:'rgba(169,188,207,.55)',backgroundColor:gradB,borderDash:[4,4],borderWidth:1.2,pointRadius:0,tension:.35,fill:'+1',order:3},
+    {label:'최대밴드',data:d.map(x=>x.max),borderColor:'rgba(201,184,163,.55)',backgroundColor:gradB,borderDash:[4,4],borderWidth:1.2,pointRadius:0,tension:.35,fill:'+1',order:3},
     {label:'최소밴드',data:d.map(x=>x.min),borderColor:'rgba(224,137,124,.55)',borderDash:[4,4],borderWidth:1.2,pointRadius:0,tension:.35,order:4}
   ];
   const GL='134,196,155',slow=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
