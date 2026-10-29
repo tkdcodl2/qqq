@@ -1274,6 +1274,7 @@ button:not(.mobile-tabbar button):active{transform:scale(.985)}
     <button class="btn-strategy btn-refresh" id="btnUpdatePrices" onclick="updatePrices(this)" title="시세 갱신" aria-label="시세 갱신"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg><span>시세</span></button>
     <button class="btn-strategy" onclick="openSettings()" title="설정" aria-label="설정"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>설정</span></button>
     <button class="btn-strategy" onclick="openStrategy()" title="전략" aria-label="전략"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><polyline points="7 14 11 10 14 13 20 6"/></svg><span>전략</span></button>
+    <button class="btn-strategy" onclick="naOpen()" title="알림" aria-label="알림"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span>알림</span></button>
   </div>
   <nav class="tabs">
     <button class="tab-btn active" data-tab="dash" onclick="switchTab('dash')">대시보드</button>
@@ -5777,6 +5778,101 @@ function vrPlayWipe(){const w=document.getElementById('vrChartWrap');if(!w)retur
 // No localStorage fallback: VR settings and history are cloud-backed only.
 
 init();
+</script>
+<div class="modal-overlay" id="naModal">
+  <div class="modal" style="max-width:520px">
+    <span class="close" onclick="closeModal('naModal')">&times;</span>
+    <h2>알림</h2>
+    <div class="na-push" id="naPush"></div>
+    <div class="na-sec">Adaptive DCA</div>
+    <label class="na-row"><span><b>전략 단계 변경</b><small>적립 · 복귀 · 과열 · 광기 · 급락 · 이탈</small></span><input type="checkbox" data-pref="dca_regime"></label>
+    <label class="na-row"><span><b>코스톨라니 달걀 국면 변경</b><small>A1~B3 6국면</small></span><input type="checkbox" data-pref="dca_egg"></label>
+    <label class="na-row"><span><b>공포·탐욕 단계 변경</b><small>극도의 공포 · 공포 · 중립 · 탐욕 · 극도의 탐욕</small></span><input type="checkbox" data-pref="dca_fg"></label>
+    <div class="na-sec">밸류리밸런싱</div>
+    <label class="na-row"><span><b>사이클 기한 하루 전</b><small>오전 8시 이후</small></span><input type="checkbox" data-pref="vr_d1"></label>
+    <label class="na-row"><span><b>사이클 기한 당일 — 새 사이클 시작</b><small>오전 8시 이후</small></span><input type="checkbox" data-pref="vr_day"></label>
+    <label class="na-row"><span><b>매수·매도표 가격 도달</b><small>매수 시작가 이하 / 매도 시작가 이상 · 하루 1번</small></span><input type="checkbox" data-pref="vr_price"></label>
+    <p class="note" id="naNote" style="margin-top:12px">판정은 서버가 앱과 같은 계산으로 합니다(앱을 닫아 둬도 옵니다). 전략·달걀·공포탐욕은 15분마다, 밸류리밸런싱은 1분마다 확인합니다.</p>
+  </div>
+</div>
+<style id="na-style">
+.na-push{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:11px 13px;border-radius:var(--r-s,12px);background:var(--ov06);font-size:12.5px;color:var(--text2);margin:6px 0 4px}
+.na-push b{color:var(--text)} .na-push .ok{color:var(--up)} .na-push .bad{color:var(--down)}
+.na-push button{margin-left:auto}
+.na-sec{margin:16px 0 6px;font-family:var(--font-text);font-weight:640;font-size:13px;color:var(--text2)}
+.na-row{display:flex;align-items:center;gap:12px;padding:10px 13px;border-radius:var(--r-s,12px);background:var(--ov03);margin-bottom:6px;cursor:pointer}
+.na-row span{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.na-row b{font-family:var(--font-text);font-weight:600;font-size:13.5px;color:var(--text)}
+.na-row small{font-size:11px;color:var(--muted)}
+.na-row input{appearance:none;-webkit-appearance:none;width:42px;height:24px;border-radius:999px;background:var(--ov08);position:relative;flex-shrink:0;cursor:pointer;transition:background .2s;border:0;padding:0;margin:0}
+.na-row input::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}
+.na-row input:checked{background:var(--up)} .na-row input:checked::after{transform:translateX(18px)}
+</style>
+<script>
+/* ★ 알림(웹 푸시) — 판정은 서버(Edge Function price-alerts)가 이 앱과 **같은 계산 코드**로 한다.
+   이 화면은 ① 이 기기 푸시 구독(app='dca') ② 알림 종류 켜고 끄기(alert_state.prefs) 만 맡는다. */
+const NA_FN = PF.url + '/functions/v1/price-alerts';
+const NA_DEF = { dca_regime: true, dca_egg: true, dca_fg: true, vr_d1: true, vr_day: true, vr_price: true };
+let NA_EP = null;
+function naOk() { return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; }
+function naB64(s) { const p = '='.repeat((4 - s.length % 4) % 4), b = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(b, c => c.charCodeAt(0)); }
+async function naReg() { if (!naOk()) return null; try { return await navigator.serviceWorker.register('sw.js'); } catch (e) { console.warn('[알림] sw.js 등록 실패', e); return null; } }
+function naDb() { if (!pf && window.supabase && supabase.createClient) { try { pf = supabase.createClient(PF.url, PF.key, { auth: { persistSession: false, autoRefreshToken: false, storageKey: 'adca-pf' } }); } catch (e) {} } return pf; }
+function naPaint(html, btn) { const el = document.getElementById('naPush'); if (el) el.innerHTML = '<span>' + html + '</span>' + (btn || ''); }
+async function naRefresh() {
+  const standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+  if (!naOk()) { naPaint(standalone ? '이 기기는 웹 푸시를 지원하지 않습니다(iOS 16.4 이상)' : '사파리 공유 → <b>홈 화면에 추가</b>한 앱에서 열어야 푸시를 받을 수 있습니다'); return; }
+  const reg = await naReg(); let sub = null; try { sub = reg && await reg.pushManager.getSubscription(); } catch (e) {}
+  NA_EP = sub ? sub.endpoint : null;
+  if (sub && Notification.permission === 'granted') naPaint('<span class="ok">● 이 기기 푸시 켜짐</span>', '<button class="btn" onclick="naTest()">테스트</button>');
+  else if (Notification.permission === 'denied') naPaint('<span class="bad">알림이 거부되어 있습니다</span> — 설정 → 알림 → 이 앱에서 허용');
+  else naPaint('이 기기에서 아직 푸시가 꺼져 있습니다', '<button class="btn primary" onclick="naEnable()">알림 켜기</button>');
+}
+function naEnable() {
+  const permP = Notification.permission === 'default' ? Notification.requestPermission() : Promise.resolve(Notification.permission);   // iOS: 누른 순간 먼저
+  permP.then(async perm => {
+    if (perm !== 'granted') { naPaint('<span class="bad">알림이 거부되었습니다</span>'); return; }
+    naPaint('푸시 연결 중…');
+    try {
+      const reg = await naReg(); if (!reg) throw new Error('sw.js 를 등록하지 못했습니다(앱 파일과 같은 폴더에 있어야 합니다)');
+      await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        const j = await fetch(NA_FN + '?vapid=1').then(r => r.json()).catch(() => ({}));
+        if (!j.publicKey) throw new Error('서버 공개키를 받지 못했습니다(Edge Function price-alerts 확인)');
+        sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: naB64(j.publicKey) });
+      }
+      const k = sub.toJSON(), db = naDb(); if (!db) throw new Error('DB 연결 없음');
+      const { error } = await db.from('push_subscriptions').upsert({ endpoint: k.endpoint, p256dh: k.keys.p256dh, auth: k.keys.auth, ua: navigator.userAgent.slice(0, 200), app: 'dca' });
+      if (error) throw error;
+      await naRefresh();
+    } catch (e) { console.error(e); naPaint('<span class="bad">푸시 연결 실패</span> — ' + String(e.message || e)); }
+  });
+}
+async function naTest() {
+  try {
+    const r = await fetch(NA_FN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ test: true, endpoint: NA_EP }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) throw new Error(j.error || ('HTTP ' + r.status));
+    flash('테스트 알림을 보냈습니다');
+  } catch (e) { flash('테스트 실패: ' + (e.message || e)); }
+}
+async function naLoadPrefs() {
+  const db = naDb(); let p = { ...NA_DEF };
+  if (db) { const { data, error } = await db.from('alert_state').select('value').eq('key', 'prefs').maybeSingle(); if (!error && data && data.value) p = { ...p, ...data.value }; else if (error) document.getElementById('naNote').textContent = '알림 설정 표(alert_state)를 읽지 못했습니다 — setup_v2.sql 을 실행했는지 확인하세요 (' + error.message + ')'; }
+  document.querySelectorAll('#naModal [data-pref]').forEach(el => { el.checked = !!p[el.dataset.pref]; });
+}
+async function naSavePrefs() {
+  const db = naDb(); if (!db) return;
+  const v = {}; document.querySelectorAll('#naModal [data-pref]').forEach(el => { v[el.dataset.pref] = el.checked; });
+  const { error } = await db.from('alert_state').upsert({ key: 'prefs', value: v, updated_at: new Date().toISOString() });
+  flash(error ? '저장 실패: ' + error.message : '알림 설정을 저장했습니다');
+}
+function naOpen() { document.getElementById('naModal').classList.add('open'); naRefresh(); naLoadPrefs(); }
+document.addEventListener('change', e => { if (e.target && e.target.matches && e.target.matches('#naModal [data-pref]')) naSavePrefs(); });
+if (naOk()) naReg();
+// 알림을 눌러 들어오면(#vr) 밸류리밸런싱 탭
+window.addEventListener('load', () => { if (location.hash === '#vr' && typeof switchTab === 'function') setTimeout(() => switchTab('vr'), 600); });
 </script>
 </body>
 </html>
