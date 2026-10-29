@@ -6,8 +6,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Adaptive DCA</title>
 <meta name="theme-color" content="#181B1F">
-<meta name="color-scheme" content="dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Adaptive DCA">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+<link rel="icon" type="image/png" sizes="48x48" href="icons/icon-48.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
+<link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+<meta name="color-scheme" content="dark">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -5873,6 +5885,33 @@ document.addEventListener('change', e => { if (e.target && e.target.matches && e
 if (naOk()) naReg();
 // 알림을 눌러 들어오면(#vr) 밸류리밸런싱 탭
 window.addEventListener('load', () => { if (location.hash === '#vr' && typeof switchTab === 'function') setTimeout(() => switchTab('vr'), 600); });
+</script>
+<script>
+/* ★ 모바일 좌우 스와이프 탭 전환 — 포트폴리오 앱과 같은 규칙(가로 50px 이상 · 세로 80px 이하 · 끝에서 순환) */
+(function initSwipeNav(){
+  const TABS=['dash','vr','trades','setup','bt'];
+  let tx=0, ty=0, t0=0, on=false;
+  const cur=()=>{ const b=document.querySelector('.tab-btn.active[data-tab]')||document.querySelector('#mtab .active[data-tab]'); return b?TABS.indexOf(b.dataset.tab):0; };
+  document.addEventListener('touchstart',e=>{
+    on=false;
+    if(e.touches.length!==1) return;
+    if(document.querySelector('.modal-overlay.open')) return;                       // 팝업이 열려 있으면 아님
+    const t=e.target;
+    if(t&&t.closest&&t.closest('[data-noswipe],canvas,input,textarea,select,button,.mobile-tabbar')) return;   // 차트(끌기·확대)·입력·버튼
+    for(let el=t; el&&el!==document.body; el=el.parentElement){                     // 가로로 스크롤되는 표 안이면 아님
+      const ox=getComputedStyle(el).overflowX;
+      if((ox==='auto'||ox==='scroll')&&el.scrollWidth>el.clientWidth+1) return;
+    }
+    tx=e.touches[0].clientX; ty=e.touches[0].clientY; t0=Date.now(); on=true;
+  },{passive:true});
+  document.addEventListener('touchend',e=>{
+    if(!on) return; on=false;
+    const dx=e.changedTouches[0].clientX-tx, dy=Math.abs(e.changedTouches[0].clientY-ty);
+    if(dy>80||Math.abs(dx)<50||Math.abs(dx)<dy*1.2||Date.now()-t0>900) return;     // 세로 스크롤 · 느린 끌기는 무시
+    const i=cur(), n=TABS.length;
+    switchTab(TABS[dx<0?(i+1)%n:(i-1+n)%n]);
+  },{passive:true});
+})();
 </script>
 </body>
 </html>
