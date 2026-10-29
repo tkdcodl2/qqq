@@ -1277,6 +1277,12 @@ button:not(.mobile-tabbar button):active{transform:scale(.985)}
 @keyframes mtabPop{0%{transform:scale(.90)}58%{transform:scale(1.055)}100%{transform:scale(1)}}
 @media(prefers-reduced-motion:reduce){.mobile-tabbar .mob-tab-btn.active svg{animation:none}}
 </style>
+<style id="safe-top">
+/* ★ 홈 화면 앱(아이폰): 화면이 상태표시줄·다이내믹 아일랜드 밑까지 그려지므로 헤더를 그만큼 내린다.
+   사파리 브라우저에서는 env() 가 0 이라 변화 없음 */
+header{padding-top:env(safe-area-inset-top,0px)!important;background:#151B22!important}
+html{scroll-padding-top:calc(60px + env(safe-area-inset-top,0px))}
+</style>
 </head>
 <body>
 <header>
