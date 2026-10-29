@@ -1283,6 +1283,20 @@ button:not(.mobile-tabbar button):active{transform:scale(.985)}
 header{padding-top:env(safe-area-inset-top,0px)!important;background:#151B22!important}
 html{scroll-padding-top:calc(60px + env(safe-area-inset-top,0px))}
 </style>
+<style id="no-blur">
+/* ★ 흐림(유리) 효과 전부 끄기 — 아이폰 홈 화면 앱에서 상단·팝업이 뿌옇게 가려지던 문제 */
+*,*::before,*::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+header{background:#151B22!important}
+thead th{background:var(--e04,#1E242C)!important}
+/* 팝업: 하단 메뉴보다 위에 · 상태표시줄/홈 인디케이터를 피해서 · 배경은 흐림 대신 어둡게만 */
+.modal-overlay{z-index:10000!important;background:rgba(8,11,14,.86)!important;
+  padding:calc(env(safe-area-inset-top,0px) + 14px) 10px calc(env(safe-area-inset-bottom,0px) + 18px)!important;
+  overflow-y:auto!important;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.modal{background:var(--e24,#2A313A)!important;margin:0 auto auto}
+.modal .close{position:sticky;top:0;float:right;z-index:3;margin:-6px -4px 0 8px}
+#flash{z-index:10001!important}
+#syncWarn{z-index:10002!important}
+</style>
 </head>
 <body>
 <header>
@@ -5887,6 +5901,7 @@ async function naSavePrefs() {
   flash(error ? '저장 실패: ' + error.message : '알림 설정을 저장했습니다');
 }
 function naOpen() { document.getElementById('naModal').classList.add('open'); naRefresh(); naLoadPrefs(); }
+document.getElementById('naModal').addEventListener('click', e => { if (e.target.id === 'naModal') closeModal('naModal'); });   // 바깥을 누르면 닫기
 document.addEventListener('change', e => { if (e.target && e.target.matches && e.target.matches('#naModal [data-pref]')) naSavePrefs(); });
 if (naOk()) naReg();
 // 알림을 눌러 들어오면(#vr) 밸류리밸런싱 탭
