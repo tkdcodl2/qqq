@@ -1297,6 +1297,17 @@ thead th{background:var(--e04,#1E242C)!important}
 #flash{z-index:10001!important}
 #syncWarn{z-index:10002!important}
 </style>
+<style id="v18-3-holdings-quote">
+/* v18.3 현황 표 현재가 — 포트폴리오 앱 시세 화면처럼 */
+.qv-cell{text-align:right;line-height:1.35}
+.qv-main{display:flex;justify-content:flex-end;align-items:baseline;gap:6px;white-space:nowrap}
+.qv-px{font-weight:700}
+.qv-pct{font-size:12px;font-weight:600}
+.qv-ext{display:flex;justify-content:flex-end;align-items:center;gap:4px;margin-top:2px;font-size:11.5px;white-space:nowrap;opacity:.95}
+.qv-ext .ses-mark{display:inline-flex;color:var(--muted,#9a9aa0)}
+.qv-ext .ses-ico{width:12px;height:12px}
+.qv-xp{color:var(--text,inherit);font-weight:600}
+</style>
 </head>
 <body>
 <header>
@@ -2811,7 +2822,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='18.2';   // 좌우 스크롤: sqltune 방식 반영
+const APP_VERSION='18.3';   // 현황 표 현재가: 포트폴리오 시세 화면처럼 등락률·확장시간 표시
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -4478,7 +4489,7 @@ async function renderProfit(pre){   // ★ v16.6 — pre: 받아 둔 매매이�
   const hb=document.getElementById('holdBody');
   hb.innerHTML=rows.length?rows.map(r=>`<tr><td class="tkr">${tkrCell(r.k)}</td><td class="mono">${(+r.qty).toLocaleString('ko-KR',{maximumFractionDigits:0})}</td>
     <td class="mono">$${r.avgUSD.toFixed(2)}</td>
-    <td class="mono">$${r.price.toFixed(2)}${lqBadge(r.k)}</td>
+    <td class="mono qv-cell">${qvCell(r.k)}</td>
     <td class="mono">${won(r.cost)}${usdSub(r.cost)}</td>
     <td class="mono">${won(r.val)}${usdSub(r.val)}</td>
     <td class="mono ${r.pl>=0?'up':'down'}">${won(r.pl)}${usdSub(r.pl)}</td>
@@ -5177,7 +5188,7 @@ async function _fetchLiveQuotes(onPart){
     Object.entries((kj&&kj.data)||{}).forEach(([sym,v])=>{
       const pr=+v.price, base=(+v.base>0)?+v.base:null; if(!(pr>0)) return;
       if(v.isPrevOnly && out[sym]) return;   // 데이장 체결 없음 — 야후 값을 둔다
-      out[sym]={price:pr, prevClose:base, session:'DAY', isPrevOnly:!!v.isPrevOnly};
+      out[sym]={...(out[sym]||{}), price:pr, prevClose:base, session:'DAY', isPrevOnly:!!v.isPrevOnly};   // ★ v18.3 — 정규장 값(등락률용)은 야후 것을 남긴다
     });
     if(!kj.found && kj.asked) why.push('데이장 0/'+kj.asked+((kj.reasons||[]).length?' · '+String(kj.reasons[0]).slice(0,40):''));
   }catch(e){ why.push('데이장 '+(e&&e.message||e)); } }
@@ -5206,6 +5217,45 @@ function pxNow(k){ const q=liveFresh()&&LIVEQ[k]; return (q&&q.price>0) ? q.pric
 function lqTime(){ return LIVEQ_AT ? new Date(LIVEQ_AT).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:false}) : ''; }
 function lqLabelOf(q){ return q ? (q.isPrevOnly ? '전일종가' : (LQ_LABEL[q.session]||q.session||'')) : ''; }
 function lqSummary(){ const q=LIVEQ.TQQQ||Object.values(LIVEQ)[0]; return (lqLabelOf(q)||'현재가')+' · '+lqTime(); }
+/* ★ v18.3 — 포트폴리오 앱 시세 화면과 같은 표시: 정규장 가격 + 등락률(전일 종가 대비),
+   아래 줄에 확장시간(프리 · 애프터 · 데이장) 아이콘 · 가격 · 등락률(정규장 종가 대비) */
+const QV_ICON = {
+  POST: '<svg class="ses-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>',
+  PRE:  '<svg class="ses-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v4M5.6 9.6 4.2 8.2M18.4 9.6l1.4-1.4M3 20h18M6.5 16a5.5 5.5 0 0 1 11 0"/><path d="M8.5 6.5 12 3l3.5 3.5"/></svg>',
+  DAY:  '<svg class="ses-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor" stroke="none"/><path d="M12 2.4v2.3M12 19.3v2.3M4.2 12H1.9M22.1 12h-2.3M6.5 6.5 4.9 4.9M19.1 19.1l-1.6-1.6M17.5 6.5l1.6-1.6M4.9 19.1l1.6-1.6"/></svg>'
+};
+const QV_NAME = {PRE:'프리장', POST:'애프터장', POSTPOST:'애프터장', DAY:'데이장'};
+function qView(k){
+  const ok=v=>typeof v==='number'&&isFinite(v)&&v>0;
+  const q=liveFresh()&&LIVEQ[k];
+  const i=SERIES.indexOf(CUR), prevRow=i>0?SERIES[i-1]:null;
+  const dbP=CUR?pxAt(CUR,k):null, dbPrev=prevRow?pxAt(prevRow,k):null;
+  let reg=null, prev=null, ext=null;
+  if(q){
+    reg=ok(q.regularMarketPrice)?q.regularMarketPrice:(q.session==='REGULAR'&&ok(q.price)?q.price:null);
+    prev=ok(q.regularMarketPreviousClose)?q.regularMarketPreviousClose:(q.session==='REGULAR'&&ok(q.prevClose)?q.prevClose:null);
+    const ses=q.session==='POSTPOST'?'POST':q.session;
+    if(QV_ICON[ses] && !q.isPrevOnly && ok(q.price)){
+      const base=ok(q.prevClose)?q.prevClose:reg;
+      ext={session:ses, price:q.price, pct:ok(base)?(q.price/base-1)*100:null};
+      if(!reg && ok(base)) reg=base;   // 데이장만 받았으면 기준가(전 정규장 종가)가 곧 정규장 가격
+    }
+  }
+  if(!ok(reg)){ reg=ok(dbP)?dbP:null; prev=ok(dbPrev)?dbPrev:null; }
+  else if(!ok(prev) && ok(dbP) && Math.abs(reg-dbP)>1e-9) prev=dbP;   // 오늘 정규장 값 vs DB 마지막 종가
+  else if(!ok(prev) && ok(dbPrev)) prev=dbPrev;
+  return {reg, pct:ok(reg)&&ok(prev)?(reg/prev-1)*100:null, ext};
+}
+function qvCell(k){
+  const v=qView(k);
+  const f=x=>ok2(x)?'$'+Number(x).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
+  function ok2(x){ return typeof x==='number'&&isFinite(x)&&x>0; }
+  const pc=x=>x==null||!isFinite(x)?'—':(x>=0?'+':'-')+Math.abs(x).toFixed(2)+'%';
+  const cc=x=>x==null||!isFinite(x)?'muted':x>0?'up':x<0?'down':'muted';
+  let h='<div class="qv-main"><b class="qv-px">'+f(v.reg)+'</b><span class="qv-pct '+cc(v.pct)+'">'+pc(v.pct)+'</span></div>';
+  if(v.ext) h+='<div class="qv-ext" title="'+QV_NAME[v.ext.session]+' '+f(v.ext.price)+' · 기준 정규장 종가'+(LIVEQ_AT?' · '+lqTime():'')+'"><span class="ses-mark">'+QV_ICON[v.ext.session]+'</span><span class="qv-xp">'+f(v.ext.price)+'</span><span class="'+cc(v.ext.pct)+'">'+pc(v.ext.pct)+'</span></div>';
+  return h;
+}
 function lqBadge(k){
   const q=liveFresh()&&LIVEQ[k]; if(!q) return '';
   const lab=lqLabelOf(q); if(!lab) return '';
