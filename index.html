@@ -1302,7 +1302,7 @@ thead th{background:var(--e04,#1E242C)!important}
 .qv-cell{text-align:right;line-height:1.35}
 .qv-main{display:flex;justify-content:flex-end;align-items:baseline;gap:6px;white-space:nowrap}
 .qv-px{font-weight:700}
-.qv-pct{font-size:12px;font-weight:600}
+.qv-pct{font-weight:600}
 .qv-ext{display:flex;justify-content:flex-end;align-items:center;gap:4px;margin-top:2px;font-size:11.5px;white-space:nowrap;opacity:.95}
 .qv-ext .ses-mark{display:inline-flex;color:var(--muted,#9a9aa0)}
 .qv-ext .ses-ico{width:12px;height:12px}
@@ -1386,7 +1386,7 @@ thead th{background:var(--e04,#1E242C)!important}
     <div class="summary-grid" id="profitSummary"></div>
     <div class="card" style="margin-top:16px;padding:0;overflow-x:auto">
       <table class="nowrap-table">
-        <thead><tr><th>종목</th><th>수량</th><th>평균단가</th><th>현재가</th><th>매수원금</th><th>평가금액</th><th>평가손익</th><th>배당(종목별)</th><th>수익률</th><th>거래</th></tr></thead>
+        <thead><tr><th>종목</th><th>수량</th><th>평균단가</th><th>현재가</th><th>등락률</th><th>매수원금</th><th>평가금액</th><th>평가손익</th><th>배당(종목별)</th><th>수익률</th><th>거래</th></tr></thead>
         <tbody id="holdBody"></tbody>
       </table>
     </div>
@@ -2822,7 +2822,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='18.3';   // 현황 표 현재가: 포트폴리오 시세 화면처럼 등락률·확장시간 표시
+const APP_VERSION='18.4';   // 현황 표: 현재가 · 등락률 칸 분리
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -4489,14 +4489,15 @@ async function renderProfit(pre){   // ★ v16.6 — pre: 받아 둔 매매이�
   const hb=document.getElementById('holdBody');
   hb.innerHTML=rows.length?rows.map(r=>`<tr><td class="tkr">${tkrCell(r.k)}</td><td class="mono">${(+r.qty).toLocaleString('ko-KR',{maximumFractionDigits:0})}</td>
     <td class="mono">$${r.avgUSD.toFixed(2)}</td>
-    <td class="mono qv-cell">${qvCell(r.k)}</td>
+    <td class="mono qv-cell">${qvCell(r.k,'px')}</td>
+    <td class="mono qv-cell">${qvCell(r.k,'pct')}</td>
     <td class="mono">${won(r.cost)}${usdSub(r.cost)}</td>
     <td class="mono">${won(r.val)}${usdSub(r.val)}</td>
     <td class="mono ${r.pl>=0?'up':'down'}">${won(r.pl)}${usdSub(r.pl)}</td>
     <td class="mono ${DIV[r.k]>0?'up':'muted'}">${DIV[r.k]>0?won(DIV[r.k]):'—'}</td>
     <td class="mono ${r.pl>=0?'up':'down'}">${pct(r.ret)}</td>
     <td><div class="qt-btns"><button class="mini-trade buy" onclick="openQuickTrade('${r.k}','buy')">매수</button><button class="mini-trade sell" onclick="openQuickTrade('${r.k}','sell')">매도</button></div></td></tr>`).join('')
-    :'<tr><td colspan="10" class="muted" style="text-align:center;padding:24px">보유 종목이 없습니다.</td></tr>';
+    :'<tr><td colspan="11" class="muted" style="text-align:center;padding:24px">보유 종목이 없습니다.</td></tr>';
   const totalAssets=curVal+cash;                 // 총자산 = 주식 평가액 + 현금
   const evalPL=curVal-invested;                  // 평가손익 = 주식 평가금액 − 매수원금
   const evalRet=invested>0?evalPL/invested:null;
@@ -5246,14 +5247,20 @@ function qView(k){
   else if(!ok(prev) && ok(dbPrev)) prev=dbPrev;
   return {reg, pct:ok(reg)&&ok(prev)?(reg/prev-1)*100:null, ext};
 }
-function qvCell(k){
+function qvCell(k, part){   // ★ v18.4 — part: 'px' 현재가 칸 · 'pct' 등락률 칸(확장시간 줄도 각 칸에 나눠 표시)
   const v=qView(k);
+  const ok2=x=>typeof x==='number'&&isFinite(x)&&x>0;
   const f=x=>ok2(x)?'$'+Number(x).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
-  function ok2(x){ return typeof x==='number'&&isFinite(x)&&x>0; }
   const pc=x=>x==null||!isFinite(x)?'—':(x>=0?'+':'-')+Math.abs(x).toFixed(2)+'%';
   const cc=x=>x==null||!isFinite(x)?'muted':x>0?'up':x<0?'down':'muted';
-  let h='<div class="qv-main"><b class="qv-px">'+f(v.reg)+'</b><span class="qv-pct '+cc(v.pct)+'">'+pc(v.pct)+'</span></div>';
-  if(v.ext) h+='<div class="qv-ext" title="'+QV_NAME[v.ext.session]+' '+f(v.ext.price)+' · 기준 정규장 종가'+(LIVEQ_AT?' · '+lqTime():'')+'"><span class="ses-mark">'+QV_ICON[v.ext.session]+'</span><span class="qv-xp">'+f(v.ext.price)+'</span><span class="'+cc(v.ext.pct)+'">'+pc(v.ext.pct)+'</span></div>';
+  const tip=v.ext?' title="'+QV_NAME[v.ext.session]+' '+f(v.ext.price)+' · 기준 정규장 종가'+(LIVEQ_AT?' · '+lqTime():'')+'"':'';
+  if(part==='pct'){
+    let h='<div class="qv-main"><span class="qv-pct '+cc(v.pct)+'">'+pc(v.pct)+'</span></div>';
+    if(v.ext) h+='<div class="qv-ext"'+tip+'><span class="'+cc(v.ext.pct)+'">'+pc(v.ext.pct)+'</span></div>';
+    return h;
+  }
+  let h='<div class="qv-main"><b class="qv-px">'+f(v.reg)+'</b></div>';
+  if(v.ext) h+='<div class="qv-ext"'+tip+'><span class="ses-mark">'+QV_ICON[v.ext.session]+'</span><span class="qv-xp">'+f(v.ext.price)+'</span></div>';
   return h;
 }
 function lqBadge(k){
