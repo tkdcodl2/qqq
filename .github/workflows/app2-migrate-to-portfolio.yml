@@ -7,9 +7,10 @@
 #
 # 옮기는 표 (예전 이름 → 포트폴리오 DB 이름)
 #   market_data → market_data          (시세 · 서버 cron/엣지 함수와 같은 이름)
+#   md_ref      → md_ref               (서버 쪽 시세 보조 표 · 같은 이름)
 #   settings    → dca_settings         (포트폴리오 표와 겹치지 않게)
 #   monthly     → dca_monthly
-#   trades      → dca_legacy_trades    (백업용 · 앱은 포트폴리오 trades 의 DCA 계좌를 씀)
+#   trades 는 옮기지 않음 — 매매이력은 이미 포트폴리오 trades(DCA 계좌)를 공유 중. 예전 DB 는 지우지 않으니 원본은 그대로 남음
 #
 # mode: check = 확인만(아무것도 바꾸지 않음) · migrate = 실제 이관
 name: App2 DB migrate to portfolio
@@ -37,20 +38,25 @@ jobs:
           q="select table_name from information_schema.tables where table_schema='public' order by 1"
           echo "── 예전 DB 표 ──"; docker run --rm postgres:17 psql "$OLD" -Atc "$q"
           echo "── 포트폴리오 DB 표 ──"; docker run --rm postgres:17 psql "$NEW" -Atc "$q" | tee new_tables.txt
-          for t in market_data dca_settings dca_monthly dca_legacy_trades; do
+          for t in market_data md_ref dca_settings dca_monthly; do
             if grep -qx "$t" new_tables.txt; then echo "❌ 포트폴리오 DB 에 '$t' 표가 이미 있습니다 — 이관을 멈춥니다"; exit 1; fi
           done
           echo "✅ 이름 충돌 없음"
           echo "── 예전 DB 행 수 ──"
-          for t in market_data settings monthly trades; do
+          for t in market_data md_ref settings monthly trades; do
             echo "$t: $(docker run --rm postgres:17 psql "$OLD" -Atc "select count(*) from public.$t" 2>/dev/null || echo 없음)"
           done
+          echo "── 포트폴리오 DB · DCA 계좌 매매 수 (예전 trades 수와 비교용) ──"
+          docker run --rm postgres:17 psql "$NEW" -Atc "
+            select count(*) from trades t join accounts a on a.id = t.account_id
+            cross join (select displayname d from ticker_prices where ticker='__dcaAccount__') x
+            where (x.d like '{%' and a.id::text = (x.d::json->>'id')) or (x.d not like '{%' and a.name = x.d)" || echo "확인 실패"
 
       - name: 덤프 · 이름 바꾸기
         if: inputs.mode == 'migrate'
         run: |
           tabs=""
-          for t in market_data settings monthly trades; do
+          for t in market_data md_ref settings monthly; do
             if docker run --rm postgres:17 psql "$OLD" -Atc "select 1 from public.$t limit 1" >/dev/null 2>&1; then tabs="$tabs -t public.$t"; fi
           done
           echo "덤프 대상:$tabs"
@@ -61,7 +67,6 @@ jobs:
             next if /^SET transaction_timeout/;
             s/\bpublic\.settings\b/public.dca_settings/g;  s/\bsettings_(\w+)/dca_settings_$1/g;
             s/\bpublic\.monthly\b/public.dca_monthly/g;    s/\bmonthly_(\w+)/dca_monthly_$1/g;
-            s/\bpublic\.trades\b/public.dca_legacy_trades/g; s/\btrades_(\w+)/dca_legacy_trades_$1/g;
             $in = 1 if /^COPY .* FROM stdin;$/;
             print;' dump.sql > dump2.sql
           grep -n "CREATE TABLE\|ALTER TABLE ONLY" dump2.sql | head -40
@@ -72,14 +77,13 @@ jobs:
           docker run --rm -i postgres:17 psql "$NEW" -v ON_ERROR_STOP=1 --single-transaction < dump2.sql
           # 브라우저(anon) 가 읽고 쓸 수 있게 권한 부여
           docker run --rm postgres:17 psql "$NEW" -v ON_ERROR_STOP=1 -c "
-            grant select, insert, update, delete on public.market_data, public.dca_settings, public.dca_monthly to anon, authenticated;
-            grant select on public.dca_legacy_trades to anon, authenticated;
+            grant select, insert, update, delete on public.market_data, public.md_ref, public.dca_settings, public.dca_monthly to anon, authenticated;
             grant usage, select on all sequences in schema public to anon, authenticated;"
 
       - name: 행 수 비교
         if: inputs.mode == 'migrate'
         run: |
-          for p in "market_data market_data" "settings dca_settings" "monthly dca_monthly" "trades dca_legacy_trades"; do
+          for p in "market_data market_data" "md_ref md_ref" "settings dca_settings" "monthly dca_monthly"; do
             set -- $p
             a=$(docker run --rm postgres:17 psql "$OLD" -Atc "select count(*) from public.$1" 2>/dev/null || echo -)
             b=$(docker run --rm postgres:17 psql "$NEW" -Atc "select count(*) from public.$2" 2>/dev/null || echo -)
