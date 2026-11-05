@@ -2811,7 +2811,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='18.1';   // 표 좌우 스크롤: 상하 휠 → 좌우 휠(틸트)
+const APP_VERSION='18.2';   // 좌우 스크롤: sqltune 방식 반영
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -5938,8 +5938,8 @@ window.addEventListener('load', () => { if (location.hash === '#vr' && typeof sw
 })();
 </script>
 <script>
-/* v18.1 모든 표: 마우스로 좌우 스크롤
-   ① 좌우 휠(틸트 휠·Shift+휠): 가로로 넘치는 표를 좌우로 이동. 상하 휠은 페이지 위아래 그대로
+/* v18.2 마우스로 좌우 스크롤
+   ① 좌우휠·틸트·Shift+휠: 커서 아래 가로로 넘치는 칸(표·시세 띠 등)을 좌우로 이동. 상하 휠은 페이지 위아래 그대로
    ② 끌기: 표를 마우스로 잡고 좌우로 끌면 이동(5px 이상 움직였을 때만 → 클릭·선택은 그대로) */
 (function(){
   const box = el => {
@@ -5950,16 +5950,21 @@ window.addEventListener('load', () => { if (location.hash === '#vr' && typeof sw
     return null;
   };
   const skip = el => el.closest('input,textarea,select,button,a,label,canvas,[contenteditable],[draggable="true"],.grip');
-  addEventListener('wheel', e => {
-    if (e.ctrlKey) return;                                             // 확대는 브라우저 기본
-    // 좌우 휠(틸트) 또는 Shift+휠만 가로 이동. 그냥 상하 휠은 페이지 위아래 그대로
-    let d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : (e.shiftKey ? (e.deltaY || e.deltaX) : 0);
-    if (!d) return;
-    if (e.target.closest('canvas,textarea,select')) return;
-    const b = box(e.target); if (!b) return;
-    if (e.deltaMode === 1) d *= 16; else if (e.deltaMode === 2) d *= b.clientWidth;
-    e.preventDefault(); b.scrollLeft += d;
-  }, { passive: false });
+  // v18.2 좌우 스크롤 (sqltune.html 방식): 좌우휠·틸트·터치패드 가로 이동·Shift+휠 → 커서 아래 가로 스크롤 가능한 칸을 직접 스크롤
+  document.addEventListener('wheel', function(e){
+    var dx = e.deltaX || (e.shiftKey ? e.deltaY : 0);
+    if(!dx) return;
+    if(e.deltaMode===1) dx*=40; else if(e.deltaMode===2) dx*=400;   // 줄/페이지 단위 → 픽셀
+    for(var n=e.target; n && n!==document.documentElement; n=n.parentElement){
+      if(n.nodeType!==1 || n.scrollWidth<=n.clientWidth+1) continue;
+      var ox=getComputedStyle(n).overflowX;
+      if(ox!=='auto' && ox!=='scroll' && n.tagName!=='TEXTAREA' && n.tagName!=='INPUT') continue;
+      var max=n.scrollWidth-n.clientWidth;
+      if((dx<0 && n.scrollLeft<=0) || (dx>0 && n.scrollLeft>=max-1)) continue;   // 끝까지 갔으면 바깥 칸으로
+      n.scrollLeft=Math.max(0,Math.min(max,n.scrollLeft+dx));
+      e.preventDefault(); return;
+    }
+  }, {passive:false});
   let drag = null;
   addEventListener('mousedown', e => {
     if (e.button !== 0 || skip(e.target)) return;
