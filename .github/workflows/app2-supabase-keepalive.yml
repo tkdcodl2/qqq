@@ -1,10 +1,6 @@
-# 투자 앱(index_1.html) Supabase 자동 접속 — 무료 플랜 7일 미사용 일시정지 방지
-# 위치: 이 앱 저장소의 .github/workflows/app2-supabase-keepalive.yml
-# 이 앱은 Supabase 프로젝트를 2개 씁니다.
-#   ① 앱 자체 DB (config.js 의 SUPABASE_URL / SUPABASE_ANON_KEY) → 저장소 Secrets 에 등록 필요
-#        APP_SUPABASE_URL      = config.js 의 SUPABASE_URL
-#        APP_SUPABASE_ANON_KEY = config.js 의 SUPABASE_ANON_KEY
-#   ② 포트폴리오 DB (index_1.html 에 들어 있는 공개 publishable 키) → 아래에 이미 적어 둠
+# 투자 앱 Supabase 자동 접속 — 무료 플랜 7일 미사용 일시정지 방지
+# 위치: .github/workflows/app2-supabase-keepalive.yml
+# v17.9 DB 통합 후: 포트폴리오 DB 한 곳만 접속 (공개 publishable 키라 Secrets 등록 불필요)
 name: App2 Supabase keep-alive
 
 on:
@@ -16,24 +12,16 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Supabase 두 곳 데이터베이스 읽기
+      - name: 포트폴리오 DB 읽기
         env:
-          APP_URL: ${{ secrets.APP_SUPABASE_URL }}
-          APP_KEY: ${{ secrets.APP_SUPABASE_ANON_KEY }}
           PF_URL: https://ccvkbifztddnvodkyvzp.supabase.co
           PF_KEY: sb_publishable_jEUgyXlUiSCyPqbtXila3Q_p8Rigrnu
         run: |
           fail=0
-          ping() {  # $1 이름, $2 URL, $3 키, $4 표
+          for t in ticker_prices market_data; do
             code=$(curl -s -o body.txt -w "%{http_code}" --max-time 30 \
-              "$2/rest/v1/$4?select=*&limit=1" -H "apikey: $3")
-            echo "[$1] $4 → HTTP $code"; head -c 200 body.txt; echo
+              "$PF_URL/rest/v1/$t?select=*&limit=1" -H "apikey: $PF_KEY")
+            echo "[포트폴리오 DB] $t → HTTP $code"; head -c 200 body.txt; echo
             [ "$code" = "200" ] || fail=1
-          }
-          if [ -n "$APP_URL" ] && [ -n "$APP_KEY" ]; then
-            ping "앱 DB" "$APP_URL" "$APP_KEY" settings
-          else
-            echo "[앱 DB] Secrets(APP_SUPABASE_URL / APP_SUPABASE_ANON_KEY)가 없어 건너뜀"; fail=1
-          fi
-          ping "포트폴리오 DB" "$PF_URL" "$PF_KEY" ticker_prices
+          done
           exit $fail
