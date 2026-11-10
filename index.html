@@ -2808,7 +2808,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='18.0';   // VR 상단 안내 카드 제거
+const APP_VERSION='18.1';   // VR 상단 안내 카드 제거
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -5174,7 +5174,7 @@ async function _fetchLiveQuotes(onPart){
     Object.entries((kj&&kj.data)||{}).forEach(([sym,v])=>{
       const pr=+v.price, base=(+v.base>0)?+v.base:null; if(!(pr>0)) return;
       if(v.isPrevOnly && out[sym]) return;   // 데이장 체결 없음 — 야후 값을 둔다
-      out[sym]={price:pr, prevClose:base, session:'DAY', isPrevOnly:!!v.isPrevOnly};
+      out[sym]={price:pr, prevClose:base, session:'DAY', isPrevOnly:!!v.isPrevOnly, yh:out[sym]||null};   // 18.1 — 야후 정규장 값은 yh 에 보관(VR 카드)
     });
     if(!kj.found && kj.asked) why.push('데이장 0/'+kj.asked+((kj.reasons||[]).length?' · '+String(kj.reasons[0]).slice(0,40):''));
   }catch(e){ why.push('데이장 '+(e&&e.message||e)); } }
@@ -5462,11 +5462,15 @@ function vrPxCard(tk,px){
   const q=(typeof liveFresh==='function'&&liveFresh()&&LIVEQ[tk])||null;
   let main=px?px.price:null,chg=null,ext='';
   if(q){
-    const reg=q.regularMarketPrice,prev=q.regularMarketPreviousClose;
-    if(reg>0){main=reg;if(prev>0)chg=reg/prev-1;}
-    const xp=q.session==='PRE'?q.preMarketPrice:(q.session==='POST'||q.session==='POSTPOST')?q.postMarketPrice:null;
-    if(xp>0&&reg>0&&!q.isPrevOnly){const r=xp/reg-1;
-      ext=`<div class="sub-usd">${q.session==='PRE'?'프리마켓':'애프터마켓'} $${vrFmt(xp)} <span class="${cc(r)}">(${pc(r)})</span></div>`;}
+    // 18.1 — 데이장(한국 낮)엔 KIS 값이 야후 값을 덮어 정규장 칸이 없다 → 보관한 야후 값(yh) · 기준가(prevClose)로
+    const y=q.yh||q, day=q.session==='DAY';
+    const reg=(y.regularMarketPrice>0?y.regularMarketPrice:null)||(day&&q.prevClose>0?q.prevClose:null);
+    const prev=y.regularMarketPreviousClose>0?y.regularMarketPreviousClose:null;
+    if(reg>0){main=reg;if(prev>0&&prev!==reg)chg=reg/prev-1;}
+    else if(q.price>0&&q.prevClose>0){main=q.price;chg=q.price/q.prevClose-1;}
+    const xp=day?q.price:q.session==='PRE'?q.preMarketPrice:(q.session==='POST'||q.session==='POSTPOST')?q.postMarketPrice:null;
+    if(xp>0&&reg>0&&!q.isPrevOnly&&main===reg){const r=xp/reg-1;
+      ext=`<div class="sub-usd">${day?'데이마켓':q.session==='PRE'?'프리마켓':'애프터마켓'} $${vrFmt(xp)} <span class="${cc(r)}">(${pc(r)})</span></div>`;}
   }
   return `<div class="card card-hov blue"><div class="label">${vrEsc(tk)} 현재가</div><div class="card-val"><div class="card-amt"><span class="big-num">${main?'$'+vrFmt(main):'—'}</span>${chg!=null?`<span class="card-pct ${cc(chg)}">(${pc(chg)})</span>`:''}</div>${ext}</div></div>`;
 }
