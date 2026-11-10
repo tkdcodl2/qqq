@@ -2810,7 +2810,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='18.3';   // VR 상단 안내 카드 제거
+const APP_VERSION='18.4';   // VR 상단 안내 카드 제거
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -3251,16 +3251,16 @@ function renderDashboard(){
   const gr=document.getElementById('gaugeRow'); gr.innerHTML='';
   const trk=document.createElement('div'); trk.className='gauge-track';   // 스캔은 칸이 놓인 트랙에만 건다(§74)
   trk.title='TQQQ '+Math.round(gT*100)+'% · SCHD '+Math.round(gS*100)+'% · 방어(GLD·SGOV) '+Math.max(0,Math.round((1-gT-gS)*100))+'%';
-  const SC=ALLOC_COLORS.SCHD, cl=v=>Math.max(0,Math.min(1,v));
+  // 18.4 — 칸을 중간에 자르지 않고 **대략 비중으로 칸 단위**: TQQQ = round(T×5)칸 · SCHD = 오른쪽 끝 round(S×5)칸(있으면 최소 1)
+  //   SCHD 칸도 켜진 칸(.on)으로 — 같은 숨쉬기 빛 · 셔머. 색은 칸마다 --rc 로(TQQQ 구리 · SCHD 세이지)
+  let nS=gS>0.001?Math.max(1,Math.round(gS*5)):0, nT=Math.round(gT*5);
+  if(gT>0.001&&nT<1) nT=1;
+  if(nT+nS>5) nT=5-nS;
   for(let k=0;k<5;k++){
-    const a=k/5, ft=cl((gT-a)*5), fs=cl((a+0.2-(1-gS))*5);   // 이 칸에서 TQQQ 가 왼쪽부터 · SCHD 가 오른쪽부터 차지하는 몫
-    const p=document.createElement('div'); p.className='gpip'+(ft>0.001?' on':'')+(fs>0.001?' schd':'');
+    const isT=k<nT, isS=k>=5-nS;
+    const p=document.createElement('div'); p.className='gpip'+((isT||isS)?' on':'')+(isS?' schd':'');
     p.style.setProperty('--d',(k*0.16).toFixed(2)+'s');   // 점등·셔머 지연을 함께 태운다(상속되는 커스텀 속성)
-    if(ft>0.001||fs>0.001){   // 색은 아래 비중 도넛과 같게(TQQQ 구리 · SCHD 세이지) — 적립 단계색이 SCHD 색과 거의 같아서
-      const T=(ft*100).toFixed(1)+'%', S=((1-fs)*100).toFixed(1)+'%', rc=ALLOC_COLORS.TQQQ;
-      p.style.background='linear-gradient(90deg,'+(ft>0.001?rc+' 0 '+T+',':'')+'var(--ov06) '+T+' '+S+','+SC+' '+S+' 100%)';
-      p.style.borderColor='transparent';
-    }
+    if(isT||isS) p.style.setProperty('--rc', isS?ALLOC_COLORS.SCHD:ALLOC_COLORS.TQQQ);   // 색은 아래 비중 도넛과 같게(적립 단계색이 SCHD 색과 거의 같아서)
     trk.appendChild(p);}
   gr.appendChild(trk);
   const gp=document.createElement('div'); gp.className='gauge-pct'; gp.id='gaugePct'; gp.textContent='0%'; gp.title='전체 중 TQQQ 목표 비중';
@@ -3415,16 +3415,20 @@ function drawAllocDonut(el, shown, t, hasCur, pending){
   const s=shown.map(x=>x[0]), sv=shown.map(x=>x[1]*100);
   const ts=TK.filter(k=>t[k]>0.0001), tv=ts.map(k=>t[k]*100);
   const dsCur = hasCur
-    ? {label:'지금',data:sv,backgroundColor:s.map(k=>ALLOC_COLORS[k]),borderWidth:0,hoverBorderColor:'transparent',hoverOffset:6,weight:2.4}
+    ? {label:'지금',data:sv,backgroundColor:s.map(k=>ALLOC_COLORS[k]),hoverBackgroundColor:s.map(k=>ALLOC_COLORS[k]),borderWidth:0,hoverBorderColor:'transparent',hoverOffset:6,weight:2.4}
     : {label:'지금',data:[100],backgroundColor:[EMPTY],hoverBackgroundColor:[EMPTY],borderWidth:0,hoverOffset:0,weight:2.4};
   const dsTgt = {label:'목표',data:tv,backgroundColor:ts.map(k=>rgba(ALLOC_COLORS[k],.5)),hoverBackgroundColor:ts.map(k=>rgba(ALLOC_COLORS[k],.5)),
     borderWidth:1.5,borderColor:CARD,hoverBorderColor:CARD,hoverOffset:0,weight:1};
   const lead = hasCur ? s[sv.indexOf(Math.max.apply(null,sv))] : null;
-  const center=(k)=>{ const q=id=>document.getElementById(id); if(!q('allocDcVal')) return;
-    if(!k){ q('allocDcTop').textContent=''; q('allocDcVal').textContent=hasCur?'':'보유 없음'; q('allocDcLab').textContent=''; return; }
-    const v=shown.find(x=>x[0]===k);
-    q('allocDcTop').textContent=k; q('allocDcVal').textContent=Math.round((v?v[1]:0)*100)+'%'; q('allocDcLab').textContent='목표 '+Math.round((t[k]||0)*100)+'%'; };
-  const reset=()=>center(lead);
+  // 18.4 — ⚠️ 차트는 한 번만 만들고 onHover 는 그때의 함수를 계속 쓴다 → 예전엔 **첫 렌더의 비중**(shown · t)을 붙잡고 있어
+  //   마우스를 올리면 지금과 다른 옛 값(예: TQQQ 85%)이 떴다. 늘 최신 값(allocDonut.$st)을 읽게 한다
+  const ST={shown,t,hasCur,lead}; if(allocDonut && allocDonut.canvas===cv) allocDonut.$st=ST;
+  const st=()=>(allocDonut&&allocDonut.$st)||ST;
+  const center=(k)=>{ const q=id=>document.getElementById(id); if(!q('allocDcVal')) return; const S=st();
+    if(!k){ q('allocDcTop').textContent=''; q('allocDcVal').textContent=S.hasCur?'':'보유 없음'; q('allocDcLab').textContent=''; return; }
+    const v=S.shown.find(x=>x[0]===k);
+    q('allocDcTop').textContent=k; q('allocDcVal').textContent=Math.round((v?v[1]:0)*100)+'%'; q('allocDcLab').textContent='목표 '+Math.round((S.t[k]||0)*100)+'%'; };
+  const reset=()=>center(st().lead);
   const keyOf=(c)=>{ const hv=allocDonut.$hover||[s,ts]; return c.datasetIndex===0?hv[0][c.index]:hv[1][c.index]; };
   if(allocDonut && allocDonut.canvas===cv){
     allocDonut.data.datasets[0]=dsCur; allocDonut.data.datasets[1]=dsTgt; allocDonut.$hover=[s,ts]; allocDonut.update('none');   // 값만 조용히
@@ -3435,10 +3439,10 @@ function drawAllocDonut(el, shown, t, hasCur, pending){
     const reduced = !!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);   // ⚠️ 검사 하네스는 전역 matchMedia 가 없다 — window. 을 붙인다
     allocDonut=new Chart(cv,{type:'doughnut',data:{labels:[],datasets:[dsCur,dsTgt]},
       options:{cutout:'58%',responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{ const k=keyOf(c); return k?(c.dataset.label+' '+k+' '+Math.round(c.raw)+'%'):''; }}}},
+        plugins:{legend:{display:false},tooltip:{enabled:false}},   // 18.4 — 가운데 글자가 같은 정보를 보여 준다(빈 툴팁 상자가 조각 위에 떠 깨져 보였다)
         animation:reduced?{duration:0}:{animateScale:true,animateRotate:true,duration:700,easing:'easeOutCubic'},
         onHover:(e,els)=>{ if(!els||!els.length) return reset(); const k=keyOf(els[0]); if(k) center(k); else reset(); }}});
-    allocDonut.$hover=[s,ts];
+    allocDonut.$hover=[s,ts]; allocDonut.$st=ST;
     cv.onmouseleave=reset;
     mountAllocSpark(el);
   }
