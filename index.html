@@ -2810,7 +2810,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='18.2';   // VR 상단 안내 카드 제거
+const APP_VERSION='18.3';   // VR 상단 안내 카드 제거
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -3245,17 +3245,27 @@ function renderDashboard(){
   sc.style.setProperty('--rc', rc);                                    // 단계 색 → 오로라/게이지/도트
   sc.style.setProperty('--rt', REG_TEXT[reg]||rc);                     // 글자용(광기는 조각색이 3.55:1로 부족)
   document.getElementById('stateName').textContent = (reg===1&&r.fast) ? '복귀(추력발동)' : REG_NAME[reg];
-  // gauge: 래더 비중 w(SCHD 뺀 몫 안의 TQQQ 비중)를 5칸으로 표시
+  // 18.3 — 게이지 = **전체 포트폴리오 목표 비중**: 왼쪽부터 TQQQ(TQQQ 색) · 오른쪽 끝 SCHD(SCHD 색) · 가운데 빈칸 = 방어자산(GLD·SGOV)
+  //   숫자는 전체 TQQQ 비중(래더 w × (100 − SCHD)). 예전엔 래더 w(SCHD 뺀 몫 안의 TQQQ)를 보여 비중 표와 달라 보였다
+  const gt=tgtOf(r), gT=Math.max(0,Math.min(1,gt.TQQQ||0)), gS=Math.max(0,Math.min(1-gT,gt.SCHD||0));
   const gr=document.getElementById('gaugeRow'); gr.innerHTML='';
   const trk=document.createElement('div'); trk.className='gauge-track';   // 스캔은 칸이 놓인 트랙에만 건다(§74)
-  const pips=Math.round(w*5);
-  for(let k=0;k<5;k++){const p=document.createElement('div');p.className='gpip'+(k<pips?' on':'');
+  trk.title='TQQQ '+Math.round(gT*100)+'% · SCHD '+Math.round(gS*100)+'% · 방어(GLD·SGOV) '+Math.max(0,Math.round((1-gT-gS)*100))+'%';
+  const SC=ALLOC_COLORS.SCHD, cl=v=>Math.max(0,Math.min(1,v));
+  for(let k=0;k<5;k++){
+    const a=k/5, ft=cl((gT-a)*5), fs=cl((a+0.2-(1-gS))*5);   // 이 칸에서 TQQQ 가 왼쪽부터 · SCHD 가 오른쪽부터 차지하는 몫
+    const p=document.createElement('div'); p.className='gpip'+(ft>0.001?' on':'')+(fs>0.001?' schd':'');
     p.style.setProperty('--d',(k*0.16).toFixed(2)+'s');   // 점등·셔머 지연을 함께 태운다(상속되는 커스텀 속성)
+    if(ft>0.001||fs>0.001){   // 색은 아래 비중 도넛과 같게(TQQQ 구리 · SCHD 세이지) — 적립 단계색이 SCHD 색과 거의 같아서
+      const T=(ft*100).toFixed(1)+'%', S=((1-fs)*100).toFixed(1)+'%', rc=ALLOC_COLORS.TQQQ;
+      p.style.background='linear-gradient(90deg,'+(ft>0.001?rc+' 0 '+T+',':'')+'var(--ov06) '+T+' '+S+','+SC+' '+S+' 100%)';
+      p.style.borderColor='transparent';
+    }
     trk.appendChild(p);}
   gr.appendChild(trk);
-  const gp=document.createElement('div'); gp.className='gauge-pct'; gp.id='gaugePct'; gp.textContent='0%';
+  const gp=document.createElement('div'); gp.className='gauge-pct'; gp.id='gaugePct'; gp.textContent='0%'; gp.title='전체 중 TQQQ 목표 비중';
   gr.appendChild(gp);
-  countTo(gp, Math.round(w*100), 850, '%');   // 칸 5개로는 20% 단위밖에 못 읽으므로 실제 비중을 같이 센다
+  countTo(gp, Math.round(gT*100), 850, '%');   // 칸 5개로는 20% 단위밖에 못 읽으므로 실제 비중을 같이 센다
   // 이번 주 동작
   let act;
   if(reg===4) act='전량 방어(GLD·SGOV) 중 — 고점 −3% 회복 또는 추세 회복까지';
@@ -3267,7 +3277,7 @@ function renderDashboard(){
   // 18.2 — 변동성 상한이 래더를 깎고 있으면 그 사실을 문구 앞에 · 게이지 옆에 '상한' 표시
   if(r.volCapped && reg!==4 && reg!==6){
     const rv=isNaN(r.vcRv)?'':' '+Math.round(r.vcRv*100)+'%';
-    const cap='변동성 상한 작동 — 최근 변동성'+rv+' → TQQQ '+Math.round(w*100)+'%로 제한(래더 '+Math.round((r.wBase||0)*100)+'%, 나머지 방어자산)';
+    const cap='변동성 상한 작동 — 최근 변동성'+rv+' → TQQQ '+Math.round(gT*100)+'%로 제한(SCHD 뺀 몫의 '+Math.round(w*100)+'%, 나머지 방어자산)';
     act = reg===2 ? '적립 · '+cap : cap+' · '+act;
     const vb=document.createElement('div'); vb.className='gauge-cap'; vb.textContent='상한';
     vb.title='변동성 상한(목표 '+P.targetVol+'%)이 TQQQ 비중을 줄이는 중';
