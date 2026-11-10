@@ -355,6 +355,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:var(--blur);-webkit-back
   transform-origin:left center;animation:pipIn .62s var(--ease) both;animation-delay:var(--d,0s)}
 @keyframes pipIn{from{transform:scaleX(0);opacity:0}to{transform:scaleX(1);opacity:1}}
 /* 게이지 오른쪽에 목표 비중 숫자. 칸 5개로는 20% 단위밖에 못 읽어서 실제 값을 같이 보여준다. */
+.gauge-cap{flex:0 0 auto;margin-left:6px;padding:1px 6px;border-radius:6px;font-size:10.5px;font-weight:700;color:var(--gold);background:rgba(224,194,122,.14);border:1px solid rgba(224,194,122,.35);line-height:1.5}
 .gauge-pct{flex:0 0 auto;margin-left:9px;font-family:var(--font-num);font-weight:700;font-size:13px;
   letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--rt,var(--rc,var(--accent)));
   text-shadow:0 0 16px color-mix(in srgb, var(--rc,var(--accent)) 45%, transparent);transition:color .5s var(--ease)}
@@ -2718,7 +2719,7 @@ function computeSeries(md,P,EX){
       out[i].rvol=Math.sqrt(v)*Math.sqrt(252);
     } }
   // 주간 RSI(14, Wilder) — 완결된 주 종가 기준. 모든 판정·스텝은 주 1회(주 마감 시).
-  let cur=1.0, curEff=1.0, on=true, sticky=false, tP=0, tL=1e18, above=0, below=0, eLow=1e18, fast=false, exitWk=0, exitAth=0;
+  let cur=1.0, curEff=1.0, vcRv=NaN, on=true, sticky=false, tP=0, tL=1e18, above=0, below=0, eLow=1e18, fast=false, exitWk=0, exitAth=0;
   let curWk=null, prevClose=null, g=0, l=0, nWk=0, rsiW=NaN;
   const pushWeek=c=>{ if(prevClose!=null){ const ch=c-prevClose, up=Math.max(ch,0), dn=Math.max(-ch,0);
       nWk++;
@@ -2770,9 +2771,10 @@ function computeSeries(md,P,EX){
       let volCap=1;
       if((P.targetVol||0)>0 && !isNaN(p.rvol) && p.rvol>0) volCap=Math.min(1,(P.targetVol/100)/(3*p.rvol));
       curEff=Math.round(Math.min(cur,volCap)*100)/100;
+      vcRv=(!isNaN(p.rvol)&&p.rvol>0)?p.rvol:NaN;   // 18.2 — 상한 계산에 쓴 변동성(표시용)
       curWk=wk;
     }
-    o.rsiW=rsiW; o.wBase=cur; o.w=curEff; o.volCapped=(curEff<cur-1e-9)?1:0; o.up=on?1:0; o.sticky=sticky; o.fast=(on&&!sticky&&fast&&cur<1)?1:0;
+    o.rsiW=rsiW; o.wBase=cur; o.w=curEff; o.volCapped=(curEff<cur-1e-9)?1:0; o.vcRv=vcRv; o.up=on?1:0; o.sticky=sticky; o.fast=(on&&!sticky&&fast&&cur<1)?1:0;
     o.trim=on&&!sticky&&trimSig(o,q[i]);
     o.dip=on&&!sticky&&!EX[5]&&P.dipStart>0&&o.ddr50<=-P.dipStart/100;
     o.regime = sticky?4 : (!on?6 : (o.dip?5 : (o.trim?3 : (cur<1?1:2))));
@@ -2808,7 +2810,7 @@ if(window.Chart){
 }
 // 긴 기간 차트의 점 개수를 줄여 렌더 부하를 낮춤(끝점은 보존)
 function decimate(arr,target){ const n=arr.length; if(!(target>=2)||n<=target) return arr; const step=Math.ceil(n/target); const out=[]; for(let i=0;i<n;i+=step) out.push(arr[i]); if(out[out.length-1]!==arr[n-1]) out.push(arr[n-1]); return out; }
-const APP_VERSION='18.1';   // VR 상단 안내 카드 제거
+const APP_VERSION='18.2';   // VR 상단 안내 카드 제거
 let FXNOW=1380;
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};   // 기기 로컬 날짜(한국) — 매매 기록용. 시세 마지막 거래일(CUR.date, 미국 종가 기준)과 다름에 주의
 const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
@@ -3262,6 +3264,15 @@ function renderDashboard(){
   else if(reg===3) act='매주 '+P.stepOut+'%p씩 TQQQ → 방어(GLD·SGOV) 트림 중';
   else if(reg===1) act='매주 '+(r.fast?P.thrustIn+'%p씩 방어 → TQQQ 추력 가속 복귀 중 (V반등 캡처)':P.stepIn+'%p씩 방어 → TQQQ 복귀 중');
   else act='유지 — 래더 100% (SCHD 뺀 나머지 전부 TQQQ) 기계적 적립';
+  // 18.2 — 변동성 상한이 래더를 깎고 있으면 그 사실을 문구 앞에 · 게이지 옆에 '상한' 표시
+  if(r.volCapped && reg!==4 && reg!==6){
+    const rv=isNaN(r.vcRv)?'':' '+Math.round(r.vcRv*100)+'%';
+    const cap='변동성 상한 작동 — 최근 변동성'+rv+' → TQQQ '+Math.round(w*100)+'%로 제한(래더 '+Math.round((r.wBase||0)*100)+'%, 나머지 방어자산)';
+    act = reg===2 ? '적립 · '+cap : cap+' · '+act;
+    const vb=document.createElement('div'); vb.className='gauge-cap'; vb.textContent='상한';
+    vb.title='변동성 상한(목표 '+P.targetVol+'%)이 TQQQ 비중을 줄이는 중';
+    gr.appendChild(vb);
+  }
   let ae=document.getElementById('stateAction');
   if(!ae){ ae=document.createElement('div'); ae.id='stateAction'; ae.className='state-sub'; ae.style.cssText='margin-top:8px'; sc.appendChild(ae); }
   // 카드 제목을 없앴으므로(§64) 시세 기준일을 동작 문구 끝에 붙인다 — 줄 수는 그대로다.
